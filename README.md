@@ -26,3 +26,5 @@ Ainda no contador da `teste-comunicacao-v2/`: o botão **+** mostra as ações d
 Na tela Lançar guia do contador (`teste-comunicacao-v2/`) agora há o campo **Arquivo da guia**, para carregar o PDF; o cliente baixa o mesmo arquivo.
 
 Imposto enviado pelo contador (`teste-comunicacao-v2/`): em Lançar guia, em Enviar documento (pasta Impostos) e em Enviar em lote (Impostos), a guia fica na pasta **Impostos** e também em **Guias de impostos**, para pagamento, ligada ao mesmo arquivo. O arquivo é guardado uma vez só: o mesmo conteúdo enviado de novo reaproveita o que já existe, e as cópias antigas são unidas ao abrir o app do contador.
+
+Os exemplos de guias de impostos (a pagar, pagas e as da pasta Guias pagas, de todos os meses) saíram dos dados iniciais dos dois apps da `teste-comunicacao-v2/`. Quem já tinha os exemplos guardados no navegador ou no banco tem eles removidos ao abrir o app; as guias lançadas depois ficam.
