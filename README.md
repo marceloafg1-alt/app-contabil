@@ -24,3 +24,5 @@ No contador da `teste-comunicacao-v2/`: os botões do início têm o tamanho dos
 Ainda no contador da `teste-comunicacao-v2/`: o botão **+** mostra as ações da tela aberta (em cada tela, mais Chat e Ajuda), há uma tela **Ajuda** com passo a passo e busca (no início e em Ajustes), e o **Chat** tem o mesmo visual e funcionamento do cliente: o nome do cliente de um lado (toque para trocar, em janela) e o **Contabills** do outro, que ensina a usar o app do contador. As mensagens do Contabills somem em 48 horas e as conversas com os clientes ficam guardadas.
 
 Na tela Lançar guia do contador (`teste-comunicacao-v2/`) agora há o campo **Arquivo da guia**, para carregar o PDF; o cliente baixa o mesmo arquivo.
+
+Imposto enviado pelo contador (`teste-comunicacao-v2/`): em Lançar guia, em Enviar documento (pasta Impostos) e em Enviar em lote (Impostos), a guia fica na pasta **Impostos** e também em **Guias de impostos**, para pagamento, ligada ao mesmo arquivo. O arquivo é guardado uma vez só: o mesmo conteúdo enviado de novo reaproveita o que já existe, e as cópias antigas são unidas ao abrir o app do contador.
