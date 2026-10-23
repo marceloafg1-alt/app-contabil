@@ -658,6 +658,13 @@ a.r.lk{text-decoration:none;color:inherit}
  .phone.ct .ech{margin-left:0;margin-right:0;padding:0}
  .phone.ct .wl{display:flex}
 }
+/* cabeçalho fixo: o topo de cada tela (voltar, título, empresa, botões) fica parado ao rolar; o fundo repete o degradê do app para o conteúdo passar por baixo */
+.phone{--hpt:12px;--hpl:22px;--hpr:22px;--hph:844px;--hbg:linear-gradient(180deg,var(--g1) 0%,var(--g2) 30%,var(--ground) 60%) 0 0/100% var(--hph) no-repeat var(--ground)}
+html.fs .phone{--hph:100vh}
+.scr>.hhd,.scr>.dhd:not(.chd),.scr>.phd{position:sticky;top:calc(-1*var(--hpt));z-index:6;margin:calc(-1*var(--hpt)) calc(-1*var(--hpr)) -8px calc(-1*var(--hpl));padding:var(--hpt) var(--hpr) 8px var(--hpl);background:var(--hbg)}
+.scr>.phd{padding-top:calc(var(--hpt) + 6px)}
+@media (max-width:520px){.phone{--hpt:calc(12px + env(safe-area-inset-top, 0px));--hpl:max(20px, env(safe-area-inset-left, 0px));--hpr:max(20px, env(safe-area-inset-right, 0px));--hph:100dvh}}
+@media (min-width:900px){.phone{--hpt:36px;--hpl:var(--gut);--hpr:var(--gut);--hbg:linear-gradient(180deg,var(--g2) 0,var(--ground) 380px) var(--ground)}}
 </style>
 
 <div class="stage"><div class="phone ct" id="phone" data-tema="azul-escuro" data-escuro="0">

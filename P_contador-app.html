@@ -602,6 +602,12 @@ a.r.lk{text-decoration:none;color:inherit}
 .phone[data-escuro="1"] .pill.bad{background:#3B1A18;color:#FF9C92}
 .phone[data-escuro="1"] .pc{color:#F2C26B}
 .fe[hidden]{display:none}
+/* cabeçalho fixo: o topo de cada tela (voltar, título, empresa, botões) fica parado ao rolar; o fundo repete o degradê do app para o conteúdo passar por baixo */
+.phone{--hpt:12px;--hpl:22px;--hpr:22px;--hph:844px;--hbg:linear-gradient(180deg,var(--g1) 0%,var(--g2) 30%,var(--ground) 60%) 0 0/100% var(--hph) no-repeat var(--ground)}
+html.fs .phone{--hph:100vh}
+.scr>.hhd,.scr>.dhd:not(.chd),.scr>.phd{position:sticky;top:calc(-1*var(--hpt));z-index:6;margin:calc(-1*var(--hpt)) calc(-1*var(--hpr)) -8px calc(-1*var(--hpl));padding:var(--hpt) var(--hpr) 8px var(--hpl);background:var(--hbg)}
+.scr>.phd{padding-top:calc(var(--hpt) + 6px)}
+@media (max-width:520px){.phone{--hpt:calc(12px + env(safe-area-inset-top, 0px));--hpl:max(20px, env(safe-area-inset-left, 0px));--hpr:max(20px, env(safe-area-inset-right, 0px));--hph:100dvh}}
 </style>
 <div class="stage"><div class="phone ct" id="phone" data-tema="azul-escuro" data-escuro="0">
 <div class="screens"><section class="scr" id="c-scr"></section></div>
