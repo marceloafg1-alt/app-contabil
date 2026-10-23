@@ -1,5 +1,5 @@
 // Contabills teste v2: rede primeiro (as atualizações chegam), cópia guardada só quando está sem internet.
-const CACHE = 'contabills-teste-v2-3';
+const CACHE = 'contabills-teste-v2-4';
 const ARQS = ['./app.html', './index.html', './painel.html', './manifest.webmanifest', './manifest-contador.webmanifest', './manifest-painel.webmanifest', '../icon-192.png', '../icon-512.png', '../icon-maskable-512.png', '../apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
