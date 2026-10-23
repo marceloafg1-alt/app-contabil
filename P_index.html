@@ -611,6 +611,12 @@ nav.tab{flex:none;height:66px;background:var(--card);border-top:1px solid var(--
 @keyframes pop{from{opacity:0;transform:translateY(-8px) scale(.98)}}
 @keyframes spin{from{opacity:0;transform:rotate(-140deg) scale(.55)}}
 @media (prefers-reduced-motion: reduce){.phone *,.phone{animation:none!important;transition:none!important}}
+/* cabeçalho fixo: o topo de cada tela (voltar, título, empresa, botões) fica parado ao rolar; o fundo repete o degradê do app para o conteúdo passar por baixo */
+.phone{--hpt:12px;--hpl:22px;--hpr:22px;--hph:844px;--hbg:linear-gradient(180deg,var(--g1) 0%,var(--g2) 30%,var(--ground) 60%) 0 0/100% var(--hph) no-repeat var(--ground)}
+html.fs .phone{--hph:100vh}
+.scr>.hhd,.scr>.dhd:not(.chd),.scr>.phd{position:sticky;top:calc(-1*var(--hpt));z-index:6;margin:calc(-1*var(--hpt)) calc(-1*var(--hpr)) -8px calc(-1*var(--hpl));padding:var(--hpt) var(--hpr) 8px var(--hpl);background:var(--hbg)}
+.scr>.phd{padding-top:calc(var(--hpt) + 6px)}
+@media (max-width:520px){.phone{--hpt:calc(12px + env(safe-area-inset-top, 0px));--hpl:max(20px, env(safe-area-inset-left, 0px));--hpr:max(20px, env(safe-area-inset-right, 0px));--hph:100dvh}}
 </style>
 
 <div class="stage">
@@ -629,7 +635,6 @@ nav.tab{flex:none;height:66px;background:var(--card);border-top:1px solid var(--
 <div class="list" id="act-list"></div></section>
 </section><section class="scr" id="s-dp" data-title="Departamento Pessoal" hidden>
 <div class="dhd"><button type="button" class="bk" data-back aria-label="Voltar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button><div class="dtt"><div class="s empn">Alvorada Design Ltda.</div><h1>Departamento Pessoal</h1></div></div>
-<div id="dp-docs"></div>
 <button type="button" class="r solo" data-go="funcs"><span class="ri"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"></circle><path d="M3 19c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"></path><path d="M16 5.2a3.2 3.2 0 0 1 0 5.6M18 14c2 .6 3 2.3 3 5"></path></svg></span><span class="rt"><span class="a">Gerenciar colaboradores</span><span class="b"><span id="dp-cols">4 colaboradores</span> · fichas e alterações</span></span><span class="cv"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></span></button>
 <section id="dp-fer" hidden></section>
 <section><div class="sec"><h2>Em andamento</h2><button type="button" class="lnk" data-go="pedidos">Ver todos</button></div>
