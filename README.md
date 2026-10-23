@@ -18,3 +18,5 @@ A pasta `teste-comunicacao-v2/` é a mesma ligação, com a tela **Gestão cont�
 Na `teste-comunicacao-v2/`, o app do contador também tem: botão **Baixar** em todos os arquivos recebidos (nas listas e na tela do documento), a tela **Guias de impostos** (no lugar de Lançar guia) com a situação de cada guia e os pedidos de parcelamento, recálculo, 2ª via e dúvida, e a tela inicial reorganizada.
 
 Também na `teste-comunicacao-v2/`: o DP do contador lista todos os colaboradores dos clientes (admissão, cadastro, readmissão e desligados), cada um com a ficha completa e o histórico de solicitações, e o app do cliente mostra o mesmo histórico na ficha do colaborador. O contador ganhou botão voltar em todas as telas e gestos: deslizar para a esquerda volta, para a direita avança e para baixo atualiza.
+
+No contador da `teste-comunicacao-v2/`: os botões do início têm o tamanho dos do cliente, com a situação dentro do botão ao lado do ícone, a ficha do colaborador abre e fecha por seções como no cliente, a aba Mensagens passou a se chamar Chat e a escolha de cliente nos formulários abre a janela de clientes.
