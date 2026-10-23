@@ -13,4 +13,4 @@ Para usar, basta abrir o `index.html` no navegador. Os dados são simulados e fi
 
 A pasta `teste-comunicacao/` junta o app do cliente, o app do contador e o painel de gestão na mesma origem. Eles compartilham os dados e os arquivos pelo armazenamento do navegador, então o que um envia aparece no outro. Funciona entre abas do mesmo navegador; entre aparelhos diferentes é preciso o servidor.
 
-A pasta `teste-comunicacao-v2/` é a mesma ligação, com a tela **Gestão contábil** no app do contador: por cliente e mês, mostra o cofre de notas (com PDF e XML), os extratos, as despesas (manuais e da planilha) com comprovantes, os documentos solicitados e os pedidos dos sócios, tudo assim que o cliente envia.
+A pasta `teste-comunicacao-v2/` é a mesma ligação, com a tela **Gestão contábil** no app do contador: por cliente e mês, mostra o cofre de notas depois de encerrado (com PDF e XML), as notas avulsas, os extratos, as despesas (manuais e da planilha) com comprovantes, os documentos solicitados e os pedidos dos sócios, assim que o cliente envia.
