@@ -24,7 +24,7 @@
  function adopt(docs){var c=docs.cfg;if(!c||!c.emps)return false;var emps=[],data={};
   c.emps.forEach(function(id){var d=docs['e_'+id];if(d&&d.emp){emps.push(d.emp);data[id]=d.data||{};}});
   if(!emps.length)return false;
-  var cur=MULTI.cur;MULTI=window.MULTI={emps:emps,cur:cur,data:data,cfg:c.cfg||{folhaDU:2,docsDia:14},sim:c.sim||null};
+  var cur=MULTI.cur;MULTI=window.MULTI={emps:emps,cur:cur,data:data,cfg:c.cfg||{folhaDU:2,docsDia:14},sim:c.sim||null,seedT2:MULTI.seedT2};
   if(!emps.some(function(e){return e.id===cur;}))MULTI.cur=emps[0].id;
   if(window.arqMigra)arqMigra();if(window.arqMigra2)arqMigra2();if(window.seedFer)seedFer();if(window.seedCad)seedCad();if(window.seedRot2)seedRot2();if(window.seedJess)seedJess();if(window.seedTeste2)seedTeste2();if(window.seedFicha1)seedFicha1();if(window.seedTermOff)seedTermOff();local();return true;}
  function onSnap(snap){
