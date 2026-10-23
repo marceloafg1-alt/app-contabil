@@ -224,7 +224,20 @@ label.fl{display:block;font-weight:700;font-size:14px;margin:14px 0 7px}
 .lvev:first-child{border-top:0}
 .lvev small{color:var(--muted);white-space:nowrap;margin-left:auto}
 </style>
-</head>
+<script>/* barras do sistema: o topo (barra de status) e o rodapé (barra de navegação) do celular pegam a cor do app, continuando o degradê */(function(){var mt=document.querySelector('meta[name="theme-color"]');if(!mt){mt=document.createElement('meta');mt.name='theme-color';document.head.appendChild(mt);}
+function rgb(s){var m=/rgba?\(([\d.]+),?\s*([\d.]+),?\s*([\d.]+)(?:\s*[,/]\s*([\d.]+%?))?/.exec(s||'');if(!m){m=/color\(srgb ([\d.]+) ([\d.]+) ([\d.]+)(?: \/ ([\d.]+))?/.exec(s||'');if(!m)return null;return{r:m[1]*255,g:m[2]*255,b:m[3]*255,a:m[4]==null?1:+m[4]};}var a=m[4]==null?1:(/%$/.test(m[4])?parseFloat(m[4])/100:+m[4]);return{r:+m[1],g:+m[2],b:+m[3],a:a};}
+function stops(img){return (img.match(/rgba?\([^)]*\)|color\(srgb[^)]*\)/g)||[]).map(rgb).filter(Boolean);}
+function mix(c,f){return{r:c.r*c.a+f.r*(1-c.a),g:c.g*c.a+f.g*(1-c.a),b:c.b*c.a+f.b*(1-c.a),a:1};}
+function conta(e){if(e===document.documentElement||e===document.body)return true;var cs=getComputedStyle(e);var q=e.getBoundingClientRect();if(cs.position==='fixed'||cs.position==='sticky')return true;return q.width>=innerWidth*.98&&(q.height>=innerHeight*.5||q.top<=1||q.bottom>=innerHeight-1);}
+function cor(y,ult){var pil=document.elementsFromPoint(innerWidth/2,y),cam=[];for(var i=0;i<pil.length;i++){var e=pil[i];if(!conta(e))continue;var cs=getComputedStyle(e),c=rgb(cs.backgroundColor);if(/gradient/.test(cs.backgroundImage)){var st=stops(cs.backgroundImage);if(st.length){var g=ult?st[st.length-1]:st[0];cam.push(g);if(g.a>=.98)break;}}if(c&&c.a>0){cam.push(c);if(c.a>=.98)break;}}
+var r={r:255,g:255,b:255,a:1};for(var i=cam.length-1;i>=0;i--)r=mix(cam[i],r);return r;}
+function hex(c){return '#'+[c.r,c.g,c.b].map(function(v){return ('0'+Math.round(v).toString(16)).slice(-2);}).join('');}
+var ult='',t=0;function aplica(){t=0;if(!document.body)return;var a=hex(cor(1,false)),b=hex(cor(innerHeight-1,true)),k=a+b;if(k===ult)return;ult=k;mt.setAttribute('content',a);var h=document.documentElement.style;h.backgroundColor=b;h.backgroundImage='linear-gradient(180deg,'+a+' 50%,'+b+' 50%)';}
+function agenda(){if(!t)t=setTimeout(aplica,120);}
+var mo=new MutationObserver(agenda);function liga(){mo.observe(document.documentElement,{attributes:true,attributeFilter:['class','data-tema','data-escuro','data-theme','style','hidden','open'],childList:true,subtree:true});aplica();}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',liga);else liga();
+addEventListener('load',agenda);addEventListener('resize',agenda);addEventListener('scroll',agenda,true);addEventListener('pageshow',agenda);
+try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',agenda);}catch(e){}})();</script></head>
 <body>
 <div class="app" id="app" data-tema="verde" data-escuro="0">
  <aside class="side" id="side"></aside>
