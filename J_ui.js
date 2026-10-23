@@ -5,7 +5,7 @@ function fit(){var cw=document.documentElement.clientWidth;if(cw<=520){p.style.s
 function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){return null;}}
 /* aviso */
 var toast=document.getElementById('toast'),tt;
-function say(m){toast.textContent=m;toast.classList.add('show');clearTimeout(tt);tt=setTimeout(function(){toast.classList.remove('show');},2200);}
+function say(m){var d=toastPinta(toast,m);clearTimeout(tt);tt=setTimeout(function(){toast.classList.remove('show');},d);}
 window.say=say;
 /* navegação */
 var cur='inicio',hist=[];var MAIN=['inicio','dp','contabil','guias','docs'];
@@ -92,10 +92,11 @@ document.addEventListener('click',function(e){var t=e.target.closest('[data-impx
  if(t.hasAttribute('data-cmv')){var dv=+t.dataset.cmv;if(CAL.per){CAL.y+=dv;renderCal();return;}if(CAL.view==='d'){CAL.m+=dv;if(CAL.m<0){CAL.m=11;CAL.y--;}if(CAL.m>11){CAL.m=0;CAL.y++;}}else CAL.y+=dv;renderCal();return;}
  if(t.hasAttribute('data-cmode')||t.hasAttribute('data-cyear')){CAL.view='y';renderCal();return;}
 if(t.hasAttribute('data-cyr')){CAL.y=+t.dataset.cyr;CAL.view=CAL.per?null:'m';renderCal();return;}
- if(t.hasAttribute('data-cmlock')){var lc=t.dataset.cmlock,lg=CAL.grp==='cofre'?'notas':CAL.grp;askPedLib(lg,lc);return;}
+ if(t.hasAttribute('data-cmlock')){var lc=t.dataset.cmlock,lg=CAL.grp==='cofre'?'notas':CAL.grp;askPedLib(lg,lc,CAL.mesk==='#atr'?function(){hist=['inicio'];show(lg==='folha'?'dp':'contabil',true);}:null);return;}
  if(t.hasAttribute('data-cmes')&&CAL.per){CAL.pm=+t.dataset.cmes;CAL.py=CAL.y;CAL.pall=false;renderCal();return;}
  if(t.hasAttribute('data-cmes')){CAL.m=+t.dataset.cmes;CAL.view='d';renderCal();return;}
  if(t.hasAttribute('data-cday')){CAL.sel=t.dataset.cday;renderCal();return;}
+ if(t.hasAttribute('data-calok')&&CAL.per&&CAL.mesk==='#atr'){var ac=MES[CAL.pm]+'/'+CAL.py,ag=CAL.atr.g;PRE=ag==='despesas'?{__manual:1,comp:ac}:{comp:ac};closeSheets();go(ATR_ROTA[ag]);return;}
  if(t.hasAttribute('data-calok')&&CAL.per&&CAL.mesk==='#dpl'){DPL.c=MES[CAL.pm]+'/'+CAL.py;DPL.cSet=1;closeSheets();show(cur,false,true);return;}
  if(t.hasAttribute('data-calok')&&CAL.per&&CAL.mesk==='#env'){ECOMP[ENVG]=MES[CAL.pm]+'/'+CAL.py;closeSheets();show(cur,false,true);return;}
  if(t.hasAttribute('data-calok')&&CAL.per&&CAL.mesk==='#var'){VCOMP=CAL.pall?'all':MES[CAL.pm]+'/'+CAL.py;closeSheets();show(cur,false,true);return;}
@@ -131,7 +132,7 @@ if(t.hasAttribute('data-cyr')){CAL.y=+t.dataset.cyr;CAL.view=CAL.per?null:'m';re
  if(t.hasAttribute('data-voceok')){ST.ped.forEach(function(x){if(x.id===t.dataset.voceok){x.st='analise';x.cli='Resolvido pelo cliente em '+hoje()+'.';x.cr=1;ST.act.unshift(['Respondido ao contador · '+x.tipo,'Agora',1]);}});save();renderLists();show(cur,false,true);say('Contador avisado');return;}
  if(t.hasAttribute('data-sign')){ST.ped.forEach(function(x){if(x.id===t.dataset.sign){x.st='analise';x.cli='Aviso assinado em '+hoje()+'.';x.cr=1;ST.act.unshift(['Aviso de férias de '+x.quem+' assinado','Agora',1]);}});save();renderLists();show(cur,false,true);say('Aviso assinado e enviado ao contador');return;}
  if(t.hasAttribute('data-go')){var g=t.dataset.go;
-  if(t.dataset.askatr){var aq=t.dataset.askatr.split('|');setTimeout(function(){askPedLib(aq[0],aq[1]);},380);}
+  if(t.dataset.askatr){var aq=t.dataset.askatr.split('|');if(!compOk(aq[0]==='notas'?'cofre':aq[0],aq[1])){openAtr(aq[0],aq[1]);return;}}
   if((g==='f-despesas'||g==='f-extrato')&&head(cur)==='envio'){var eg4=cur.split('-')[1],ec4=ECOMP[eg4];if(ec4&&compOk(eg4,ec4))PRE={comp:ec4};}
   if(g==='#dman'||g==='#dpl'){fabClose();var dc=ECOMP.despesas;if(!dc||!compOk('despesas',dc))dc=despCompOk('');if(g==='#dman'){PRE=dc?{comp:dc,__manual:1}:{__manual:1};go('f-despesas');}else go('desppl'+(dc?'-'+dc:''));return;}
   if(g==='#nfv'||g==='#nfc'){fabClose();var nc=CCOMP&&compOk('cofre',CCOMP)?CCOMP:(abertas('notas')[0]||'');PRE={tipo:g==='#nfv'?'Emitidas (vendas)':'Recebidas (compras)'};if(nc)PRE.comp=nc;go('f-notas');return;}
@@ -209,7 +210,8 @@ function termPend(){try{return rotItens().filter(function(x){return !x.done&&!x.
 var softEl=null,softT=null;
 function soft(t,d,ic){if(!softEl){softEl=document.createElement('div');softEl.className='soft';softEl.setAttribute('role','status');p.appendChild(softEl);}
  softEl.innerHTML='<span class="sic">'+(ic||IC.check16)+'</span><span><b>'+esc(t)+'</b>'+(d?'<span class="sd">'+esc(d)+'</span>':'')+'</span>';
- void softEl.offsetWidth;softEl.classList.add('on');clearTimeout(softT);softT=setTimeout(function(){softEl.classList.remove('on');},3600);}
+ softEl.style.setProperty('--td',Math.min(8000,Math.max(3600,1600+(String(t)+String(d||'')).length*55))+'ms');softEl.innerHTML+='<span class="tsb"></span>';if(!softEl.__tq){softEl.__tq=1;softEl.addEventListener('click',function(){softEl.classList.remove('on');});}
+ softEl.classList.remove('on');void softEl.offsetWidth;softEl.classList.add('on');clearTimeout(softT);softT=setTimeout(function(){softEl.classList.remove('on');},parseInt(softEl.style.getPropertyValue('--td'),10));}
 /* tema perto do vermelho (vermelho, vinho, rosa): o termômetro fica cinza escuro; nos demais, vermelho */
 function termHsl(c){c=String(c||'').trim();var m=/^#?([0-9a-f]{6})$/i.exec(c);if(!m)return null;var n=parseInt(m[1],16),r=(n>>16&255)/255,g=(n>>8&255)/255,b=(n&255)/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn,h=0,l=(mx+mn)/2,s=d?d/(1-Math.abs(2*l-1)):0;if(d){h=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4;h*=60;if(h<0)h+=360;}return {h:h,s:s,l:l};}
 function termTema(){var c=termHsl(getComputedStyle(p).getPropertyValue('--a2'));var perto=c&&c.s>0.3&&(c.h>=330||c.h<=18);return perto?'termcinza':'vermelho';}
@@ -281,11 +283,13 @@ function openPer(k){fabClose();var t=NOW(),src,grp=null,ttl;
  else{src=FCOMP&&FCOMP!=='all'?FCOMP:'';ttl='Selecionar período';}
  var p=src?src.split('/'):null,mi=p?MES.indexOf(p[0]):t.getMonth(),yy=p?+p[1]:t.getFullYear();
  CAL={per:1,mesk:k||null,grp:grp,y:yy,m:mi,py:yy,pm:mi,pall:(!k&&FCOMP==='all')||(k==='#pasta'&&PCOMP==='all')||(k==='#var'&&VCOMP==='all'),sel:'x',view:'m'};document.getElementById('cs-t').textContent=ttl;renderCal();cs.hidden=false;ov3.hidden=false;}
+/* envio vencido (Verificar rotinas e avisos): abre direto o seletor de competência, com o mês vencido em destaque; tocar nele pede a liberação */
+function openAtr(g,c){fabClose();var q=cParse(c);CAL={per:1,mesk:'#atr',grp:g==='notas'?'cofre':g,atr:{g:g,c:c},y:q.y,m:q.m,py:q.y,pm:q.m,pall:false,sel:'x',view:'m'};document.getElementById('cs-t').textContent='Competência';renderCal();cs.hidden=false;ov3.hidden=false;}
 function renderCal(){var t=NOW(),hoje=iso(t.getFullYear(),t.getMonth(),t.getDate()),h='';
  if(CAL.view==='y'){var y0=t.getFullYear(),ys=CAL.per?y0-15:y0-100,ye=y0+(CAL.per?2:10),yl='';for(var yy=ye;yy>=ys;yy--)yl+='<button type="button" class="'+(yy===CAL.y?'on':'')+(yy===y0&&yy!==CAL.y?' now':'')+'" data-cyr="'+yy+'"'+(yy===CAL.y?' id="cyr-sel"':'')+'>'+yy+'</button>';
   h+='<div class="cnav"><span class="cml" style="flex:1;text-align:center">Escolha o ano</span></div><div class="cmes cyrs" style="max-height:300px;overflow-y:auto;grid-template-columns:repeat(4,1fr)">'+yl+'</div>';csb.innerHTML=h;var ok0=document.getElementById('cs-ok');if(ok0)ok0.disabled=true;var sl=document.getElementById('cyr-sel');if(sl)sl.scrollIntoView({block:'center'});return;}
   if(CAL.per){var okc=function(c){if(!CAL.grp)return true;if(CAL.grp==='view')return compSt('docs',c)!=='futuro';return compOk(CAL.grp,c);};h+='<div class="cnav"><button type="button" class="cn" data-cmv="-1" aria-label="Ano anterior">'+IC.tri+'</button><button type="button" class="cml" data-cyear>'+CAL.y+IC.chevd+'</button><button type="button" class="cn nx" data-cmv="1" aria-label="Próximo ano">'+IC.tri+'</button></div>';
-  h+='<div class="cmes">'+MES.map(function(n,i){var on=!CAL.pall&&i===CAL.pm&&CAL.y===CAL.py,now=i===t.getMonth()&&CAL.y===t.getFullYear(),ok=okc(cName(CAL.y,i));return '<button type="button" class="'+(on&&ok?'on':'')+(now&&!on?' now':'')+(ok?'':' off')+'" data-cmes="'+i+'"'+(ok?'':(podeLib(cName(CAL.y,i))?' data-cmlock="'+cName(CAL.y,i)+'" aria-label="'+n+' fechado: pedir liberação ao contador"':' disabled aria-disabled="true" aria-label="'+n+' indisponível"'))+'>'+n.slice(0,3)+(ok?'':IC.lock12)+'</button>';}).join('')+'</div>';
+  h+='<div class="cmes">'+MES.map(function(n,i){var on=!CAL.pall&&i===CAL.pm&&CAL.y===CAL.py,now=i===t.getMonth()&&CAL.y===t.getFullYear(),ok=okc(cName(CAL.y,i));return '<button type="button" class="'+(on&&ok?'on':'')+(now&&!on?' now':'')+(ok?'':' off')+(CAL.atr&&CAL.atr.c===cName(CAL.y,i)?' alvo':'')+'" data-cmes="'+i+'"'+(ok?'':(podeLib(cName(CAL.y,i))?' data-cmlock="'+cName(CAL.y,i)+'" aria-label="'+n+' fechado: pedir liberação ao contador"':' disabled aria-disabled="true" aria-label="'+n+' indisponível"'))+'>'+n.slice(0,3)+(ok?'':IC.lock12)+'</button>';}).join('')+'</div>';
   if(CAL.grp&&CAL.grp!=='view'&&!(CAL.grp==='folha'&&LIBERA_FOLHA))h+='<p class="cnote">'+IC.lock12+'<span>Meses com cadeado já encerraram ou ainda não abriram. Toque num mês encerrado para pedir ao contador que libere o envio.</span></p>';
   if(!CAL.mesk||CAL.mesk==='#pasta'||CAL.mesk==='#var')h+='<button type="button" class="perall'+(CAL.pall?' on':'')+'" data-perall>'+(CAL.pall?IC.check16:'')+' Todos os períodos</button>';
   csb.innerHTML=h;document.getElementById('cs-ok').disabled=!(CAL.pall||okc(cName(CAL.py,CAL.pm)));return;}
@@ -384,8 +388,8 @@ function cepFetch(cd,cb){var SV=[['https://viacep.com.br/ws/'+cd+'/json/',functi
   try{fetch(SV[k][0],ctl?{signal:ctl.signal}:{}).then(function(r){if(r.status===404||r.status===400){nf++;return null;}if(!r.ok)throw 0;return r.json();}).then(function(j){clearTimeout(tm);var a=j?SV[k][1](j):null;if(!a){if(j)nf++;tenta(k+1);return;}cb(a,'Endereço encontrado. Confira o número.');}).catch(function(){clearTimeout(tm);tenta(k+1);});}catch(e){clearTimeout(tm);tenta(k+1);}};
  tenta(0);}
 function podeLib(c){if(!CAL||!CAL.grp||CAL.grp==='view'||CAL.grp==='docs')return false;var g=CAL.grp==='cofre'?'notas':CAL.grp;return !!LIBN[g]&&compSt(g,c)!=='futuro'&&!compOk(CAL.grp,c);}
-function askPedLib(g,c){if(pedLibAberto(g,c)){say('Você já pediu a liberação de '+cMes(c)+'. Aguarde o contador.');return;}
- askGen({soft:1,ic:IC.lock12||IC.lock||IC.x,t:cap(cMes(c))+' já foi encerrado',d:'Para enviar '+LIBN[g]+' deste mês, peça ao contador que libere o envio. Se ele liberar, você envia normalmente até a data combinada.',ok:'Pedir liberação',cb:function(){pedirLib(g,c);save();renderLists();closeSheets();if(FS&&head(cur)==='f')refreshFlow();say('Pedido enviado ao contador');}});}
+function askPedLib(g,c,depois){if(pedLibAberto(g,c)){say('Você já pediu a liberação de '+cMes(c)+'. Aguarde o contador.');return;}
+ askGen({soft:1,ic:IC.lock12||IC.lock||IC.x,t:cap(cMes(c))+' já foi encerrado',d:'Para enviar '+LIBN[g]+' deste mês, peça ao contador que libere o envio. Se ele liberar, você envia normalmente até a data combinada.',ok:'Pedir liberação',cb:function(){pedirLib(g,c);save();renderLists();closeSheets();if(FS&&head(cur)==='f')refreshFlow();say('Pedido de liberação de '+cMes(c)+' enviado ao contador');if(depois)depois();}});}
 /* gestos: deslizar para a esquerda volta, para a direita avança; em Verificar rotinas, deslizar um aviso vencido para a esquerda apaga */
 (function(){var sx=0,sy=0,st0=0,on=false,row=null,lock=null;
  function aberto(){return !ps.hidden||!cs.hidden||!ov3.hidden||!ov4.hidden||p.classList.contains('fab-on')||!!document.querySelector('.psheet.hsheet:not([hidden]),.psheet.jsheet:not([hidden])');}

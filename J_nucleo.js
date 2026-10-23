@@ -1658,3 +1658,12 @@ var _rotItens0=rotItens;rotItens=function(){var L=_rotItens0();validades().forEa
 function docType(n){n=String(n||'');if(/contrato/i.test(n))return ['Contrato','doc'];if(/holerite|contracheque|folha/i.test(n))return ['Holerite','folha'];if(/guia|\bdas\b|darf|fgts|gps/i.test(n))return ['Guia','tax'];if(/f[ée]rias|aviso/i.test(n))return ['Férias','ferias'];if(/altera|atualiza|retifica/i.test(n))return ['Alteração','doc'];return ['Documento','doc'];}
 function docsRecebidos(){return arqList().filter(function(a){return a.or==='ct'&&a.st==='disp';});}
 var _rotItens1=rotItens;rotItens=function(){var L=_rotItens1();docsRecebidos().forEach(function(a){var dt=docType(a.n);L.push({g:'Documentos do contador',t:'Ver '+dt[0].toLowerCase()+': '+a.n,pz:dOnly(NOW()),ini:dOnly(NOW()),done:false,go:'arq-'+a.id,doc:1,sub:'Enviado pelo contador · toque para abrir',st:'aberto',kind:'doc',rg:'doc'});});return L;};
+
+/* notificações (toast): cartão com ícone, o texto inteiro (quebra em linhas) e uma barra que mostra o tempo; some sozinha ou ao tocar.
+   Avisos de erro ou de bloqueio ganham o ícone de atenção. O tempo na tela cresce com o tamanho do texto. */
+var TOAST_ALERTA=/^(não |nada |falta|preencha|escolha|digite|diga|erro|você já|este arquivo|esta nota|esta guia|selecione|informe)|só pode|não foi possível|não dá|indisponível|já pediu|inválid/i;
+var TOAST_EXCL='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 6.5v7"/><path d="M12 17.6v.01"/></svg>';
+function toastPinta(el,m,on){var s=String(m==null?'':m),w=TOAST_ALERTA.test(s),d=Math.min(8000,Math.max(2800,1300+s.length*55));on=on||'show';
+ el.classList.remove(on);el.classList.toggle('warn',w);el.innerHTML='<span class="tsi">'+(w?TOAST_EXCL:IC.check16)+'</span><span class="tst"></span><span class="tsb"></span>';el.querySelector('.tst').textContent=s;el.style.setProperty('--td',d+'ms');
+ if(!el.__tq){el.__tq=1;el.addEventListener('click',function(){el.classList.remove(on);});}
+ void el.offsetWidth;el.classList.add(on);return d;}

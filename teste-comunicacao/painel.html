@@ -164,8 +164,16 @@ label.fl{display:block;font-weight:700;font-size:14px;margin:14px 0 7px}
 .menu-grid button{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 6px;display:flex;flex-direction:column;align-items:center;gap:8px;font-size:12.5px;font-weight:700}
 .menu-grid button .av{width:44px;height:44px}
 .menu-grid button.on{border-color:var(--accent)}
-.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:var(--ink);color:var(--ground);padding:12px 18px;border-radius:14px;font-size:14px;font-weight:700;z-index:90;opacity:0;pointer-events:none;transition:.25s;max-width:calc(100vw - 32px);text-align:center}
-.toast.on{opacity:1;transform:translate(-50%,0)}
+.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translate(-50%,18px) scale(.96);z-index:90;width:calc(100vw - 32px);max-width:400px;display:flex;align-items:center;gap:12px;padding:12px 16px 14px 12px;border-radius:20px;background:var(--card);color:var(--ink);border:1px solid var(--line);box-shadow:0 16px 40px rgba(0,0,0,.18),0 3px 8px rgba(0,0,0,.08);font-size:14px;font-weight:600;line-height:1.4;opacity:0;pointer-events:none;transition:opacity .22s ease,transform .36s cubic-bezier(.2,.9,.3,1.25);overflow:hidden;cursor:pointer}
+.toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast .tsi{width:34px;height:34px;border-radius:12px;flex:none;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--a1),var(--a3));color:var(--onA)}
+.toast.warn .tsi{background:var(--warnBg);color:var(--warn)}
+.toast .tst{flex:1;min-width:0;overflow-wrap:anywhere}
+.toast .tsb{position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(90deg,var(--a1),var(--a3));transform-origin:left}
+.toast.warn .tsb{background:var(--warn);opacity:.55}
+.toast.on .tsb{animation:tsbar var(--td,3s) linear forwards}
+@keyframes tsbar{to{transform:scaleX(0)}}
+@media (prefers-reduced-motion:reduce){.toast{transition:opacity .2s}.toast.on .tsb{animation:none}}
 .hide-m{display:none}
 
 /* web */
@@ -236,7 +244,7 @@ label.fl{display:block;font-weight:700;font-size:14px;margin:14px 0 7px}
  <nav class="bnav" id="bnav"></nav>
  <div class="scrim" id="scrim" data-act="fechar"></div>
  <div class="sheet" id="sheet"></div>
- <div class="toast" id="toast"></div>
+ <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </div>
 <script>
 (function(){
@@ -398,7 +406,7 @@ const BN=['geral','aovivo','escritorios','empresas'];
 const $=id=>document.getElementById(id);
 const app=$('app');
 
-function toast(t){const el=$('toast');el.textContent=t;el.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>el.classList.remove('on'),2200)}
+function toast(t){const el=$('toast'),s=String(t==null?'':t),w=/^(não |nada |falta|preencha|escolha|digite|escreva|informe|reative|erro)|não foi possível|inválid/i.test(s),d=Math.min(8000,Math.max(2800,1300+s.length*55));el.classList.remove('on');el.classList.toggle('warn',w);el.innerHTML='<span class="tsi">'+(w?'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 6.5v7"/><path d="M12 17.6v.01"/></svg>':'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>')+'</span><span class="tst"></span><span class="tsb"></span>';el.querySelector('.tst').textContent=s;el.style.setProperty('--td',d+'ms');if(!el.__tq){el.__tq=1;el.addEventListener('click',()=>el.classList.remove('on'))}void el.offsetWidth;el.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>el.classList.remove('on'),d)}
 function salvaTema(){app.dataset.tema=S.tema;app.dataset.escuro=S.escuro?'1':'0';try{localStorage.setItem('cb-gestao',JSON.stringify({tema:S.tema,escuro:S.escuro}))}catch(e){}}
 
 /* ---------- helpers de status ---------- */
