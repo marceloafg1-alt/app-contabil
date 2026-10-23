@@ -33,7 +33,7 @@ var FWD=[];
 function back(){var t=hist.length?hist.pop():areaOf(cur);while((t.indexOf('f-')===0||t==='login')&&hist.length)t=hist.pop();if(t.indexOf('f-')===0||t==='login')t='inicio';show(t,true);}
 function home(){hist=[];show('inicio',true);}
 function refreshFlow(){var y=dyn.scrollTop;dyn.innerHTML=renderFlow();dyn.scrollTop=y;}
-document.addEventListener('click',function(e){var t=e.target.closest('[data-go],[data-back],[data-soon],[data-toast],[data-copy],[data-next],[data-fback],[data-edit],[data-home],[data-sign],[data-despaga],.op,[data-pf],[data-nt],[data-readall],[data-pref],[data-tema-go],[data-sair],[data-sair-no],[data-faqpick],[data-faqsim],[data-chtoct],[data-navmode],[data-emp],[data-esclose],[data-vadd],[data-vdel],[data-semvar],[data-delfolha],[data-vopt],[data-pick],[data-cal],[data-dlarq],[data-rotoff],[data-rotsim],[data-enccofre],[data-semvarmes],[data-desave],[data-dedel],[data-dplc],[data-dplex],[data-dpldel],[data-dplsend],[data-dplclear],[data-encg],[data-periodo],[data-perall],[data-mes],[data-svtog],[data-envall],[data-env1],[data-finfolha],[data-pv],[data-pclose],[data-vpick],[data-cmv],[data-cmode],[data-cyear],[data-cyr],[data-cmes],[data-cday],[data-calok],[data-delnota],[data-delextr],[data-tg],[data-chtab],[data-chroute],[data-chkeep],[data-rotrest],[data-cmlock],[data-pedlib],[data-depadd],[data-depdel],[data-deppick],[data-fepick],[data-fesave],[data-hm],[data-jed],[data-nfdl],[data-cperiodo],[data-adiar],[data-urole],[data-uremove],[data-devout],[data-devall],[data-termtest],[data-rcalc],[data-ntest]');if(!t)return;
+document.addEventListener('click',function(e){var t=e.target.closest('[data-impx],[data-go],[data-back],[data-soon],[data-toast],[data-copy],[data-next],[data-fback],[data-edit],[data-home],[data-sign],[data-despaga],.op,[data-pf],[data-nt],[data-readall],[data-pref],[data-tema-go],[data-sair],[data-sair-no],[data-faqpick],[data-faqsim],[data-chtoct],[data-emp],[data-esclose],[data-vadd],[data-vdel],[data-semvar],[data-delfolha],[data-vopt],[data-pick],[data-cal],[data-dlarq],[data-rotoff],[data-simhoje],[data-zeraimp],[data-enccofre],[data-semvarmes],[data-desave],[data-dedel],[data-dplc],[data-dplex],[data-dpldel],[data-dplsend],[data-dplclear],[data-encg],[data-periodo],[data-perall],[data-mes],[data-svtog],[data-envall],[data-env1],[data-finfolha],[data-pv],[data-pclose],[data-vpick],[data-cmv],[data-cmode],[data-cyear],[data-cyr],[data-cmes],[data-cday],[data-calok],[data-delnota],[data-delextr],[data-tg],[data-chtab],[data-chroute],[data-chkeep],[data-rotrest],[data-cmlock],[data-pedlib],[data-depadd],[data-depdel],[data-deppick],[data-fepick],[data-fesave],[data-hm],[data-jed],[data-nfdl],[data-cperiodo],[data-adiar],[data-urole],[data-uremove],[data-devout],[data-devall],[data-termtest],[data-rcalc],[data-ntest]');if(!t)return;
  if(t.hasAttribute('data-ntest')){soft('Notificação de teste','É assim que os avisos vão aparecer para você',IC.clock);return;}
  if(t.hasAttribute('data-rcalc')){var rp=t.dataset.rcalc.split('|'),pp=ST.ped.filter(function(x){return x.id===rp[0];})[0];if(pp){var cb=rp[1]==='1';pp.st='ok';pp.rc=1;pp.cobr=cb?'R$ 45,00':'';ST.notif.unshift({t:cb?'O contador cobrou R$ 45,00 pelo recálculo':'Recálculo concluído sem cobrança',s:pp.quem||'Guia',h:'Agora',go:'ped-'+pp.id,u:1});ST.act.unshift([cb?'Recálculo cobrado: R$ 45,00':'Recálculo concluído, sem cobrança','Agora',1]);save();renderLists();show(cur,false,true);soft(cb?'O contador cobrou R$ 45,00':'Recálculo sem cobrança',cb?'Pelo recálculo da guia · veja os detalhes no pedido':'Nada a pagar por este recálculo',cb?IC.tax:IC.check16);}return;}
  if(t.hasAttribute('data-termtest')){termPlay(true);return;}
@@ -41,13 +41,15 @@ document.addEventListener('click',function(e){var t=e.target.closest('[data-go],
  if(t.hasAttribute('data-uremove')){var uix=+t.dataset.uremove,ur0=USR()[uix];askGen({ic:IC.x,t:'Remover o acesso de '+(ur0?ur0.n:'este usuário')+'?',d:'A pessoa deixa de entrar no app desta empresa.',ok:'Remover',cb:function(){var ur=USR().splice(uix,1)[0];save();say('Acesso de '+ur.n+' removido');back();}});return;}
  if(t.hasAttribute('data-devout')){DEV().splice(+t.dataset.devout,1);save();show(cur,false,true);say('Aparelho desconectado');return;}
  if(t.hasAttribute('data-devall')){ST.devs=DEV().filter(function(d){return d.eu;});save();show(cur,false,true);say('Outros aparelhos desconectados');return;}
+ if(t.hasAttribute('data-impx')){IMPX=IMPX?0:1;renderLists();return;}
  if(t.hasAttribute('data-adiar')){var nmA=t.dataset.adiar;ferAdiar(nmA);save();extraLists();if(window.renderLists)renderLists();show(cur,false,true);say('Férias de '+nmA+' adiadas para o próximo período');return;}
  if(t.hasAttribute('data-pf')){PF=t.dataset.pf;show('pedidos',false,true);return;}
  if(t.hasAttribute('data-nt')){var nn=ST.notif[+t.dataset.nt];nn.u=0;save();extraLists();go(nn.go);return;}
  if(t.hasAttribute('data-readall')){ST.notif.forEach(function(x){x.u=0;});save();extraLists();show('notif',false,true);return;}
  if(t.hasAttribute('data-pref')){var kq=t.dataset.pref;ST.prefs[kq]=ST.prefs[kq]?0:1;save();t.setAttribute('aria-checked',ST.prefs[kq]?'true':'false');if(kq==='term'&&ST.prefs.term)setTimeout(termCheck,400);var sc2=['dois','bio','alog','term','semfolha'].indexOf(kq)>-1;say(ST.prefs[kq]?(sc2?'Ligado':'Aviso ligado'):(sc2?'Desligado':'Aviso desligado'));return;}
  if(t.hasAttribute('data-svtog')){var l=document.getElementById('svl-'+t.dataset.svtog);l.hidden=!l.hidden;t.classList.toggle('open',!l.hidden);return;}
- if(t.hasAttribute('data-rotsim')){var sv=t.dataset.rotsim||null,rl=new Date(),ri=rl.getFullYear()+'-'+('0'+(rl.getMonth()+1)).slice(-2)+'-'+('0'+rl.getDate()).slice(-2);MULTI.sim=sv&&sv!==ri?sv:null;try{syncSim();}catch(x){}applySim();say('Hoje no app: '+fmtP(NOW()));return;}
+ if(t.hasAttribute('data-simhoje')){MULTI.sim=null;syncSim();applySim();show(cur,false,true);say('Voltou para a data de hoje');return;}
+ if(t.hasAttribute('data-zeraimp')){askGen({ic:IC.tax,t:'Zerar os impostos?',d:'Todas as guias (a pagar e pagas), os arquivos da pasta Impostos e os pedidos de guias saem de todas as empresas, no app e no contador. Não dá para desfazer.',ok:'Zerar impostos',cb:function(){zeraImpostos();renderLists();show(cur,false,true);say('Impostos zerados');}});return;}
  if(t.hasAttribute('data-rotoff')){var rk=t.dataset.rotoff,rp=rk.split(':');askGen({t:'Apagar este aviso?',d:'Apagar não resolve: '+(ROTG[rp[0]]?ROTG[rp[0]][3]:'o envio')+' de '+cMes(rp[1])+' continua vencido. Para resolver, contate o contador. O aviso fica guardado nos avisos apagados.',ok:'Apagar aviso',ic:IC.x,cb:function(){ST.rotOff=ST.rotOff||{};ST.rotOff[rk]=1;save();renderLists();show(cur,false,true);say('Aviso removido');}});return;}
  if(t.hasAttribute('data-dplc')){DPL.c=t.dataset.dplc;show(cur,false,true);return;}
  if(t.hasAttribute('data-dplex')){var cq=cParse(DPL.c),mm=('0'+(cq.m+1)).slice(-2);DPL.arq='despesas-exemplo.xlsx';DPL.err='';DPL.rows=dplRows([['Descrição','Categoria','Valor','Emissão','Vencimento','Situação']].concat(DPL_EX.map(function(r){var pq=cParse(cName(cq.y,cq.m-1)),xx=('0'+(pq.m+1)).slice(-2)+'/'+pq.y;return r.map(function(x){return String(x).replace('MM',mm+'/'+cq.y).replace('XX',xx);});})));show(cur,false,true);return;}
@@ -111,7 +113,6 @@ if(t.hasAttribute('data-cyr')){CAL.y=+t.dataset.cyr;CAL.view=CAL.per?null:'m';re
  if(t.hasAttribute('data-emp')){var eid=t.dataset.emp;if(eid===MULTI.cur){closeEmp();if(cur!=='inicio'){hist=[];show('inicio',true);}return;}
   var ne=MULTI.emps.filter(function(x){return x.id===eid;})[0];askConfirm(ne,function(){switchEmp(eid);});return;}
  if(t.hasAttribute('data-esclose'))closeEmp();
- if(t.hasAttribute('data-navmode')){ST.prefs.nav=t.dataset.navmode;save();show(cur,false,true);say(t.dataset.navmode==='botoes'?'Tela cheia vai reservar espaço para os 3 botões':t.dataset.navmode==='gestos'?'Tela cheia vai usar a tela toda':'O app vai detectar a barra sozinho');if(isFs()){de.dataset.barra=ST.prefs.nav==='auto'?navMode():ST.prefs.nav;upFs();}return;}
  if(t.hasAttribute('data-tema-go')){abrir();return;}
  if(t.hasAttribute('data-sair')){document.getElementById('conf').hidden=false;t.hidden=true;return;}
  if(t.hasAttribute('data-sair-no')){document.getElementById('conf').hidden=true;dyn.querySelector('[data-sair]').hidden=false;return;}
@@ -320,31 +321,6 @@ function encCofre(c){var cf=cofreOf(c),n=cf.notas.length;cf.st='encerrado';cf.em
  if(cur==='cofre')show('cofre',false,true);else go('cofre');say('Cofre de '+cMes(c)+' encerrado e enviado ao contador');}
 document.getElementById('cf-no').addEventListener('click',closeConfirm);ov4.addEventListener('click',closeConfirm);
 document.getElementById('cf-ok').addEventListener('click',function(){var cb=CFCB;closeConfirm();cb&&cb();});
-/* tela cheia */
-var mx=document.getElementById('maxi'),de=document.documentElement;
-var canFs=!!(document.fullscreenEnabled||document.webkitFullscreenEnabled);
-var MXI="<svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5\"></path></svg>",MNI="<svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5\"></path></svg>";
-function isFs(){return !!(document.fullscreenElement||document.webkitFullscreenElement);}
-function upFs(){var on=isFs();mx.innerHTML=on?MNI:MXI;mx.setAttribute('aria-label',on?'Sair da tela cheia':'Tela cheia');
- /* com 3 botões: se a barra do sistema ficar por cima do app, reserva 48px embaixo */
- var pad=0;if(on&&(de.dataset.barra==='botoes')){var cobre=window.innerHeight>=(screen.height||0)-4;pad=cobre?48:0;}
- de.style.setProperty('--navpad',pad+'px');de.classList.toggle('fs',on);setTimeout(function(){if(window.buildFabNow)buildFabNow();},200);}
-window.addEventListener('resize',function(){if(isFs())upFs();});
-if(canFs){mx.hidden=false;
-}
-function navMode(){var m=ST.prefs.nav||'auto';if(m!=='auto')return m;
-  /* estimativa: diferença entre a tela e a janela = barra de status + barra de navegação */
-  var d=(screen.height||0)-(window.outerHeight||window.innerHeight||0);return d>=64?'botoes':'gestos';}
-if(!canFs){mx.hidden=false;
- /* dentro do Claude a tela cheia do navegador é bloqueada: o botão amplia o app para ocupar toda a área da página */
- var pseudoFs=function(on){de.classList.toggle('fs',on);mx.innerHTML=on?MNI:MXI;mx.setAttribute('aria-label',on?'Sair da tela cheia':'Tela cheia');de.style.setProperty('--navpad','0px');try{sessionStorage.setItem('__fs',on?'1':'');}catch(e){}setTimeout(function(){if(window.buildFabNow)buildFabNow();},200);};
- mx.addEventListener('click',function(){pseudoFs(!de.classList.contains('fs'));});
- try{if(sessionStorage.getItem('__fs')==='1')pseudoFs(true);}catch(e){}}
-if(canFs){
- mx.addEventListener('click',function(){try{var pr;if(isFs())pr=(document.exitFullscreen||document.webkitExitFullscreen).call(document);
-  else{var mm=navMode();de.dataset.barra=mm;var opt={navigationUI:mm==='botoes'?'show':'hide'};pr=de.requestFullscreen?de.requestFullscreen(opt):de.webkitRequestFullscreen();}
-  if(pr&&pr.catch)pr.catch(function(){say('Este aparelho não permite tela cheia aqui');});}catch(e){say('Este aparelho não permite tela cheia aqui');}});
- document.addEventListener('fullscreenchange',upFs);document.addEventListener('webkitfullscreenchange',upFs);}
 /* testar prazos */
 var simD=document.getElementById('sim-data'),cfD=document.getElementById('cfg-du'),cfC=document.getElementById('cfg-dia');
 function realIso(){var d=new Date();return iso(d.getFullYear(),d.getMonth(),d.getDate());}
@@ -355,6 +331,8 @@ document.getElementById('sim-hoje').addEventListener('click',function(){MULTI.si
 cfD.addEventListener('change',function(){MULTI.cfg.folhaDU=+cfD.value;applySim();say('Folha encerra no '+cfD.value+'º dia útil');});
 cfC.addEventListener('change',function(){MULTI.cfg.docsDia=+cfC.value;applySim();say('Demais envios encerram no dia '+cfC.value);});
 syncSim();
+/* Configurações › Testes: data do sistema */
+document.addEventListener('change',function(e){if(e.target.id!=='cfg-sim')return;var v=e.target.value;MULTI.sim=(!v||v===realIso())?null:v;syncSim();applySim();show(cur,false,true);say('Hoje no app: '+fmtP(NOW()));});
 /* início */
 document.getElementById('rst').addEventListener('click',function(){(window.syncReset?syncReset():Promise.resolve()).then(function(){location.reload();});});
 window.applyRemote=function(){setTimeout(function(){if(window.pedRecebe&&pedRecebe())save();},0);var ae=document.activeElement,aid=ae&&ae.id,av=ae&&'value' in ae?ae.value:null;useEmp(MULTI.cur);setDark(!!EMP().escuro);setT(document.getElementById('tema-'+EMP().tema)?EMP().tema:'verde');syncSim();renderLists();if(MAIN.indexOf(cur)<0&&head(cur)!=='f')show(cur,false,true);if(cur==='chat'){ST.unread=0;}if(aid){var ne=document.getElementById(aid);if(ne&&av!==null&&ne!==ae){ne.value=av;ne.focus();}}};
@@ -518,6 +496,52 @@ function chKb(){var on=cur==='chat'&&document.activeElement&&document.activeElem
 document.addEventListener('focusin',function(e){if(e.target.id==='cmsg')setTimeout(chKb,60);});
 document.addEventListener('focusout',function(e){if(e.target.id==='cmsg')setTimeout(chKb,60);});
 if(window.visualViewport){visualViewport.addEventListener('resize',function(){if(p.classList.contains('chkb'))chKb();});visualViewport.addEventListener('scroll',function(){if(p.classList.contains('chkb')&&window.scrollY)window.scrollTo(0,0);});}
+/* teclado do chat em todos os campos de texto: o botão de emojis fica logo acima do teclado e troca o teclado pelo mesmo painel de emojis do chat (como no WhatsApp) */
+var KBE={el:null,id:'',sel:null,ls:null,on:0,sc:null,pb:''},KBE_OK='textarea,input[type=text],input[type=search],input:not([type])',kbw=null;
+function kbeCss(){if(document.getElementById('kbe-css'))return;var st=document.createElement('style');st.id='kbe-css';st.textContent=
+ '.kbe{position:absolute;left:0;right:0;bottom:0;z-index:70;pointer-events:none}.kbe[hidden]{display:none}'+
+ '.kbeb{display:flex;justify-content:flex-end;padding:0 12px 8px}.kbeb .ce{pointer-events:auto;width:44px;height:44px;border-radius:22px;background:var(--card);color:var(--ink);border:1px solid var(--line);box-shadow:0 4px 14px rgba(0,0,0,.14)}'+
+ '.kbe .chemo{pointer-events:auto;width:auto;margin:0;order:0;height:290px}'+
+ '.cfgsim{flex:none;max-width:150px;margin-left:8px;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:var(--ground);color:var(--ink);font:inherit;font-size:13.5px}';
+ document.head.appendChild(st);}
+kbeCss();
+function kbeCampo(t){return !!(t&&t.matches&&t.matches(KBE_OK)&&t.id!=='cmsg'&&!t.readOnly&&!t.disabled&&!/^(numeric|decimal|tel|email|none)$/.test(t.getAttribute('inputmode')||'')&&p.contains(t)&&!t.closest('.kbe'));}
+function kbeAlvo(){var el=KBE.el;if(el&&!document.contains(el))el=KBE.el=KBE.id?document.getElementById(KBE.id):null;return el;}
+function kbeGrade(L){return L.map(function(e){return '<span data-kbe="'+e+'">'+cheTom(e)+'</span>';}).join('');}
+function kbeCorpo(){var r=cheRec();return '<div class="ches" data-ches="0"><div class="chet">Recentes</div>'+(r.length?'<div class="cheg">'+kbeGrade(r)+'</div>':'<p class="chev">Os emojis que você usar aparecem aqui.</p>')+'</div>'+
+ CH_EMO.map(function(g,i){return '<div class="ches" data-ches="'+(i+1)+'"><div class="chet">'+g[0]+'</div><div class="cheg">'+kbeGrade(g[1].split('|'))+'</div></div>';}).join('');}
+/* posição: no Android a tela já encolhe com o teclado; no iPhone o teclado cobre a tela, então sobe junto com a área visível */
+function kbePos(){if(!kbw)return;var vv=window.visualViewport,pr=p.getBoundingClientRect(),z=(pr.height/p.offsetHeight)||1,kb=0;if(vv&&!KBE.on)kb=Math.max(0,pr.bottom-(vv.offsetTop+vv.height))/z;kbw.style.bottom=Math.round(kb)+'px';}
+function kbePinta(){kbeCss();if(!kbw){kbw=document.createElement('div');kbw.id='kbe';kbw.className='kbe';kbw.hidden=true;kbw.innerHTML='<div class="kbeb"><button type="button" class="ce" data-kbemo aria-label="Emojis"></button></div><div class="chemo" hidden></div>';p.appendChild(kbw);}
+ var bt=kbw.querySelector('[data-kbemo]'),pn=kbw.querySelector('.chemo');bt.innerHTML=KBE.on?CH_ICO_TEC:CH_ICO_EMO;bt.setAttribute('aria-label',KBE.on?'Teclado':'Emojis');
+ if(KBE.on){if(!pn.firstChild)pn.innerHTML='<div class="chetabs" role="tablist">'+CHE_ICO.map(function(c,i){return '<button type="button" data-kbetab="'+i+'" aria-label="'+(i?CH_EMO[i-1][0]:'Recentes')+'">'+c+'</button>';}).join('')+'<button type="button" class="chetom" data-kbetom title="Tom de pele" aria-label="Tom de pele">'+CHE_TONS[CHE.tom]+'</button></div><div class="chebody">'+kbeCorpo()+'</div>';
+  pn.hidden=false;var b=pn.querySelector('.chebody');if(b&&!b.dataset.ok){b.dataset.ok=1;var marca=function(){var at=0;[].forEach.call(b.querySelectorAll('.ches'),function(x){if(x.offsetTop-6<=b.scrollTop)at=+x.dataset.ches;});[].forEach.call(pn.querySelectorAll('[data-kbetab]'),function(t){t.classList.toggle('on',+t.dataset.kbetab===at);});};
+   if(!cheRec().length){var s1=b.querySelector('[data-ches="1"]');if(s1)b.scrollTop=s1.offsetTop;}marca();b.addEventListener('scroll',marca,{passive:true});}}
+ else{pn.hidden=true;pn.innerHTML='';}
+ kbw.hidden=false;kbePos();}
+/* com o painel aberto, o campo fica visível logo acima dele */
+function kbeMostra(){var el=kbeAlvo();if(!el||!kbw)return;var sc=el.closest('.scr')||document.getElementById('s-dyn');if(!sc)return;if(KBE.sc!==sc){kbeSolta();KBE.sc=sc;KBE.pb=sc.style.paddingBottom;}sc.style.paddingBottom='340px';
+ var lim=kbw.getBoundingClientRect().top-12,r=el.getBoundingClientRect();if(r.bottom>lim)sc.scrollTop+=r.bottom-lim;}
+function kbeSolta(){if(KBE.sc){KBE.sc.style.paddingBottom=KBE.pb;KBE.sc=null;}}
+function kbeFecha(){KBE.on=0;KBE.sel=null;kbeSolta();if(kbw){kbw.hidden=true;var pn=kbw.querySelector('.chemo');pn.hidden=true;pn.innerHTML='';}}
+function kbeInsere(e){var el=kbeAlvo();if(!el)return;var v=el.value,a=KBE.sel?KBE.sel[0]:v.length,b=KBE.sel?KBE.sel[1]:v.length,nv=v.slice(0,a)+e+v.slice(b);if(el.maxLength>0&&nv.length>el.maxLength)return;
+ el.value=nv;KBE.sel=[a+e.length,a+e.length];el.dispatchEvent(new Event('input',{bubbles:true}));
+ var r=cheRec().filter(function(x){return x!==e;});r.unshift(e);store('chEmoRec',JSON.stringify(r.slice(0,32)));}
+document.addEventListener('focusin',function(e){var t=e.target;if(cur==='chat'||!kbeCampo(t))return;KBE.el=t;KBE.id=t.id||'';KBE.ls=null;if(KBE.on){KBE.on=0;KBE.sel=null;kbeSolta();}kbePinta();setTimeout(kbePos,300);});
+document.addEventListener('focusout',function(){setTimeout(function(){if(KBE.on)return;var a=document.activeElement;if(a&&kbeCampo(a))return;if(kbw)kbw.hidden=true;},200);});
+document.addEventListener('selectionchange',function(){var a=document.activeElement;if(a&&a===KBE.el)try{KBE.ls=[a.selectionStart,a.selectionEnd];}catch(x){}});
+/* tocar no botão não tira o foco do campo (guarda a posição do cursor) */
+document.addEventListener('mousedown',function(e){if(e.target.closest&&e.target.closest('#kbe [data-kbemo],#kbe [data-kbetab],#kbe [data-kbetom]'))e.preventDefault();});
+document.addEventListener('click',function(e){var t=e.target;if(!kbw||kbw.hidden)return;var k=t.closest&&t.closest('#kbe [data-kbemo],#kbe [data-kbe],#kbe [data-kbetab],#kbe [data-kbetom]');
+ if(!k){if(KBE.on&&!t.closest('#kbe')&&t!==kbeAlvo())kbeFecha();return;}
+ if(k.hasAttribute('data-kbemo')){var el=kbeAlvo();if(!el){kbeFecha();return;}if(!KBE.on){KBE.sel=document.activeElement===el?[el.selectionStart,el.selectionEnd]:KBE.ls;KBE.on=1;el.blur();kbePinta();setTimeout(kbeMostra,80);}
+  else{KBE.on=0;kbeSolta();kbePinta();el.focus();if(KBE.sel)try{el.setSelectionRange(KBE.sel[0],KBE.sel[1]);}catch(x){}}return;}
+ if(k.hasAttribute('data-kbe')){kbeInsere(k.textContent);return;}
+ if(k.hasAttribute('data-kbetab')){var b=kbw.querySelector('.chebody'),s=b&&b.querySelector('[data-ches="'+k.dataset.kbetab+'"]');if(s)b.scrollTop=s.offsetTop;return;}
+ if(k.hasAttribute('data-kbetom')){CHE.tom=(CHE.tom+1)%6;var pn=kbw.querySelector('.chemo'),y=pn.querySelector('.chebody').scrollTop;pn.innerHTML='';kbePinta();pn.querySelector('.chebody').scrollTop=y;return;}});
+if(window.visualViewport){visualViewport.addEventListener('resize',kbePos);visualViewport.addEventListener('scroll',kbePos);}
+/* trocou de tela: fecha o painel; se a tela só foi redesenhada, continua no mesmo campo */
+new MutationObserver(function(){setTimeout(function(){if(!kbw||kbw.hidden)return;if(cur==='chat'||!kbeAlvo()){kbeFecha();return;}if(KBE.on)kbeMostra();},0);}).observe(dyn,{childList:true});
 function stepSkip(d){var F=FLOWS[FS.id];while(FS.step>0&&FS.step<F.steps.length&&F.steps[FS.step].when&&!F.steps[FS.step].when(FS.v))FS.step+=d;}
 /* ===== seletor de horas (rodas de horas e minutos) e editor da jornada ===== */
 var HMS=null,JS=null,HMCB=null,JED=null;
