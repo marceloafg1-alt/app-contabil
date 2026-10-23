@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Teste de comunicação</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#123F34">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap">
 <style>
@@ -67,6 +70,8 @@ document.getElementById('zera').addEventListener('click',function(){
  var fim=function(t){document.getElementById('ok').textContent=t;};
  try{var r=indexedDB.deleteDatabase('contabills-arquivos');r.onsuccess=function(){fim('Dados e arquivos apagados.');};r.onerror=function(){fim('Dados apagados. Os arquivos não puderam ser apagados.');};r.onblocked=function(){fim('Dados apagados. Feche as abas dos apps para apagar os arquivos.');};}catch(e){fim('Dados apagados.');}
 });
+/* instalação: daqui instala o app do cliente */
+if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});
 </script>
 </body>
 </html>
