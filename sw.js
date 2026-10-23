@@ -15,7 +15,7 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
-  if (new URL(req.url).pathname.indexOf('/teste-comunicacao/') > -1) return; // teste fica fora do cache do app
+  if (new URL(req.url).pathname.indexOf('/teste-comunicacao') > -1) return; // os testes (v1 e v2) ficam fora do cache do app
   if (req.mode === 'navigate' || req.url.endsWith('/index.html')) {
     e.respondWith(fetch(req).then(r => {
       const copia = r.clone();

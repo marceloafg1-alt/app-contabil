@@ -1,0 +1,17 @@
+{
+  "name": "Contabills Contador (teste v2)",
+  "short_name": "Contador",
+  "description": "App do contador, versão de teste de comunicação.",
+  "lang": "pt-BR",
+  "id": "./app.html?app=contador",
+  "start_url": "./app.html?app=contador#__pg=contador.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#123F34",
+  "theme_color": "#123F34",
+  "icons": [
+    { "src": "../icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "../icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "../icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
