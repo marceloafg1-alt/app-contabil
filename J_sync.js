@@ -26,7 +26,7 @@
   if(!emps.length)return false;
   var cur=MULTI.cur;MULTI=window.MULTI={emps:emps,cur:cur,data:data,cfg:c.cfg||{folhaDU:2,docsDia:14},sim:c.sim||null,seedT2:MULTI.seedT2};
   if(!emps.some(function(e){return e.id===cur;}))MULTI.cur=emps[0].id;
-  if(window.arqMigra)arqMigra();if(window.arqMigra2)arqMigra2();if(window.seedFer)seedFer();if(window.seedCad)seedCad();if(window.seedRot2)seedRot2();if(window.seedJess)seedJess();if(window.seedTeste2)seedTeste2();if(window.simHoje1)simHoje1();if(window.seedFicha1)seedFicha1();if(window.seedTermOff)seedTermOff();local();return true;}
+  if(window.arqMigra)arqMigra();if(window.arqMigra2)arqMigra2();if(window.seedFer)seedFer();if(window.seedCad)seedCad();if(window.seedRot2)seedRot2();if(window.seedFolhaT1)seedFolhaT1();if(window.seedJess)seedJess();if(window.seedTeste2)seedTeste2();if(window.simHoje1)simHoje1();if(window.seedFicha1)seedFicha1();if(window.seedTermOff)seedTermOff();local();return true;}
  function onSnap(snap){
   if(snap.metadata&&snap.metadata.hasPendingWrites)return;
   if(snap.empty){if(!(snap.metadata&&snap.metadata.fromCache)&&!inited){inited=true;schedule(true);}return;}
