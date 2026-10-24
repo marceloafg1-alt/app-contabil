@@ -273,10 +273,24 @@ function hdr(t,sub){return '<div class="dhd"><button type="button" class="bk" da
 function recalcBox(p){if(p.f!=='recalculo')return '';
  if(p.rc)return '<div class="cobr"><span class="sic">'+IC.tax+'</span><div><b>'+(p.cobr?'Cobrança do recálculo: '+esc(p.cobr):'Recálculo sem cobrança')+'</b><span class="sd">'+(p.cobr?'O contador cobrou pelo recálculo. O valor entra nos honorários do mês.':'O contador fez o recálculo sem custo para você.')+'</span></div></div>';
  return p.st==='ok'?'':'<div class="note">O contador vai dizer se este recálculo tem cobrança. Você recebe um aviso com a decisão.</div>';}
+/* linha do tempo do pedido (cliente e contador): cada etapa já vivida fica marcada na hora.
+   Abrir o pedido confirma a análise; responder confirma a resposta; quando o contador pede algo ao cliente, o caminho de volta
+   (análise e resposta do cliente) é marcado do mesmo jeito. quem: 'ct' (contador) ou 'cli' (cliente). */
+function pedTl(p,quem){var F=FLOWS[p.f]||{a:'docs'},ct=quem==='ct',ferias=p.f==='ferias',
+ t3={dp:'Documentos do contador',servicos:'Aditivo ou documento pronto',contabil:'Lançado na contabilidade',guias:'Resposta do contador',docs:'Documento disponível'}[F.a]||'Resposta do contador',
+ vol=p.st==='voce'||(p.cr&&p.st!=='ok')||!!p.cvis,viu=!!p.vis||p.st!=='enviado',resp=!!(p.gEnv||(p.resp&&p.resp.length)||p.st==='voce'||p.st==='ok'),
+ A=[['Pedido enviado'+(ct?' pelo cliente':''),p.data+(p.vis?' · visualizado'+(ct?'':' pelo contador')+' em '+p.vis:'')],[ct?'Em análise por você':'Em análise pelo contador',p.vis&&viu?'Aberto em '+p.vis:'']];
+ if(!vol){A.push([ferias?(ct?'Aviso de férias enviado para assinar':'Seu aviso de férias'):t3,resp&&p.resp&&p.resp.length?p.resp[p.resp.length-1][1]:'']);A.push(['Concluído','']);
+  var at=p.st==='ok'?4:!viu?1:resp||p.gEnv?3:2;return {f:A,at:at};}
+ A.push([ct?'Pedido enviado ao cliente':'Resposta do contador',p.resp&&p.resp.length?p.resp[p.resp.length-1][1]:'']);
+ A.push([ct?'Em análise pelo cliente':'Em análise por você',p.cvis?'Aberto em '+p.cvis:'']);
+ A.push([ferias?(ct?'Assinatura do cliente no aviso':'Sua assinatura no aviso'):(ct?'Resposta do cliente':'Sua resposta'),p.cli||'']);
+ A.push(['Concluído','']);
+ var at2=p.st==='ok'?6:p.cr?5:p.cvis?4:3;return {f:A,at:at2};}
 function renderPed(id){var p=ST.ped.filter(function(x){return x.id===id;})[0];if(!p)return '';var F=FLOWS[p.f],s=stlOf(p);
  var t3={dp:'Documentos do contador',servicos:'Aditivo ou documento pronto',contabil:'Lançado na contabilidade',guias:'Resposta do contador',docs:'Documento disponível'}[F.a];
- var fases=[['Pedido enviado',p.data+(p.vis?' · visualizado pelo contador em '+p.vis:'')],['Em análise pelo contador',''],[p.f==='ferias'?'Sua assinatura no aviso':t3,''],['Concluído','']];
- var at={enviado:0,analise:1,voce:2,ok:4}[p.st];if(p.gEnv&&p.st!=='ok')at=2;var dir=pedDireto(p)&&p.st!=='voce';if(dir)s=['Recebido','ok'];
+ if(p.st==='voce'&&!p.cvis){p.cvis=horaAgora();setTimeout(function(){save();},0);} /* o cliente abriu o pedido do contador: a análise dele fica confirmada */
+ var TL=pedTl(p,'cli'),fases=TL.f,at=TL.at;var dir=pedDireto(p)&&p.st!=='voce';if(dir)s=['Recebido','ok'];
  var h=hdr(F.t,AREA_NOME[F.a])+'<div class="card pad"><div class="pt"><span class="ri">'+IC[F.i]+'</span><span class="rt"><span class="a">'+esc(p.tipo)+(p.quem?' · '+esc(p.quem):'')+'</span><span class="b">Protocolo #'+esc(p.prot||'2026-'+(p.id==='p1'?'1031':'1038'))+'</span></span><span class="pill '+s[1]+'">'+s[0]+'</span></div></div>';
  h+=dir?'<div class="note">Recebido pelo contador. Se ele precisar de algo, chama você no chat.</div>':'<section><div class="sec"><h2>Acompanhamento</h2></div><ol class="tline">'+fases.map(function(f,i){var c=i<at?'ok':i===at?'cur':'';return '<li class="'+c+'"><span class="tb">'+(i<at?IC.check16:'')+'</span><span class="rt"><span class="a">'+f[0]+'</span>'+(f[1]&&i<=at?'<span class="b">'+esc(f[1])+'</span>':'')+'</span></li>';}).join('')+'</ol></section>';
  h+=recalcBox(p);
