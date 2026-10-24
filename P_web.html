@@ -662,7 +662,8 @@ nav.tab{flex:none;height:66px;background:var(--card);border-top:0;display:flex;p
 .phone[data-solido="1"][data-escuro="0"] .hero .prog i{background:var(--accent)}
 .phone[data-solido="1"][data-escuro="0"] .nbell svg,.phone[data-solido="1"][data-escuro="0"] .tbtn[data-go="config"] svg{color:var(--onG)}
 /* Tema escuro: o card Importante segue o mesmo visual escuro dos outros cards */
-.phone[data-escuro="1"] .hero{background:var(--card);color:var(--ink);border:1px solid var(--line);box-shadow:none}
+.phone[data-escuro="1"][data-solido="1"] .hero{background:var(--card);color:var(--ink);border:1px solid var(--line);box-shadow:none}
+.phone[data-escuro="1"][data-solido="0"] .hero{background:linear-gradient(135deg,color-mix(in srgb,var(--a1) 42%,#0d1112) 0%,color-mix(in srgb,var(--a2) 42%,#0d1112) 55%,color-mix(in srgb,var(--a3) 42%,#0d1112) 100%);color:var(--onA);border:1px solid transparent;box-shadow:0 10px 24px rgba(0,0,0,.45)}
 .phone[data-solido="1"][data-escuro="0"] #act-list .ar{color:var(--onG);border-bottom-color:color-mix(in srgb,var(--onG) 28%,transparent)}
 .phone[data-solido="1"][data-escuro="0"] #act-list .ar *{color:var(--onG)}
 .phone[data-solido="1"][data-escuro="0"] #act-list .ar .d{background:var(--onG)}
