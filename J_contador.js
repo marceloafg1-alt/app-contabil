@@ -79,12 +79,12 @@ function rerender(){var y=SCR.scrollTop,vals={},ae=document.activeElement,aid=ae
  for(var k in vals){var x=$(k);if(x&&x.type!=='file'&&!x.dataset.fresh)x.value=vals[k];}
  SCR.scrollTop=y;if(aid&&$(aid))try{$(aid).focus();}catch(e){}
  if(isChat())SCR.scrollTop=SCR.scrollHeight;}
-function route(r){var h=head(r),a=r.slice(h.length+1);var R={recnovo:vRecNovo,rec:vRec,chk:vChk,lote:vLote,fecha:vFecha,dp:vDP,desp:vDesp,inicio:vInicio,pedidos:vPedidos,ped:vPed,receb:vReceb,arquivo:vArquivo,pasta:vPasta,doc:vDoc,folha:vFolha,msg:vMsg,chat:vChat,ajuda:vAjuda,novodoc:vNovoDoc,novoguia:vNovoGuia,guias:vGuias,colab:vColab,socio:vSocio,cguia:vGuiaC,novoped:vNovoPed,ajustes:vAjustes,cli:vCli,gestao:vGestao}[h];return R?R(a):null;}
+function route(r){var h=head(r),a=r.slice(h.length+1);var R={recnovo:vRecNovo,rec:vRec,chk:vChk,lote:vLote,fecha:vFecha,dp:vDP,desp:vDesp,inicio:vInicio,pedidos:vPedidos,ped:vPed,receb:vReceb,arquivo:vArquivo,pasta:vPasta,doc:vDoc,folha:vFolha,msg:vMsg,chat:vChat,ajuda:vAjuda,novodoc:vNovoDoc,novoguia:vNovoGuia,guias:vGuias,colab:vColab,socio:vSocio,cguia:vGuiaC,novoped:vNovoPed,ajustes:vAjustes,cli:vCli,gestao:vGestao,notif:vNotif}[h];return R?R(a):null;}
 /* ===== início ===== */
 function vInicio(){var s=stats('all'),tot=s.nv+s.doc+s.fo+s.msg,partes=[];
  if(s.nv)partes.push(s.nv+(s.nv===1?' pedido novo':' pedidos novos'));if(s.doc)partes.push(s.doc+(s.doc===1?' documento para conferir':' documentos para conferir'));if(s.fo)partes.push(s.fo+(s.fo===1?' folha para fechar':' folhas para fechar'));if(s.msg)partes.push(s.msg+(s.msg===1?' mensagem':' mensagens'));
  var alvo=s.nv?'pedidos':(s.doc||s.fo)?'receb':s.msg?'msg':'arquivo';
- var h='<div class="hhd"><div class="s">Contabilidade Horizonte · '+MULTI.emps.length+(MULTI.emps.length===1?' cliente':' clientes')+'</div><div class="hrow"><h1 class="big">Olá, Paula</h1><div class="hbtns"><button type="button" class="tbtn ic" data-go="ajuda" aria-label="Ajuda">'+IC.duv+'</button><button type="button" class="tbtn ic" data-go="ajustes" aria-label="Configurações"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></div></div></div>';
+ var h='<div class="hhd"><div class="s">Contabilidade Horizonte · '+MULTI.emps.length+(MULTI.emps.length===1?' cliente':' clientes')+'</div><div class="hrow"><h1 class="big">Olá, Paula</h1><div class="hbtns hic"><button type="button" class="tbtn ic" data-go="ajustes" aria-label="Configurações"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>'+nbellCt()+'</div></div></div>';
  h+='<div class="hero"><div class="hk"><span>Para hoje</span><span class="pill-w">'+(tot?tot+(tot===1?' pendência':' pendências'):'Tudo em dia')+'</span></div><p class="ht">'+(partes.length?esc(cap(partes.join(', ').replace(/, ([^,]*)$/,' e $1')))+'.':'Nenhum pedido ou documento esperando por você.')+'</p><div class="hb"><span class="due"></span><button type="button" class="send" data-go="'+alvo+'">'+(tot?'Começar':'Ver arquivo')+'</button></div></div>';
  h+='<button type="button" class="r solo" data-go="receb"><span class="ri">'+IC.down+'</span><span class="rt"><span class="a">Recebidos para conferir</span><span class="b">'+(s.doc+s.fo?(s.doc+' documentos · '+s.fo+' folhas'):'Nada esperando conferência')+'</span></span>'+(s.doc+s.fo?'<span class="pill warn">'+(s.doc+s.fo)+'</span>':'<span class="cv">'+IC.chev18+'</span>')+'</button>';
  var fv=0,fa=0,dpn=0;MULTI.emps.forEach(function(e){B(e.id);var n0=NOW(),c0=cName(n0.getFullYear(),n0.getMonth()-1);GRP.forEach(function(g){var x=celSt(g[0],c0);if(x.f==='venc')fv++;if(x.f==='aberto')fa++;});ST.ped.forEach(function(p){if(p.st!=='ok'&&(['admissao','cadfunc','ferias','demissao','afastamento'].indexOf(p.f)>-1||(p.f==='libmes'&&/^folha\|/.test(p.lk||''))))dpn++;});});done();
@@ -102,6 +102,25 @@ function vInicio(){var s=stats('all'),tot=s.nv+s.doc+s.fo+s.msg,partes=[];
  h+='<section>'+sec('Últimos pedidos','<button type="button" class="lnk" data-go="pedidos">Ver todos</button>')+'<div class="card">'+(L.map(pedRow).join('')||'<p class="empty">Nenhum pedido ainda.</p>')+'</div></section>';
  return h;}
 
+
+/* ===== notificações: o que os clientes enviaram, pediram ou responderam; o que já foi lido fica guardado neste aparelho ===== */
+var NLIDAS={};try{NLIDAS=JSON.parse(localStorage.getItem('contador-notif')||'{}');}catch(e){}
+function nlSave(){try{localStorage.setItem('contador-notif',JSON.stringify(NLIDAS));}catch(e){}}
+function ctNotifs(){var L=[];
+ emps('all').forEach(function(e){B(e.id);arqCofre(ST);var en=e.fant||e.nome;
+  ST.ped.forEach(function(p){if(pedDireto(p))return;var cr=p.st==='analise'&&p.cr;if(p.st!=='enviado'&&!cr)return;
+   L.push({k:'p|'+e.id+'|'+p.id+'|'+(cr?'cr':'nv'),ic:IC[(FLOWS[p.f]||{}).i]||IC.sol,t:(cr?'Cliente respondeu: ':p.f==='libmes'?'':'Novo pedido: ')+p.tipo+(p.quem?' · '+p.quem:''),s:en+' · '+p.data,go:'ped-'+e.id+'|'+p.id});});
+  aConferir().forEach(function(a){L.push({k:'a|'+e.id+'|'+a.id,ic:IC.down,t:'Documento recebido: '+a.n,s:en+' · '+catOf(a.cat)[1]+' · '+a.data,go:'doc-'+e.id+'|'+a.id});});
+  folhasFechar().forEach(function(f){L.push({k:'f|'+e.id+'|'+f.id,ic:IC['var'],t:'Folha para fechar: '+f.func+' · '+f.tipo,s:en+' · '+f.comp,go:'folha-'+e.id+'|'+f.id});});
+  var nm=clientMsgs(ST),n=nm-(LIDAS[e.id]||0);if(n>0)L.push({k:'m|'+e.id+'|'+nm,ic:IC.chat,t:n+(n===1?' mensagem nova':' mensagens novas'),s:en+' · Chat',go:'chat-'+e.id});});done();
+ L.forEach(function(x){x.u=!NLIDAS[x.k];});return L.filter(function(x){return x.u;}).concat(L.filter(function(x){return !x.u;}));}
+function nbellCt(){var nu=ctNotifs().filter(function(x){return x.u;}).length;
+ return '<button type="button" class="tbtn ic nbell" data-go="notif" aria-label="Notificações">'+IC.bell+(nu?'<span class="bd">'+(nu>99?'99+':nu)+'</span>':'')+'</button>';}
+function vNotif(){var L=ctNotifs(),nu=L.filter(function(x){return x.u;}).length,vale={};L.forEach(function(x){vale[x.k]=1;});
+ Object.keys(NLIDAS).forEach(function(k){if(!vale[k])delete NLIDAS[k];});nlSave();
+ return hdr('Notificações',nu?nu+(nu>1?' não lidas':' não lida'):'Tudo lido')+
+ '<section>'+sec('Recentes',nu?'<button type="button" class="lnk" data-ntall>Marcar todas como lidas</button>':'')+'<div class="card">'+(L.map(function(x){return '<button type="button" class="r nt'+(x.u?' un':'')+'" data-ctnt="'+esc(x.k)+'" data-ntgo="'+esc(x.go)+'"><span class="ri">'+x.ic+'</span><span class="rt"><span class="a">'+esc(x.t)+'</span><span class="b">'+esc(x.s)+'</span></span>'+(x.u?'<span class="ud"></span>':IC.chev18)+'</button>';}).join('')||'<p class="empty">Nenhuma notificação. Tudo em dia.</p>')+'</div></section>'+
+ '<p class="foot">Pedidos novos, respostas dos clientes, documentos e folhas recebidos e mensagens do chat. Cada aviso sai daqui quando você resolve o que ele pede.</p>';}
 
 /* ===== colaboradores: ficha completa e histórico de solicitações ===== */
 var CACC={};
@@ -1073,6 +1092,8 @@ document.addEventListener('click',function(ev){var t=ev.target.closest('[data-dl
  if(t.hasAttribute('data-gcper')){FV['gc-comp']=GC.c;PLT['gc-comp']='Competência';openPer('gc-comp');return;}
  if(d.gcnf){var gq=d.gcnf.split(':');B(GC.e);var gn=['encerrado','auto'].indexOf(cofreStOf(ST,GC.c))>-1?(((ST.cofre||{})[GC.c]||{}).notas||[])[+gq[0]]:null,gf=gn&&gcNfArq(gn,gq[1]);done();if(!gf){toast('Esta nota não tem '+String(gq[1]).toUpperCase());return;}baixarArq(gf,'Nota de exemplo: o arquivo '+String(gq[1]).toUpperCase()+' não foi guardado');return;}
  if(d.go==='arquivo'&&cur!=='arquivo'&&!/^pasta-/.test(cur))ARQC=''; /* Documentos abre no mês do sistema */
+ if(d.ctnt){NLIDAS[d.ctnt]=1;nlSave();go(d.ntgo);return;}
+ if(t.hasAttribute('data-ntall')){ctNotifs().forEach(function(x){NLIDAS[x.k]=1;});nlSave();rerender();return;}
  if(d.go){if(t.hasAttribute('data-tab')){hist=[];show(d.go);}else go(d.go);return;}
  if(t.hasAttribute('data-back')){back();return;}
  if(d.earq){UI.arqEmp=d.earq;ARQC='';keep();go('arquivo');return;}
