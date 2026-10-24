@@ -248,12 +248,18 @@ function impItens(){var r=[],n=dOnly(NOW()),voce={};
  ferAlertas().forEach(function(x){r.push({k:'fer:'+x.nm+':'+fmtA(x.pz),t:'Férias de '+x.nm,go:'f-ferias',pre:{func:x.nm},pz:x.pz,adiar:x.adiar});});
  GU.forEach(function(g,i){var pz=guiaDt(g);if(ST.pagas[i])return;if(pz.getFullYear()*12+pz.getMonth()>n.getFullYear()*12+n.getMonth())return;r.push({k:'guia:'+g.n+':'+g.c,t:'Pagar '+g.n.split(' · ')[0]+' · '+g.c,go:'guia-'+i,pz:pz});});
  return r;}
-/* exemplo para ver o card cheio: completa uma vez a empresa aberta com documentos pedidos pelo contador até somar 10 pendências */
-function impDemo(){if(ST.impDemo10)return;ST.impDemo10=1;var falta=10-impItens().length,n=dOnly(NOW()),D=['Enviar alvará de funcionamento','Enviar comprovante de endereço da empresa','Enviar certidão negativa municipal','Enviar cartão CNPJ atualizado','Enviar contrato de aluguel do escritório','Enviar apólice do seguro da empresa','Enviar licença sanitária','Enviar inscrição estadual atualizada','Enviar procuração para o contador','Enviar relação de bens do ativo'];
- for(var i=0;i<falta&&i<D.length;i++){var d=new Date(n.getFullYear(),n.getMonth(),n.getDate()+5+i);docsPed().push({id:'ex'+i,t:D[i],lim:d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2),go:'f-solicitado'});}
+/* exemplo (24/10/2026): o card fica com 10 pendências no prazo e Verificar rotinas ganha também algumas vencidas; roda uma vez por empresa e troca o exemplo anterior */
+function impDemo(){if(ST.impDemo2)return;ST.impDemo2=1;ST.docsPed=docsPed().filter(function(x){return x.done||!/^ex\d/.test(x.id);});
+ var n=dOnly(NOW()),iso=function(k){var d=new Date(n.getFullYear(),n.getMonth(),n.getDate()+k);return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);},
+  D=[['Enviar alvará de funcionamento renovado',2],['Enviar comprovante de endereço da empresa',3],['Enviar certidão negativa municipal',4],['Enviar cartão CNPJ atualizado',5],['Enviar contrato de aluguel do escritório',6],['Enviar apólice do seguro da empresa',8],['Enviar licença sanitária',10],['Enviar inscrição estadual atualizada',12],['Enviar procuração para o contador',14],['Enviar relação de bens do ativo',18]],
+  V=[['Enviar notas de entrada do mês passado',-3],['Enviar comprovante de pagamento do aluguel',-8],['Enviar recibos de despesas do mês passado',-15]],falta=10-impItens().filter(impNoPrazo).length;
+ D.slice(0,Math.max(0,falta)).forEach(function(x,i){docsPed().push({id:'im'+i,t:x[0],lim:iso(x[1]),go:'f-solicitado'});});
+ V.forEach(function(x,i){docsPed().push({id:'vc'+i,t:x[0],lim:iso(x[1]),go:'f-solicitado'});});
  save();}
+/* o card mostra só o que ainda está no prazo; o que venceu fica só em Verificar rotinas */
+function impNoPrazo(x){return !x.pz||dOnly(x.pz)>=dOnly(NOW());}
 /* fica 72 horas no card; passado isso, ficam só as cinco mais recentes (as outras seguem em Verificar rotinas). Resolvido sai na hora. */
-function impVis(){impDemo();var L=impItens(),V=ST.impV=ST.impV||{},t=NOW().getTime(),ks={};
+function impVis(){impDemo();var L=impItens().filter(impNoPrazo),V=ST.impV=ST.impV||{},t=NOW().getTime(),ks={};
  L.forEach(function(x,i){x.i=i;ks[x.k]=1;if(!V[x.k])V[x.k]=t;x.em=V[x.k];});
  Object.keys(V).forEach(function(k){if(!ks[k])delete V[k];});
  L.sort(function(a,b){return b.em-a.em||a.i-b.i;});
@@ -914,7 +920,7 @@ var FAQ=[
 /* Primeiros passos */
 ['Como troco de empresa ou adiciono outra?','1. Na tela Início, toque no nome da empresa no topo.<br>2. Escolha a empresa na lista e confirme a troca.<br>3. Para cadastrar outra, toque em Adicionar empresa, informe o CNPJ e escolha a cor do app para ela.','empresas','Minhas empresas','Primeiros passos'],
 ['Para que serve o botão + no meio do menu?','1. Toque no + em qualquer tela.<br>2. Aparecem só as ações daquela tela. Na pasta Notas fiscais, por exemplo, aparecem Carregar notas, Abrir cofre e Nota avulsa.<br>3. Toque na ação: a tela abre já com o tipo de documento escolhido.','inicio','Ir para o Início','Primeiros passos'],
-['O que aparece no card Importante?','1. No topo da tela Início, o card Importante mostra, em uma linha cada, o que o contador pediu: documentos, assinaturas (contrato de admissão, aviso de férias, rescisão), guias de impostos, férias vencendo e os envios do mês.<br>2. Aparecem até 5 linhas, sempre as mais recentes em cima. Quando há mais, o topo do card mostra Mostrar (número) pendências: toque para abrir a lista inteira, e em Mostrar últimas pendências para voltar às 5 mais recentes.<br>3. Cada pedido fica no card por 72 horas. Depois disso, ficam sempre os 5 mais recentes, e os demais seguem em Verificar rotinas.<br>4. O que você resolve sai do card na hora. Em férias vencendo, o botão Adiar passa as férias para o próximo período aquisitivo.<br>5. Sem nada pendente, o card mostra uma mensagem de parabéns.<br>6. Resolver agora abre as pendências em sequência, de cima para baixo. Ao concluir cada uma, toque em Próximo para seguir para a seguinte ou em Voltar para retornar ao Início. Se a pendência pedir a liberação do mês, depois de pedir aparece só Próximo.','inicio','Ir para o Início','Primeiros passos'],
+['O que aparece no card Importante?','1. No topo da tela Início, o card Importante mostra, em uma linha cada, o que o contador pediu: documentos, assinaturas (contrato de admissão, aviso de férias, rescisão), guias de impostos, férias vencendo e os envios do mês. Só aparece o que ainda está no prazo; o que venceu fica em Verificar rotinas.<br>2. Aparecem até 5 linhas, sempre as mais recentes em cima. Quando há mais, o topo do card mostra Mostrar (número) pendências: toque para abrir a lista inteira, e em Mostrar últimas pendências para voltar às 5 mais recentes.<br>3. Cada pedido fica no card por 72 horas. Depois disso, ficam sempre os 5 mais recentes, e os demais seguem em Verificar rotinas.<br>4. O que você resolve sai do card na hora. Em férias vencendo, o botão Adiar passa as férias para o próximo período aquisitivo.<br>5. Sem nada pendente, o card mostra uma mensagem de parabéns.<br>6. Resolver agora abre as pendências em sequência, de cima para baixo. Ao concluir cada uma, toque em Próximo para seguir para a seguinte ou em Voltar para retornar ao Início. Se a pendência pedir a liberação do mês, depois de pedir aparece só Próximo.','inicio','Ir para o Início','Primeiros passos'],
 ['Como vejo o que falta enviar no mês?','1. Na tela Início, toque em Verificar rotinas.<br>2. Aparece só o que ainda falta fazer: o que está dentro do prazo e o que já venceu sem envio.<br>3. Toque num aviso vencido: abre direto o pedido ao contador para liberar o mês.<br>4. Para apagar um aviso vencido, deslize para a esquerda ou toque no X. Ele vai para Avisos apagados, no fim da tela, e o envio continua vencido.<br>5. Depois do prazo, o que você lançou vai sozinho ao contador.','rotinas','Ver rotinas','Primeiros passos'],
 ['Onde vejo os avisos do contador?','1. Toque no sino, no topo da tela Início.<br>2. Toque num aviso para abrir o pedido, a guia ou o documento.<br>3. Contratos, holerites, guias e documentos de férias enviados pelo contador aparecem também em Verificar rotinas.<br>4. Para escolher o que recebe, vá em Configurações › Notificações.','notif','Ver notificações','Primeiros passos'],
 /* Departamento Pessoal */
@@ -1612,12 +1618,15 @@ function admMin(){var d=dOnly(NOW()),n=admDias(),u=(MULTI.cfg||{}).admTipo==='u'
 function admIso(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
 
 /* teste: variáveis com último dia no 2º dia útil e data do protótipo em 02/03, sem variáveis lançadas */
-function seedTeste2(){if(!MULTI||MULTI.seedT2)return;var c='Fevereiro/2027';MULTI.cfg=MULTI.cfg||{};MULTI.cfg.folhaDU=2;MULTI.sim='2027-03-02';
+function seedTeste2(){if(!MULTI||MULTI.seedT2)return;var c='Fevereiro/2027';MULTI.cfg=MULTI.cfg||{};MULTI.cfg.folhaDU=2;
  var d=MULTI.data&&MULTI.data.alvorada;if(d){d.folhas=(d.folhas||[]).filter(function(f){return f.comp!==c;});d.lotes=(d.lotes||[]).filter(function(l){return l.comp!==c;});if(d.enc_folha)delete d.enc_folha[c];if(d.rotOff)delete d.rotOff['folha:'+c];
   d.ped=(d.ped||[]).filter(function(p){if(p.f!=='variaveis'&&p.f!=='folha')return true;return !(p.dados||[]).some(function(x){return /compet|m[eê]s/i.test(x[0])&&x[1]===c;});});
   }
  MULTI.seedT2=1;if(window.save)save();}
 seedTeste2();
+/* os apps voltam para a data de hoje uma vez (24/10/2026); a Data do sistema em Configurações continua para testes */
+function simHoje1(){if(!MULTI)return;MULTI.cfg=MULTI.cfg||{};if(MULTI.cfg.simHoje1)return;MULTI.cfg.simHoje1=1;MULTI.sim=null;if(window.save)save();}
+simHoje1();
 /* chat: limpeza única das conversas já gravadas (pedida em 22/10/2026); não volta a rodar */
 function chatLimpa3(){if(!MULTI||MULTI.chatLimpo3)return;Object.keys(MULTI.data||{}).forEach(function(k){var d=MULTI.data[k];if(!d)return;d.chat=[];d.chatSis=[];d.unread=0;});MULTI.chatLimpo3=1;if(window.save)save();}
 function chatLimpa2(){if(!MULTI||MULTI.chatLimpo2)return;Object.keys(MULTI.data||{}).forEach(function(k){var d=MULTI.data[k];if(!d)return;d.chat=[];d.chatSis=[];d.unread=0;});MULTI.chatLimpo2=1;if(window.save)save();}
