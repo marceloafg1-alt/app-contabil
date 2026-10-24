@@ -1,7 +1,7 @@
 <script>(function(){var PG=['index.html','web.html','contador.html','contador-app.html'];
 document.addEventListener('click',function(e){var a=e.target&&e.target.closest&&e.target.closest('a[href]');if(!a)return;var h=a.getAttribute('href');if(PG.indexOf(h)<0)return;e.preventDefault();
-var ok=false;try{sessionStorage.setItem('__pg',h);ok=sessionStorage.getItem('__pg')===h;}catch(x){}
-if(ok){location.reload();}else{location.hash='__pg='+h;location.reload();}},true);})();</script>
+var ok=false;try{sessionStorage.setItem('__pgx',h);sessionStorage.setItem('__pg',h);ok=sessionStorage.getItem('__pg')===h;}catch(x){}
+if(ok){location.reload();}else{location.hash='__pgx='+h;location.reload();}},true);})();</script>
 
 <title>LivTask · App do Contador</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -328,7 +328,7 @@ h1.h1s{font-size:16px;margin:0}
 .lead2{margin:-6px 0 10px;font-size:14px;line-height:1.5;color:var(--muted)}
 .lg-wrap .lnk{align-self:flex-start;margin-top:-6px}
 /* tela cheia no celular */
-@media (max-width:520px){
+@media (max-width:599px),(max-height:500px) and (pointer:coarse){
  body{padding:0!important;overflow:hidden}
  .stage{display:block}
  .index{display:none}
@@ -670,7 +670,7 @@ a.r.lk{text-decoration:none;color:inherit}
 html.fs .phone{--hph:100vh}
 .scr>.hhd,.scr>.dhd:not(.chd),.scr>.phd{position:sticky;top:calc(-1*var(--hpt));z-index:6;margin:calc(-1*var(--hpt)) calc(-1*var(--hpr)) -8px calc(-1*var(--hpl));padding:var(--hpt) var(--hpr) 8px var(--hpl);background:var(--hbg)}
 .scr>.phd{padding-top:calc(var(--hpt) + 6px)}
-@media (max-width:520px){.phone{--hpt:calc(12px + env(safe-area-inset-top, 0px));--hpl:max(20px, env(safe-area-inset-left, 0px));--hpr:max(20px, env(safe-area-inset-right, 0px));--hph:100dvh}}
+@media (max-width:599px),(max-height:500px) and (pointer:coarse){.phone{--hpt:calc(12px + env(safe-area-inset-top, 0px));--hpl:max(20px, env(safe-area-inset-left, 0px));--hpr:max(20px, env(safe-area-inset-right, 0px));--hph:100dvh}}
 </style>
 <div class="stage"><div class="phone ct" id="phone" data-tema="azul-escuro" data-escuro="0">
 <div class="screens"><section class="scr" id="c-scr"></section></div>

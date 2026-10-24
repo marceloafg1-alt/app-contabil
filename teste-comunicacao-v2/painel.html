@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
+<meta charset="utf-8"><script>/* celular, tablet ou computador: marca o aparelho em <html data-disp> e em window.__DISP */(function(){function q(m){try{return matchMedia(m).matches;}catch(e){return false;}}function disp(){var n=navigator,ua=n.userAgent||'',tp=n.maxTouchPoints||0,s=Math.min(screen.width||innerWidth,screen.height||innerHeight),ipad=/iPad/.test(ua)||(/Macintosh/.test(ua)&&tp>1),toque=q('(pointer:coarse)')||(tp>1&&!q('(pointer:fine)'));if(!ipad&&(/iPhone|iPod|Windows Phone|Android.+Mobile|Mobi/i.test(ua)||(toque&&s<600)))return 'cel';if(ipad||/Android|Tablet/i.test(ua)||toque)return 'tab';return 'pc';}function ap(){var d=disp();window.__DISP=d;document.documentElement.setAttribute('data-disp',d);}ap();addEventListener('resize',ap);})();</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>LivTask Gestão · teste</title>
 <link rel="manifest" href="manifest-painel.webmanifest">
@@ -181,7 +181,8 @@ label.fl{display:block;font-weight:700;font-size:14px;margin:14px 0 7px}
 .hide-m{display:none}
 
 /* web */
-@media (min-width:900px){
+/* computador e tablet: barra lateral no lugar do menu de baixo */
+@media (min-width:600px) and (min-height:501px),(min-width:600px) and (pointer:fine){
  .side{display:flex;flex-direction:column;width:256px;flex:none;position:sticky;top:0;height:100vh;background:var(--card);border-right:1px solid var(--line);padding:18px 14px;gap:4px;overflow-y:auto}
  .logo{display:flex;align-items:center;gap:10px;padding:4px 8px 18px}
  .logo .mk{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,var(--a1),var(--a3));display:grid;place-items:center;color:#fff;box-shadow:0 6px 16px var(--glow)}
@@ -215,17 +216,37 @@ label.fl{display:block;font-weight:700;font-size:14px;margin:14px 0 7px}
  .plans{grid-template-columns:repeat(3,minmax(0,1fr))}
  .prz{grid-template-columns:repeat(4,minmax(0,1fr))}
  .filters{margin:0;padding:2px 0 10px;flex-wrap:wrap}
+ .sheet{left:auto;top:0;bottom:0;width:460px;max-height:none;border-radius:26px 0 0 26px;transform:translateX(105%);padding:22px 24px}
+ .sheet .grab{display:none}
+ .sheet.menu{display:none}
+ .toast{bottom:28px}
+}
+/* tabelas com colunas a partir de 900 px; no tablet em pé as listas seguem em cartões */
+@media (min-width:900px){
  .thead{display:grid;padding:10px 14px;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line);gap:12px}
  .tb .it{display:grid;gap:12px}
  .tb .it .cols{display:contents}
  .tb .it .cols>div{font-size:13.5px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
  .tb .it .end{display:none}
  .tb .it .who{display:flex;align-items:center;gap:12px;min-width:0}
- .sheet{left:auto;top:0;bottom:0;width:460px;max-height:none;border-radius:26px 0 0 26px;transform:translateX(105%);padding:22px 24px}
- .sheet .grab{display:none}
- .sheet.menu{display:none}
- .toast{bottom:28px}
 }
+/* tablet (e janela média no computador): barra lateral mais estreita e margens menores; em pé, grades com menos colunas */
+@media (min-width:600px) and (max-width:1099px) and (min-height:501px),(min-width:600px) and (max-width:1099px) and (pointer:fine){
+ .side{width:220px;padding:16px 12px}
+ .top{padding:16px 22px 10px}
+ .view{padding:8px 22px 40px}
+ .srch.hide-m{width:240px}
+ .sheet{width:min(440px,calc(100vw - 40px))}
+}
+@media (min-width:600px) and (max-width:899px) and (min-height:501px),(min-width:600px) and (max-width:899px) and (pointer:fine){
+ .side{width:200px}
+ .kpis,.prz,.plans,.row2.eq{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .row2{grid-template-columns:minmax(0,1fr)}
+ .top .srch.hide-m{display:none}
+ .mob-srch{display:block}
+}
+/* tablet: alvos de toque maiores na barra lateral */
+html[data-disp="tab"] .side .nv{padding-top:12px;padding-bottom:12px}
 .tb .it .who{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
 .livedot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--okc);box-shadow:0 0 0 0 color-mix(in srgb,var(--okc) 60%,transparent);animation:lvp 1.8s infinite;flex:none}
 .livedot.off{background:var(--muted2);animation:none}
