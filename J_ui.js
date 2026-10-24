@@ -100,6 +100,7 @@ if(t.hasAttribute('data-cyr')){CAL.y=+t.dataset.cyr;CAL.view=CAL.per?null:'m';re
  if(t.hasAttribute('data-calok')&&CAL.per&&CAL.mesk==='#dpl'){DPL.c=MES[CAL.pm]+'/'+CAL.py;DPL.cSet=1;closeSheets();show(cur,false,true);return;}
  if(t.hasAttribute('data-calok')&&CAL.per&&CAL.mesk==='#env'){ECOMP[ENVG]=MES[CAL.pm]+'/'+CAL.py;closeSheets();show(cur,false,true);return;}
  if(t.hasAttribute('data-calok')&&CAL.per&&CAL.mesk==='#var'){VCOMP=CAL.pall?'all':MES[CAL.pm]+'/'+CAL.py;closeSheets();show(cur,false,true);return;}
+ if(t.hasAttribute('data-calok')&&CAL.per&&CAL.mesk==='#docs'){DCOMP=MES[CAL.pm]+'/'+CAL.py;closeSheets();renderLists();show(cur,false,true);return;}
  if(t.hasAttribute('data-calok')&&CAL.per&&CAL.mesk==='#pasta'){PCOMP=CAL.pall?'all':MES[CAL.pm]+'/'+CAL.py;closeSheets();show(cur,false,true);return;}
  if(t.hasAttribute('data-calok')&&CAL.per&&CAL.mesk==='#cofre'){CCOMP=MES[CAL.pm]+'/'+CAL.py;closeSheets();show('cofre',false,true);return;}
  if(t.hasAttribute('data-calok')&&CAL.per&&CAL.mesk){FS.v[CAL.mesk]=MES[CAL.pm]+'/'+CAL.py;delete FS.err[CAL.mesk];closeSheets();refreshFlow();return;}
@@ -132,6 +133,8 @@ if(t.hasAttribute('data-cyr')){CAL.y=+t.dataset.cyr;CAL.view=CAL.per?null:'m';re
  if(t.hasAttribute('data-voceok')){ST.ped.forEach(function(x){if(x.id===t.dataset.voceok){x.st='analise';x.cli='Resolvido pelo cliente em '+hoje()+'.';x.cr=1;ST.act.unshift(['Respondido ao contador · '+x.tipo,'Agora',1]);}});save();renderLists();show(cur,false,true);say('Contador avisado');return;}
  if(t.hasAttribute('data-sign')){ST.ped.forEach(function(x){if(x.id===t.dataset.sign){x.st='analise';x.cli='Aviso assinado em '+hoje()+'.';x.cr=1;ST.act.unshift(['Aviso de férias de '+x.quem+' assinado','Agora',1]);}});save();renderLists();show(cur,false,true);say('Aviso assinado e enviado ao contador');return;}
  if(t.hasAttribute('data-go')){var g=t.dataset.go;
+  if(g==='docs'&&cur!=='docs'&&head(cur)!=='pasta'&&DCOMP){DCOMP='';renderLists();} /* Documentos abre no mês do sistema */
+  if(/^pasta-/.test(g)&&cur==='docs')PCOMP=docComp(); /* a pasta abre na competência escolhida em Documentos */
   if(t.dataset.askatr){var aq=t.dataset.askatr.split('|');if(!compOk(aq[0]==='notas'?'cofre':aq[0],aq[1])){openAtr(aq[0],aq[1]);return;}}
   if((g==='f-despesas'||g==='f-extrato')&&head(cur)==='envio'){var eg4=cur.split('-')[1],ec4=ECOMP[eg4];if(ec4&&compOk(eg4,ec4))PRE={comp:ec4};}
   if(g==='#dman'||g==='#dpl'){fabClose();var dc=ECOMP.despesas;if(!dc||!compOk('despesas',dc))dc=despCompOk('');if(g==='#dman'){PRE=dc?{comp:dc,__manual:1}:{__manual:1};go('f-despesas');}else go('desppl'+(dc?'-'+dc:''));return;}
@@ -238,12 +241,16 @@ var modal=document.getElementById('modal-tema'),ov=document.getElementById('mov'
 function curName(){var a=modal.querySelector('.slice[aria-pressed="true"]');return a?a.dataset.nome:'';}
 function setT(k){p.setAttribute('data-tema',k);chips.forEach(function(c){var on=c.dataset.tema===k;c.setAttribute('aria-pressed',on?'true':'false');if(on)hubN.textContent=c.dataset.nome;});EMP().tema=k;save();syncEmp();}
 var SUN="<svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"4\"></circle><path d=\"M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4\"></path></svg>",MOON="<svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z\"></path></svg>";
-function setDark(on){p.setAttribute('data-escuro',on?'1':'0');dk.setAttribute('aria-checked',on?'true':'false');EMP().escuro=on?1:0;save();
+function setDark(on){p.setAttribute('data-escuro',on?'1':'0');p.setAttribute('data-solido',EMP().solido?'1':'0');syncTm();dk.setAttribute('aria-checked',on?'true':'false');EMP().escuro=on?1:0;save();
  var hs=document.getElementById('hub-s'),hi=document.getElementById('hub-ic');if(hs)hs.textContent=on?'Escuro ligado':'Escuro desligado';if(hi)hi.innerHTML=on?SUN:MOON;}
 function abrir(){fabClose();closeEmp();var msx=modal.querySelector('.ms');if(msx)msx.textContent='Cor do app para '+(EMP().fant||EMP().nome);modal.hidden=false;ov.hidden=false;(modal.querySelector('.slice[aria-pressed="true"]')||chips[0]).focus();}
 function fechar(){modal.hidden=true;ov.hidden=true;if(cur==='config')show('config',false,true);}
 if(ab)ab.addEventListener('click',abrir);fx.addEventListener('click',fechar);ov.addEventListener('click',fechar);
 dk.addEventListener('click',function(){setDark(dk.getAttribute('aria-checked')!=='true');});
+/* tema: cor em degradê ou sólida (vale para a empresa aberta, como o modo escuro) */
+var tmb=[].slice.call(modal.querySelectorAll('[data-tmodo]'));
+function syncTm(){var s=!!EMP().solido;(tmb||[]).forEach(function(b){b.setAttribute('aria-checked',(b.dataset.tmodo==='s')===s?'true':'false');});}
+tmb.forEach(function(b){b.addEventListener('click',function(){EMP().solido=b.dataset.tmodo==='s'?1:0;p.setAttribute('data-solido',EMP().solido?'1':'0');syncTm();save();});});
 chips.forEach(function(c,i){c.addEventListener('click',function(){setT(c.dataset.tema);});
  c.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();setT(c.dataset.tema);}else if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();chips[(i+1)%chips.length].focus();}else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();chips[(i-1+chips.length)%chips.length].focus();}});
  c.addEventListener('mouseenter',function(){hubN.textContent=c.dataset.nome;});c.addEventListener('mouseleave',function(){hubN.textContent=curName();});
@@ -275,6 +282,7 @@ function openCal(k,title){fabClose();document.getElementById('cs-t').textContent
  document.getElementById('cs-t').textContent=title||'Selecionar data';renderCal();cs.hidden=false;ov3.hidden=false;}
 function openPer(k){fabClose();var t=NOW(),src,grp=null,ttl;
  if(k==='#cofre'){src=CCOMP;grp='view';ttl='Competência do cofre';}
+ else if(k==='#docs'){src=docComp();grp='view';ttl='Competência';}
  else if(k==='#pasta'){src=PCOMP!=='all'?PCOMP:'';grp='view';ttl='Período';}
  else if(k==='#var'){src=VCOMP&&VCOMP!=='all'?VCOMP:'';grp=null;ttl='Período';}
  else if(k==='#dpl'){src=DPL.c||'';grp='despesas';ttl='Competência';}
