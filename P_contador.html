@@ -72,9 +72,9 @@ h1.big{font-size:26px}
 .hbtns{display:flex;gap:8px;flex:none}
 .nbell{position:relative}
 .nbell .bd{top:1px;right:0}
-/* topo do Início: ícones sem moldura, como no app do cliente, e o sino logo depois de Configurações */
+/* topo do Início: ícones sem moldura, como no app do cliente, e o sino colado em Configurações */
 .hbtns.hic{gap:4px}.hbtns.hic .tbtn{border:0;background:transparent;box-shadow:none}.hbtns.hic .tbtn:hover{background:var(--tint)}
-.hbtns.hic .tbtn[data-go="ajustes"]+.nbell{margin-left:-6px}
+.hbtns.hic .tbtn[data-go="ajustes"],.hbtns.hic .nbell{width:28px}.hbtns.hic .tbtn[data-go="ajustes"]+.nbell{margin-left:-5px}
 .cfg-sw{width:26px;height:26px;border-radius:9px;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
 .navr{flex-direction:column;align-items:stretch}
 .navr .rt{gap:4px}
