@@ -626,16 +626,34 @@ nav.tab{flex:none;height:66px;background:var(--card);border-top:0;display:flex;p
 @keyframes pop{from{opacity:0;transform:translateY(-8px) scale(.98)}}
 @keyframes spin{from{opacity:0;transform:rotate(-140deg) scale(.55)}}
 @media (prefers-reduced-motion: reduce){.phone *,.phone{animation:none!important;transition:none!important}}
-/* Início em verde (tema de teste): fundo verde, cards brancos e o rodapé na cor do fundo */
-.phone:has(#s-inicio:not([hidden])){--ground:#2E8B57}
-.phone:has(#s-inicio:not([hidden])) nav.tab{background:var(--ground)}
-.phone:has(#s-inicio:not([hidden])) .n{color:rgba(255,255,255,.78)}
-.phone:has(#s-inicio:not([hidden])) .n.on{color:#fff}
-#s-inicio .hero{background:var(--card);color:var(--ink);box-shadow:0 10px 24px rgba(0,0,0,.18)}
-#s-inicio .hero .pill-w{background:var(--tint);color:var(--accent)}
-#s-inicio .hero .impb{background:var(--tint);color:var(--accent)}
-#s-inicio .hero .impad{background:var(--accent);color:#fff}
-#s-inicio .hero .send{background:var(--accent);color:#fff}
+/* Visual de tela cheia em todos os temas: fundo na cor do tema, cards brancos e rodapé na cor do fundo (tema de teste) */
+.phone.phone{--ground:#1E5E4E;--onG:#FFFFFF}
+.phone.phone[data-tema="verde"]{--ground:#1E5E4E;--onG:#FFFFFF}
+.phone.phone[data-tema="rosa"]{--ground:#FF3F6C;--onG:#FFFFFF}
+.phone.phone[data-tema="termcinza"]{--ground:#3A3F44;--onG:#FFFFFF}
+.phone.phone[data-tema="roxo"]{--ground:#6A2CBF;--onG:#FFFFFF}
+.phone.phone[data-tema="amarelo"]{--ground:#F5B800;--onG:#17181B}
+.phone.phone[data-tema="azul-claro"]{--ground:#1FA4E0;--onG:#FFFFFF}
+.phone.phone[data-tema="azul-escuro"]{--ground:#1D3E8F;--onG:#FFFFFF}
+.phone.phone[data-tema="laranja"]{--ground:#F26B1D;--onG:#FFFFFF}
+.phone.phone[data-tema="lilas"]{--ground:#A57FDB;--onG:#FFFFFF}
+.phone.phone[data-tema="verde-claro"]{--ground:#4CC38A;--onG:#17181B}
+.phone.phone[data-tema="vermelho-claro"]{--ground:#F2665C;--onG:#FFFFFF}
+.phone.phone[data-tema="nude"]{--ground:#D2A68E;--onG:#17181B}
+.phone.phone[data-tema="amarelo-escuro"]{--ground:#A87400;--onG:#FFFFFF}
+.phone.phone[data-tema="laranja-claro"]{--ground:#FF9F5A;--onG:#17181B}
+.phone.phone[data-tema="marrom"]{--ground:#6E4530;--onG:#FFFFFF}
+.phone.phone[data-tema="cinza-claro"]{--ground:#A7AEB6;--onG:#17181B}
+.phone.phone[data-tema="cinza-escuro"]{--ground:#454A51;--onG:#FFFFFF}
+.phone.phone[data-tema="vinho"]{--ground:#74213B;--onG:#FFFFFF}
+.phone nav.tab{background:var(--ground)}
+.phone nav.tab .n{color:var(--onG);opacity:.78}
+.phone nav.tab .n.on{color:var(--onG);opacity:1}
+.phone .hero{background:var(--card);color:var(--ink);box-shadow:0 10px 24px rgba(0,0,0,.18)}
+.phone .hero .pill-w{background:var(--tint);color:var(--accent)}
+.phone .hero .impb{background:var(--tint);color:var(--accent)}
+.phone .hero .impad{background:var(--accent);color:#fff}
+.phone .hero .send{background:var(--accent);color:#fff}
 </style>
 
 <style>
