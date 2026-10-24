@@ -1,7 +1,7 @@
 <script>(function(){var PG=['index.html','web.html','contador.html','contador-app.html'];
 document.addEventListener('click',function(e){var a=e.target&&e.target.closest&&e.target.closest('a[href]');if(!a)return;var h=a.getAttribute('href');if(PG.indexOf(h)<0)return;e.preventDefault();
-var ok=false;try{sessionStorage.setItem('__pg',h);ok=sessionStorage.getItem('__pg')===h;}catch(x){}
-if(ok){location.reload();}else{location.hash='__pg='+h;location.reload();}},true);})();</script>
+var ok=false;try{sessionStorage.setItem('__pgx',h);sessionStorage.setItem('__pg',h);ok=sessionStorage.getItem('__pg')===h;}catch(x){}
+if(ok){location.reload();}else{location.hash='__pgx='+h;location.reload();}},true);})();</script>
 
 <title>LivTask · Painel do Contador</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -328,7 +328,7 @@ h1.h1s{font-size:16px;margin:0}
 .lead2{margin:-6px 0 10px;font-size:14px;line-height:1.5;color:var(--muted)}
 .lg-wrap .lnk{align-self:flex-start;margin-top:-6px}
 /* tela cheia no celular */
-@media (max-width:520px){
+@media (max-width:599px),(max-height:500px) and (pointer:coarse){
  body{padding:0!important;overflow:hidden}
  .stage{display:block}
  .index{display:none}
@@ -669,7 +669,7 @@ a.r.lk{text-decoration:none;color:inherit}
 <style>
 /* Versão web: barra lateral fixa à esquerda com as abas e o botão de nova solicitação; conteúdo centralizado até 1000px; folhas e diálogos viram janelas centrais */
 .wl{display:none}
-@media (min-width:900px){
+@media (min-width:600px) and (min-height:501px),(min-width:600px) and (pointer:fine){
  :root{padding-top:0;padding-bottom:0}
  html,body{height:100%}
  body{padding:0!important;overflow:hidden}
@@ -729,8 +729,33 @@ a.r.lk{text-decoration:none;color:inherit}
 html.fs .phone{--hph:100vh}
 .scr>.hhd,.scr>.dhd:not(.chd),.scr>.phd{position:sticky;top:calc(-1*var(--hpt));z-index:6;margin:calc(-1*var(--hpt)) calc(-1*var(--hpr)) -8px calc(-1*var(--hpl));padding:var(--hpt) var(--hpr) 8px var(--hpl);background:var(--hbg)}
 .scr>.phd{padding-top:calc(var(--hpt) + 6px)}
-@media (max-width:520px){.phone{--hpt:calc(12px + env(safe-area-inset-top, 0px));--hpl:max(20px, env(safe-area-inset-left, 0px));--hpr:max(20px, env(safe-area-inset-right, 0px));--hph:100dvh}}
-@media (min-width:900px){.phone{--hpt:36px;--hpl:var(--gut);--hpr:var(--gut);--hbg:linear-gradient(180deg,var(--g2) 0,var(--ground) 380px) var(--ground)}}
+@media (max-width:599px),(max-height:500px) and (pointer:coarse){.phone{--hpt:calc(12px + env(safe-area-inset-top, 0px));--hpl:max(20px, env(safe-area-inset-left, 0px));--hpr:max(20px, env(safe-area-inset-right, 0px));--hph:100dvh}}
+@media (min-width:600px) and (min-height:501px),(min-width:600px) and (pointer:fine){.phone{--hpt:36px;--hpl:var(--gut);--hpr:var(--gut);--hbg:linear-gradient(180deg,var(--g2) 0,var(--ground) 380px) var(--ground)}}
+/* tablet (e janela média no computador): barra lateral mais estreita, margens menores; em pé, grades com menos colunas */
+@media (min-width:600px) and (max-width:1099px) and (min-height:501px),(min-width:600px) and (max-width:1099px) and (pointer:fine){
+ .phone{--gut:28px;--hpt:28px}
+ .scr{padding:28px var(--gut) 40px}
+ .chd{top:-28px;margin-top:-28px}
+ nav.tab,.phone.flow nav.tab{width:212px;padding:20px 12px 18px}
+ .fabmenu{left:224px}
+ h1.big{font-size:27px}
+ .msg{max-width:72%}
+}
+@media (min-width:600px) and (max-width:899px) and (min-height:501px),(min-width:600px) and (max-width:899px) and (pointer:fine){
+ .phone{--gut:22px;--hpt:24px}
+ .scr{padding:24px var(--gut) 36px}
+ .chd{top:-24px;margin-top:-24px}
+ nav.tab,.phone.flow nav.tab{width:196px}
+ .fabmenu{left:208px;width:min(320px,calc(100vw - 232px))}
+ .g2,.g4,.vg2{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .g4 .t:last-child:nth-child(odd){grid-column:1/-1}
+ .g3,.tgrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .glist{grid-template-columns:minmax(0,1fr)}
+ .psheet,.esheet{width:min(460px,calc(100vw - 48px))}
+ .msg{max-width:80%}
+}
+/* tablet: alvos de toque maiores na barra lateral */
+html[data-disp="tab"] nav.tab .n{height:48px}
 </style>
 
 <div class="stage"><div class="phone ct" id="phone" data-tema="azul-escuro" data-escuro="0">
