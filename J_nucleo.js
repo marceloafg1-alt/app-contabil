@@ -199,7 +199,7 @@ useEmp(MULTI.cur);
 function save(){try{localStorage.setItem('app-multi-v1',JSON.stringify(MULTI));}catch(e){}}
 var STL={enviado:['Enviado','neutral'],analise:['Em análise','warn'],voce:['Aguardando você','info'],ok:['Concluído','ok']};
 /* pedido ainda não analisado, mas já aberto pelo contador */
-function stlOf(p){return p.st==='enviado'&&p.vis?['Visualizado','info']:STL[p.st]||STL.enviado;}
+function stlOf(p){if(p.gEnv&&p.st!=='ok')return ['Guia enviada','info'];return p.st==='enviado'&&p.vis?['Visualizado','info']:STL[p.st]||STL.enviado;}
 /* app do cliente: marca como recebida cada resposta do contador que chegou aqui (o contador vê o recebimento) */
 function pedRecebe(){var m=0;MULTI.emps.forEach(function(e){var d=MULTI.data[e.id];(d&&d.ped||[]).forEach(function(p){if((p.rsn||0)>(p.rcb||0)){p.rcb=p.rsn;p.rcbH=horaAgora();m=1;}});});return m;}
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
@@ -276,10 +276,12 @@ function recalcBox(p){if(p.f!=='recalculo')return '';
 function renderPed(id){var p=ST.ped.filter(function(x){return x.id===id;})[0];if(!p)return '';var F=FLOWS[p.f],s=stlOf(p);
  var t3={dp:'Documentos do contador',servicos:'Aditivo ou documento pronto',contabil:'Lançado na contabilidade',guias:'Resposta do contador',docs:'Documento disponível'}[F.a];
  var fases=[['Pedido enviado',p.data+(p.vis?' · visualizado pelo contador em '+p.vis:'')],['Em análise pelo contador',''],[p.f==='ferias'?'Sua assinatura no aviso':t3,''],['Concluído','']];
- var at={enviado:0,analise:1,voce:2,ok:4}[p.st];var dir=pedDireto(p)&&p.st!=='voce';if(dir)s=['Recebido','ok'];
+ var at={enviado:0,analise:1,voce:2,ok:4}[p.st];if(p.gEnv&&p.st!=='ok')at=2;var dir=pedDireto(p)&&p.st!=='voce';if(dir)s=['Recebido','ok'];
  var h=hdr(F.t,AREA_NOME[F.a])+'<div class="card pad"><div class="pt"><span class="ri">'+IC[F.i]+'</span><span class="rt"><span class="a">'+esc(p.tipo)+(p.quem?' · '+esc(p.quem):'')+'</span><span class="b">Protocolo #'+esc(p.prot||'2026-'+(p.id==='p1'?'1031':'1038'))+'</span></span><span class="pill '+s[1]+'">'+s[0]+'</span></div></div>';
  h+=dir?'<div class="note">Recebido pelo contador. Se ele precisar de algo, chama você no chat.</div>':'<section><div class="sec"><h2>Acompanhamento</h2></div><ol class="tline">'+fases.map(function(f,i){var c=i<at?'ok':i===at?'cur':'';return '<li class="'+c+'"><span class="tb">'+(i<at?IC.check16:'')+'</span><span class="rt"><span class="a">'+f[0]+'</span>'+(f[1]&&i<=at?'<span class="b">'+esc(f[1])+'</span>':'')+'</span></li>';}).join('')+'</ol></section>';
  h+=recalcBox(p);
+ if(p.gEnv&&p.st!=='ok'){var na=arqDoPed(p.id).filter(function(a){return a.or==='ct'&&a.cat==='guias';})[0];h+='<div class="note">O contador enviou a nova guia. Abra a guia para concluir o pedido.</div>'+(na?'<button type="button" class="r solo" data-go="'+(typeof na.gi==='number'?'guia-'+na.gi:'arq-'+na.id)+'"><span class="ri">'+IC.tax+'</span><span class="rt"><span class="a">Abrir a nova guia</span><span class="b">'+esc(na.n)+'</span></span>'+IC.chev18+'</button>':'');}
+ else if(p.gVis)h+='<div class="note">Concluído quando você abriu a nova guia, em '+esc(p.gVis)+'.</div>';
  if(p.resp&&p.resp.length)h+='<section><div class="sec"><h2>Mensagens do contador</h2></div><div class="card pad">'+p.resp.map(function(r){return '<div class="rv"><span>'+esc(r[1])+'</span><span>'+esc(r[0])+'</span></div>';}).join('')+'</div></section>';
  if(p.docs&&p.docs.length)h+='<section><div class="sec"><h2>Documentos deste pedido</h2></div><div class="card">'+p.docs.map(function(d){return '<button type="button" class="r" data-toast="'+esc(d[0])+' baixado"><span class="ri">'+IC.doc+'</span><span class="rt"><span class="a">'+esc(d[0])+'</span><span class="b">'+esc(d[1])+' · '+esc(d[2]||'')+'</span></span><span class="dl sm">'+IC.down16+'</span></button>';}).join('')+'</div></section>';
  if(p.cli)h+='<p class="foot">'+esc(p.cli)+'</p>';
@@ -972,7 +974,10 @@ function renderRotinas(){var L=rotItens(),tot=L.length,ok=L.filter(function(x){r
 function renderAtiv(){return hdr('Atividade','Tudo o que aconteceu')+'<div class="card">'+ST.act.map(function(a){return '<div class="ar pad2"><span class="d'+(a[2]?' on':'')+'"></span><div class="rt"><span class="a">'+esc(a[0])+'</span><span class="b">'+esc(a[1])+'</span></div></div>';}).join('')+'</div>';}
 
 /* ===== guia ===== */
-function renderGuia(i){var g=GU[+i];if(!g)return '';var pg=ST.pagas[i],pre=' data-pre=\'{"guia":"'+GUIAS[i]+'"}\'';
+/* o cliente abriu o que o contador enviou: fica visto; a guia já fica concluída, e o pedido que pediu a nova guia também */
+function arqAberto(a){if(!a||a.or!=='ct')return 0;var m=0,gu=a.cat==='guias';if(a.st==='disp'){arqMove(a,'visto',gu?'Aberta pelo cliente · concluída':'Visto pelo cliente');m=1;}
+ var p=gu&&a.ped&&ST.ped.filter(function(x){return x.id===a.ped;})[0];if(p&&p.gEnv&&p.st!=='ok'){p.st='ok';p.gVis=horaAgora();ST.act.unshift(['Nova guia aberta · '+p.tipo+' concluído','Agora',1]);m=1;}return m;}
+function renderGuia(i){var g=GU[+i];if(!g)return '';if(arqAberto(arqList().filter(function(a){return a.gi===+i&&a.or==='ct';})[0]))save();var pg=ST.pagas[i],pre=' data-pre=\'{"guia":"'+GUIAS[i]+'"}\'';
  return hdr(g.n,'Guias de impostos')+'<div class="hero"><div class="hk"><span>Competência '+g.c+'</span><span class="pill-w">'+(pg?'Paga em '+pg:'Vence '+g.venc)+'</span></div><p class="amt">R$ '+g.v+'</p></div>'+
  '<section><div class="sec"><h2>Código de barras</h2></div><div class="card pad"><div class="bar" aria-hidden="true"></div><p class="code">'+g.code+'</p><div class="g2b"><button type="button" class="wb" data-copy="'+g.code+'">'+IC.copy15+'Copiar código</button><button type="button" class="wb" data-toast="PDF da guia baixado">'+IC.down15+'Baixar PDF</button></div></div></section>'+
  '<section><div class="sec"><h2>Pix copia e cola</h2></div><div class="card pad"><p class="code">'+pixOf(g).slice(0,44)+'…</p><div class="g2b" style="display:grid;grid-template-columns:1fr"><button type="button" class="wb" data-copy="'+pixOf(g)+'" data-msg="Código Pix copiado">'+IC.copy15+'Copiar código Pix</button></div></div></section>'+
@@ -1107,7 +1112,7 @@ function renderPasta(n){var c=catOf(n),k=c[0],L=arqVis(k),g={};L.forEach(functio
  '<p class="foot">Toque no + para enviar um documento.</p>';}
 var ARQ_FLOW={extratos:'f-extrato',notas:'f-notas',folha:'folhas'};
 function renderArq(id){var a=arqGet(id);if(!a)return '';var c=catOf(a.cat),s=arqSt(a);
- if(a.or==='ct'&&a.st==='disp'){arqMove(a,'visto','Visto pelo cliente');save();}
+ if(arqAberto(a))save();
  var fases=a.or==='ct'?[['Enviado pelo contador',a.data],['Disponível para você',''],['Visto por você','']]:[['Enviado por você',a.data],['Em conferência pelo contador',''],[a.st==='dev'?'Devolvido para correção':'Conferido','']];
  var at=a.or==='ct'?(a.st==='disp'?1:3):({enviado:1,analise:1,ok:3,dev:2}[a.st]);if(a.or==='cli'&&a.st==='enviado')at=1;if(arqDireto(a)&&a.st!=='dev'){fases=[['Enviado por você',a.data],['Recebido pelo contador','']];at=2;}
  var h=hdr(a.n,c[1])+'<div class="card pad"><div class="pt"><span class="ri">'+(IC[c[2]]||IC.doc)+'</span><span class="rt"><span class="a">'+esc(a.arq||a.n)+'</span><span class="b">'+esc(a.comp)+' · '+(a.or==='ct'?'do contador':'enviado por você')+'</span></span><span class="pill '+s[1]+'">'+s[0]+'</span></div></div>'+(window.arqPreview?arqPreview(a):'');
@@ -1146,7 +1151,7 @@ function fabPasta(k){var c=catOf(k),open=PCOMP!=='all'&&compSt('docs',PCOMP)==='
 
 var VQ=[['h50','Hora extra 50%','h','de hora extra 50%'],['h75','Hora extra 75%','h','de hora extra 75%'],['h100','Hora extra 100%','h','de hora extra 100%'],['fd','Faltas em dias','dias','de falta'],['fh','Faltas em horas','horas','de falta'],['adi','Adiantamento','R$',''],['com','Comissão','R$',''],['bon','Bônus','R$','']];
 
-function arqBaixar(id){var a=arqGet(id);if(!a)return '';if(a.or==='ct'&&a.st==='disp'){arqMove(a,'visto','Visto pelo cliente');save();}return a.arq||a.n;}
+function arqBaixar(id){var a=arqGet(id);if(!a)return '';if(arqAberto(a))save();return a.arq||a.n;}
 
 function whenOff(f){if(!f.when)return false;if(typeof f.when==='function')return !f.when(FS.v);if(typeof f.when==='object')return FS.v[f.when.k]!==f.when.v;return false;}
 var SERV_COL=/férias|alteração de cadastro|alteração salarial|turno|cancelamento de rescisão|cancelamento de contrato|ficha de registro|intermitente|prorrogação de afastamento|rescisão|adiantamento salarial|transferência de empregados/i;
@@ -1406,7 +1411,7 @@ function acompOn(k){var a=(MULTI.cfg||{}).acomp||{};return a[k]!==false;}
 var ACOMP_PED={notas:'notas',extrato:'extratos',extratos:'extratos',variaveis:'folha',folha:'folha'},ACOMP_CAT={notas:'notas',extratos:'extratos',folha:'folha'};
 function pedDireto(p){if(!p)return false;if(p.f==='despesas')return true;var k=ACOMP_PED[p.f];return k?!acompOn(k):false;}
 function arqDireto(a){if(!a||a.or!=='cli')return false;var k=ACOMP_CAT[a.cat];return k?!acompOn(k):false;}
-var _arqSt0=arqSt;arqSt=function(a){if(arqDireto(a)&&a.st!=='dev')return ['Recebido','ok'];return _arqSt0(a);};
+var _arqSt0=arqSt;arqSt=function(a){if(arqDireto(a)&&a.st!=='dev')return ['Recebido','ok'];if(a.or==='ct'&&a.cat==='guias'&&a.st==='visto')return ['Concluído','ok'];return _arqSt0(a);};
 function fstLbl(es){if(!acompOn('folha')&&(es==='enviada'||es==='auto'))return ['Recebida pelo contador','ok'];return FST[es]||FST.rascunho;}
 function despDv(p,rx){var x=(p.dados||[]).filter(function(d){return rx.test(d[0]);})[0];return x?String(x[1]):'';}
 function despRow(p){var v=despDv(p,/^valor/i),ve=despDv(p,/^vencimento/i),ct=despDv(p,/^categoria/i);
