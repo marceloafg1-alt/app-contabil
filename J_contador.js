@@ -615,15 +615,19 @@ function vFolha(x){var q=x.split('|'),e=eById(q[0]);if(!e)return null;B(e.id);va
  var AQ=arqList().filter(function(a){return a.cat==='folha'&&a.fid===f.id;});if(AQ.length)h+='<section>'+sec('Arquivos')+'<div class="card">'+AQ.map(function(a){return docRow(e,a);}).join('')+'</div></section>';
  h+='<div class="fbar">'+((es==='enviada'||es==='auto')?'<button type="button" class="cta" data-fecha="'+e.id+'|'+f.id+'">'+IC.check16+' Fechar folha e liberar holerite</button>':es==='fechada'?'<div class="note">Folha fechada. O holerite está no app do cliente.</div>':'<div class="note">O cliente ainda não enviou esta folha.</div>')+'</div>';done();return h;}
 /* ===== arquivo ===== */
+/* competência da tela Documentos: abre sempre no mês do sistema; as pastas contam só o que é desse mês */
+var ARQC='';
+function arqComp(){var n=NOW();return ARQC&&gcOk(ARQC)?ARQC:cName(n.getFullYear(),n.getMonth());}
 function arqEmp(){var e=eById(UI.arqEmp)||MULTI.emps[0];UI.arqEmp=e.id;return e;}
 function vArquivo(){var e=arqEmp();B(e.id);arqCofre(ST);var L=arqList(),q=(UI.q||'').toLowerCase().trim();
  var h='<div class="hhd"><div class="hrow" style="justify-content:flex-start"><button type="button" class="bk" data-back aria-label="Voltar">'+IC.back+'</button><button type="button" class="empsw" data-aemp-open aria-haspopup="dialog">'+esw(e,1)+'<span>'+esc(e.nome)+'</span>'+IC.chevd+'</button></div><div class="hrow"><h1 class="big">Documentos</h1></div></div>';
+ h+='<button type="button" class="perbtn" data-arqper aria-haspopup="dialog" style="margin:0 0 14px"><span class="pl">Competência</span><b>'+esc(arqComp())+'</b>'+IC.cal+'</button>';
  h+='<label class="srch">'+(IC.search||'')+'<input id="arq-q" type="search" placeholder="Buscar em '+esc(e.fant||e.nome)+'" autocomplete="off" value="'+esc(UI.q||'')+'"></label>';
  if(q){var R=L.filter(function(a){return (a.n+' '+a.arq+' '+a.comp+' '+catOf(a.cat)[1]).toLowerCase().indexOf(q)>-1;});h+='<section>'+sec('Resultados','<span class="s">'+R.length+'</span>')+'<div class="card">'+(R.map(function(a){return docRow(e,a);}).join('')||'<p class="empty">Nada encontrado.</p>')+'</div></section>';done();return h;}
- var fo=folhasOf();
- h+='<section>'+sec('Pastas')+'<div class="g3 pastas">'+CATS.map(function(c){var l=L.filter(function(a){return a.cat===c[0];}),n=l.length,pc=l.filter(function(a){return a.or==='cli'&&(a.st==='enviado'||a.st==='analise');}).length;
+ var cp=arqComp(),fo=folhasOf().filter(function(f){return f.comp===cp;});
+ h+='<section>'+sec('Pastas')+'<div class="g3 pastas">'+CATS.map(function(c){var l=L.filter(function(a){return a.cat===c[0]&&a.comp===cp;}),n=l.length,pc=l.filter(function(a){return a.or==='cli'&&(a.st==='enviado'||a.st==='analise');}).length;
   if(c[0]==='folha'){pc+=fo.filter(function(f){var x=fst(f);return x==='enviada'||x==='auto';}).length;n+=fo.filter(function(f){return fst(f)!=='rascunho';}).length;}
-  return '<button type="button" class="t fo" data-go="pasta-'+e.id+'|'+c[0]+'"><span class="ib">'+(IC[c[2]]||IC.folder)+'</span><span class="tl">'+c[1]+'</span><span class="tc">'+n+(n===1?' item':' itens')+(pc?' · <b class="pc">'+pc+' para conferir</b>':'')+'</span></button>';}).join('')+'</div></section>';
+  return '<button type="button" class="t fo" data-go="pasta-'+e.id+'|'+c[0]+'"><span class="foh"><span class="ib">'+(IC[c[2]]||IC.folder)+'</span><span class="foi"><span class="tc">'+n+(n===1?' item':' itens')+'</span>'+(pc?'<span class="pfo">'+pc+' para conferir</span>':'')+'</span></span><span class="tl">'+c[1]+'</span></button>';}).join('')+'</div></section>';
  h+='<p class="foot">Caminho no armazenamento: '+esc(e.cnpj)+' / mês / pasta</p>';done();return h;}
 function vPasta(x){var q=x.split('|'),e=eById(q[0]);if(!e)return null;B(e.id);var c=catOf(q[1]),k=c[0],og=UI.og;
  var L=arqList().filter(function(a){return a.cat===k&&(og==='all'||a.or===og);}),g={};L.forEach(function(a){(g[a.comp]=g[a.comp]||{d:[],f:[]}).d.push(a);});
@@ -897,7 +901,7 @@ function vAjustes(){var c=MULTI.cfg,n=NOW(),on=window.syncStatus==='online';
  h+='<section>'+sec('Data do protótipo')+'<div class="card pad form">'+dateF('pz-sim','Hoje no app',dInput(n))+'<button type="button" class="wb" data-real>Usar a data de hoje</button></div></section>';
  h+='<section>'+sec('Clientes')+'<div class="card">'+MULTI.emps.map(function(e){var t=TEMAS.filter(function(x){return x[0]===e.tema;})[0]||TEMAS[0];return '<button type="button" class="r" data-go="cli-'+e.id+'">'+esw(e)+'<span class="rt"><span class="a">'+esc(e.nome)+'</span><span class="b">'+esc(e.cnpj)+' · cor '+esc(t[1])+(e.escuro?' · escuro':'')+'</span></span><span class="cv">'+IC.chev18+'</span></button>';}).join('')+'</div><div class="gap"></div><button type="button" class="wb pri" data-go="cli-novo">'+IC.plus+' Adicionar cliente</button></section>';
  var tt=TEMAS.filter(function(x){return x[0]===UI.tema;})[0]||TEMAS[0];
- h+='<section>'+sec('Aparência deste app')+'<div class="card"><button type="button" class="r" data-tema-go><span class="ri">'+IC.palette+'</span><span class="rt"><span class="a">Tema do app</span><span class="b">'+tt[1]+' · escuro '+(UI.escuro?'ligado':'desligado')+'</span></span><span class="cfg-sw" style="background:linear-gradient(135deg,'+tt[2]+','+tt[3]+')"></span>'+IC.chev18+'</button></div></section>';
+ h+='<section>'+sec('Aparência deste app')+'<div class="card"><button type="button" class="r" data-tema-go><span class="ri">'+IC.palette+'</span><span class="rt"><span class="a">Tema do app</span><span class="b">'+tt[1]+(UI.solido?' sólida':' em degradê')+' · escuro '+(UI.escuro?'ligado':'desligado')+'</span></span><span class="cfg-sw" style="background:linear-gradient(135deg,'+tt[2]+','+tt[3]+')"></span>'+IC.chev18+'</button></div></section>';
  h+='<section>'+sec('Suporte')+'<div class="card"><button type="button" class="r" data-go="ajuda"><span class="ri">'+IC.duv+'</span><span class="rt"><span class="a">Ajuda</span><span class="b">Passo a passo e perguntas frequentes</span></span><span class="cv">'+IC.chev18+'</span></button></div></section>';
  h+='<section>'+sec('Outras versões')+'<div class="card">'+[['index.html','App do cliente no celular'],['web.html','App do cliente no computador'],[DESK?'contador-app.html':'contador.html',DESK?'App do contador no celular':'Painel do contador no computador']].map(function(v){return '<a class="r lk" href="'+v[0]+'"><span class="rt"><span class="a">'+v[1]+'</span></span><span class="cv">↗</span></a>';}).join('')+'</div></section>';
  h+='<div class="note">'+(on?'Ligado ao app dos clientes: o que você faz aqui aparece para eles.':'Sem conexão com o banco: as mudanças ficam só neste navegador.')+'</div>';
@@ -977,7 +981,7 @@ function renderCal(){var t=NOW(),hj=iso(t.getFullYear(),t.getMonth(),t.getDate()
  if(CAL.view==='y'){var y0=t.getFullYear(),ys=CAL.per?y0-15:y0-100,ye=y0+(CAL.per?2:10),yl='';for(var yy=ye;yy>=ys;yy--)yl+='<button type="button" class="'+(yy===CAL.y?'on':'')+(yy===y0&&yy!==CAL.y?' now':'')+'" data-cyr="'+yy+'"'+(yy===CAL.y?' id="cyr-sel"':'')+'>'+yy+'</button>';
   h+='<div class="cnav"><span class="cml" style="flex:1;text-align:center">Escolha o ano</span></div><div class="cmes cyrs" style="max-height:300px;overflow-y:auto;grid-template-columns:repeat(4,1fr)">'+yl+'</div>';csb.innerHTML=h;var ok0=document.getElementById('cs-ok');if(ok0)ok0.disabled=true;var sl=document.getElementById('cyr-sel');if(sl)sl.scrollIntoView({block:'center'});return;}
   if(CAL.per){h+='<div class="cnav"><button type="button" class="cn" data-cmv="-1" aria-label="Ano anterior">'+IC.tri+'</button><button type="button" class="cml" data-cyear>'+CAL.y+IC.chevd+'</button><button type="button" class="cn nx" data-cmv="1" aria-label="Próximo ano">'+IC.tri+'</button></div>';
-  var gcm=CAL.id==='gc-comp';h+='<div class="cmes">'+MES.map(function(n,i){var on=i===CAL.pm&&CAL.y===CAL.py,now=i===t.getMonth()&&CAL.y===t.getFullYear(),ok=!gcm||gcOk(cName(CAL.y,i));return '<button type="button" class="'+(on&&ok?'on':'')+(now&&!on?' now':'')+(ok?'':' off')+'" data-cmes="'+i+'"'+(ok?'':' disabled aria-disabled="true" aria-label="'+n+' ainda não chegou"')+'>'+n.slice(0,3)+'</button>';}).join('')+'</div>';if(gcm)h+='<p class="cnote"><span>Escolha o mês para ver o que o cliente enviou. Meses que ainda não chegaram ficam indisponíveis.</span></p>';csb.innerHTML=h;$('cs-ok').disabled=gcm&&!gcOk(cName(CAL.py,CAL.pm));return;}
+  var gcm=CAL.id==='gc-comp'||CAL.id==='arq-comp';h+='<div class="cmes">'+MES.map(function(n,i){var on=i===CAL.pm&&CAL.y===CAL.py,now=i===t.getMonth()&&CAL.y===t.getFullYear(),ok=!gcm||gcOk(cName(CAL.y,i));return '<button type="button" class="'+(on&&ok?'on':'')+(now&&!on?' now':'')+(ok?'':' off')+'" data-cmes="'+i+'"'+(ok?'':' disabled aria-disabled="true" aria-label="'+n+' ainda não chegou"')+'>'+n.slice(0,3)+'</button>';}).join('')+'</div>';if(gcm)h+='<p class="cnote"><span>'+(CAL.id==='arq-comp'?'Escolha o mês para ver os documentos dele nas pastas.':'Escolha o mês para ver o que o cliente enviou.')+' Meses que ainda não chegaram ficam indisponíveis.</span></p>';csb.innerHTML=h;$('cs-ok').disabled=gcm&&!gcOk(cName(CAL.py,CAL.pm));return;}
  h+='<div class="cnav"><button type="button" class="cn" data-cmv="-1" aria-label="Anterior">'+IC.tri+'</button><button type="button" class="cml" data-cmode>'+(CAL.view==='d'?MES[CAL.m]+' '+CAL.y:CAL.y)+IC.chevd+'</button><button type="button" class="cn nx" data-cmv="1" aria-label="Próximo">'+IC.tri+'</button></div>';
  if(CAL.view==='d'){h+='<div class="cwk">'+['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(function(d){return '<span>'+d+'</span>';}).join('')+'</div><div class="cgrid">';
   var f=new Date(CAL.y,CAL.m,1).getDay(),dm=new Date(CAL.y,CAL.m+1,0).getDate(),pm=new Date(CAL.y,CAL.m,0).getDate();
@@ -990,6 +994,7 @@ function closeSheets(){ps.hidden=true;cs.hidden=true;ov3.hidden=true;PCB=null;}
 ov3.addEventListener('click',closeSheets);
 function setVal(id,v){FV[id]=v;
  if(id==='gc-comp'){if(gcOk(v))GC.c=v;cur='gestao';rerender();return;}
+ if(id==='arq-comp'){if(gcOk(v))ARQC=v;rerender();return;}
  if(id==='ad-dias'){MULTI.cfg.admDias=+v;commit('Admissão a partir de '+(+v?v+' dias após o lançamento':'mesmo dia do lançamento'));return;}
 if(id==='ad-tipo'){MULTI.cfg.admTipo=v;commit('Admissão: contagem em '+(v==='u'?'dias úteis':'dias corridos'));return;}
 if(id==='pz-du'){MULTI.cfg.folhaDU=+v;commit('Folhas encerram no '+v+'º dia útil');return;}
@@ -1022,15 +1027,17 @@ function closeConfirm(){cfm.hidden=true;ov4.hidden=true;CFCB=null;}
 $('cf-no').addEventListener('click',closeConfirm);ov4.addEventListener('click',closeConfirm);
 $('cf-ok').addEventListener('click',function(){var cb=CFCB;closeConfirm();cb&&cb();});
 /* roda de temas */
-var modal=$('modal-tema'),ovT=$('mov'),dk=$('modo-escuro'),hubN=$('hub-n'),slices=[].slice.call(P.querySelectorAll('.slice'));
+var modal=$('modal-tema'),ovT=$('mov'),dk=$('modo-escuro'),hubN=$('hub-n'),slices=[].slice.call(P.querySelectorAll('.slice')),tmb=[].slice.call(modal.querySelectorAll('[data-tmodo]'));
 var SUN='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>',MOON='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"></path></svg>';
 function curName(){var a=modal.querySelector('.slice[aria-pressed="true"]');return a?a.dataset.nome:'';}
-function syncWheel(){slices.forEach(function(c){var on=c.dataset.tema===UI.tema;c.setAttribute('aria-pressed',on?'true':'false');if(on)hubN.textContent=c.dataset.nome;});dk.setAttribute('aria-checked',UI.escuro?'true':'false');$('hub-s').textContent=UI.escuro?'Escuro ligado':'Escuro desligado';$('hub-ic').innerHTML=UI.escuro?SUN:MOON;}
+function syncWheel(){slices.forEach(function(c){var on=c.dataset.tema===UI.tema;c.setAttribute('aria-pressed',on?'true':'false');if(on)hubN.textContent=c.dataset.nome;});dk.setAttribute('aria-checked',UI.escuro?'true':'false');$('hub-s').textContent=UI.escuro?'Escuro ligado':'Escuro desligado';$('hub-ic').innerHTML=UI.escuro?SUN:MOON;tmb.forEach(function(b){b.setAttribute('aria-checked',(b.dataset.tmodo==='s')===!!UI.solido?'true':'false');});}
 function setTC(k){UI.tema=k;keep();applyLook();syncWheel();}
 function abrirTema(){fabClose();syncWheel();modal.hidden=false;ovT.hidden=false;(modal.querySelector('.slice[aria-pressed="true"]')||slices[0]).focus();}
 function fecharTema(){modal.hidden=true;ovT.hidden=true;if(cur==='ajustes')rerender();}
 $('fechar-tema').addEventListener('click',fecharTema);ovT.addEventListener('click',fecharTema);
 dk.addEventListener('click',function(){UI.escuro=UI.escuro?0:1;keep();applyLook();syncWheel();});
+/* tema: cor em degradê ou sólida */
+tmb.forEach(function(b){b.addEventListener('click',function(){UI.solido=b.dataset.tmodo==='s'?1:0;keep();applyLook();syncWheel();});});
 slices.forEach(function(c,i){c.addEventListener('click',function(){setTC(c.dataset.tema);});
  c.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();setTC(c.dataset.tema);}else if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();slices[(i+1)%slices.length].focus();}else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();slices[(i-1+slices.length)%slices.length].focus();}});
  c.addEventListener('mouseenter',function(){hubN.textContent=c.dataset.nome;});c.addEventListener('mouseleave',function(){hubN.textContent=curName();});
@@ -1062,11 +1069,13 @@ document.addEventListener('click',function(ev){var t=ev.target.closest('[data-dl
  if(t.hasAttribute('data-aemp-open')){openEmp(UI.arqEmp,function(id){UI.arqEmp=id;UI.q='';keep();rerender();toast('Documentos de '+(eById(id).fant||eById(id).nome));});return;}
  if(t.hasAttribute('data-tema-go')){abrirTema();return;}
  if(t.hasAttribute('data-gcemp')){openEmp(GC.e,function(id){GC.e=id;cur='gestao';rerender();},{t:'Escolher cliente',sub:'Ver a gestão contábil de um cliente'});return;}
+ if(t.hasAttribute('data-arqper')){FV['arq-comp']=arqComp();PLT['arq-comp']='Competência';openPer('arq-comp');return;}
  if(t.hasAttribute('data-gcper')){FV['gc-comp']=GC.c;PLT['gc-comp']='Competência';openPer('gc-comp');return;}
  if(d.gcnf){var gq=d.gcnf.split(':');B(GC.e);var gn=['encerrado','auto'].indexOf(cofreStOf(ST,GC.c))>-1?(((ST.cofre||{})[GC.c]||{}).notas||[])[+gq[0]]:null,gf=gn&&gcNfArq(gn,gq[1]);done();if(!gf){toast('Esta nota não tem '+String(gq[1]).toUpperCase());return;}baixarArq(gf,'Nota de exemplo: o arquivo '+String(gq[1]).toUpperCase()+' não foi guardado');return;}
+ if(d.go==='arquivo'&&cur!=='arquivo'&&!/^pasta-/.test(cur))ARQC=''; /* Documentos abre no mês do sistema */
  if(d.go){if(t.hasAttribute('data-tab')){hist=[];show(d.go);}else go(d.go);return;}
  if(t.hasAttribute('data-back')){back();return;}
- if(d.earq){UI.arqEmp=d.earq;keep();go('arquivo');return;}
+ if(d.earq){UI.arqEmp=d.earq;ARQC='';keep();go('arquivo');return;}
  if(d.femp){UI.fEmp=d.femp;keep();rerender();return;}
  if(d.aemp){UI.arqEmp=d.aemp;UI.q='';keep();rerender();return;}
  if(d.pedsel){var pk2=d.pedsel;openPick(pk2==='pf'?'Situação do pedido':'Setor do pedido',PEDSEL[pk2]||[],pk2==='pf'?(UI.pf||'abertos'):(UI.pa||'all'),function(v){UI[pk2]=v;keep();rerender();});return;}
@@ -1124,7 +1133,7 @@ addEventListener('change',function(e){var t=e.target;if(t&&t.id==='lt-f'&&t.file
  if(t&&t.id==='rc-on'){var rv=$('rc-v');if(rv){rv.disabled=!t.checked;if(t.checked)rv.focus();}}
 });
 /* aparência e encaixe na tela */
-function applyLook(){P.setAttribute('data-tema',TEMAS.some(function(t){return t[0]===UI.tema;})?UI.tema:'azul-escuro');P.setAttribute('data-escuro',UI.escuro?'1':'0');}
+function applyLook(){P.setAttribute('data-tema',TEMAS.some(function(t){return t[0]===UI.tema;})?UI.tema:'azul-escuro');P.setAttribute('data-escuro',UI.escuro?'1':'0');P.setAttribute('data-solido',UI.solido?'1':'0');}
 function fit(){if(DESK&&innerWidth>=900){P.style.setProperty('--z','1');return;}var cw=document.documentElement.clientWidth,ch=innerHeight;if(cw<=520){P.style.setProperty('--z','1');return;}P.style.setProperty('--z',Math.min(1,(cw-32)/390,(ch-24)/844).toFixed(3));}
 addEventListener('resize',fit);
 /* sincronização */
