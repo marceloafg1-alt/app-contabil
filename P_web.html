@@ -626,6 +626,16 @@ nav.tab{flex:none;height:66px;background:var(--card);border-top:0;display:flex;p
 @keyframes pop{from{opacity:0;transform:translateY(-8px) scale(.98)}}
 @keyframes spin{from{opacity:0;transform:rotate(-140deg) scale(.55)}}
 @media (prefers-reduced-motion: reduce){.phone *,.phone{animation:none!important;transition:none!important}}
+/* Início em verde (tema de teste): fundo verde, cards brancos e o rodapé na cor do fundo */
+.phone:has(#s-inicio:not([hidden])){--ground:#2E8B57}
+.phone:has(#s-inicio:not([hidden])) nav.tab{background:var(--ground)}
+.phone:has(#s-inicio:not([hidden])) .n{color:rgba(255,255,255,.78)}
+.phone:has(#s-inicio:not([hidden])) .n.on{color:#fff}
+#s-inicio .hero{background:var(--card);color:var(--ink);box-shadow:0 10px 24px rgba(0,0,0,.18)}
+#s-inicio .hero .pill-w{background:var(--tint);color:var(--accent)}
+#s-inicio .hero .impb{background:var(--tint);color:var(--accent)}
+#s-inicio .hero .impad{background:var(--accent);color:#fff}
+#s-inicio .hero .send{background:var(--accent);color:#fff}
 </style>
 
 <style>

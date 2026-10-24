@@ -632,6 +632,16 @@ html.fs .phone{--hph:100vh}
 .scr>.hhd,.scr>.dhd:not(.chd),.scr>.phd{position:sticky;top:calc(-1*var(--hpt));z-index:6;margin:calc(-1*var(--hpt)) calc(-1*var(--hpr)) -8px calc(-1*var(--hpl));padding:var(--hpt) var(--hpr) 8px var(--hpl);background:var(--hbg)}
 .scr>.phd{padding-top:calc(var(--hpt) + 6px)}
 @media (max-width:520px){.phone{--hpt:calc(12px + env(safe-area-inset-top, 0px));--hpl:max(20px, env(safe-area-inset-left, 0px));--hpr:max(20px, env(safe-area-inset-right, 0px));--hph:100dvh}}
+/* Início em verde (tema de teste): fundo verde, cards brancos e o rodapé na cor do fundo */
+.phone:has(#s-inicio:not([hidden])){--ground:#2E8B57}
+.phone:has(#s-inicio:not([hidden])) nav.tab{background:var(--ground)}
+.phone:has(#s-inicio:not([hidden])) .n{color:rgba(255,255,255,.78)}
+.phone:has(#s-inicio:not([hidden])) .n.on{color:#fff}
+#s-inicio .hero{background:var(--card);color:var(--ink);box-shadow:0 10px 24px rgba(0,0,0,.18)}
+#s-inicio .hero .pill-w{background:var(--tint);color:var(--accent)}
+#s-inicio .hero .impb{background:var(--tint);color:var(--accent)}
+#s-inicio .hero .impad{background:var(--accent);color:#fff}
+#s-inicio .hero .send{background:var(--accent);color:#fff}
 </style>
 
 <div class="stage">
