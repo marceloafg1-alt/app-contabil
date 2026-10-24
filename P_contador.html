@@ -756,6 +756,15 @@ html.fs .phone{--hph:100vh}
 }
 /* tablet: alvos de toque maiores na barra lateral */
 html[data-disp="tab"] nav.tab .n{height:48px}
+/* grades de botões no computador e no tablet: sem espaço vazio; a linha incompleta estica os botões até a borda (--gc = botões por linha) */
+@media (min-width:600px) and (min-height:501px),(min-width:600px) and (pointer:fine){
+ .g2,.g3,.g4,.dpf{display:flex;flex-wrap:wrap;align-items:stretch}
+ .g2{--gc:4}.g3{--gc:6}.g4{--gc:4}.dpf{--gc:2}
+ .g2>*,.g3>*,.g4>*,.dpf>*{flex:1 1 calc(100%/var(--gc) - 12px);min-width:0;box-sizing:border-box}
+}
+@media (min-width:600px) and (max-width:899px) and (min-height:501px),(min-width:600px) and (max-width:899px) and (pointer:fine){
+ .g2,.g4{--gc:2}.g3{--gc:3}
+}
 </style>
 
 <div class="stage"><div class="phone ct" id="phone" data-tema="azul-escuro" data-escuro="0">
