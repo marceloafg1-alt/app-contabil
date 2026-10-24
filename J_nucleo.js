@@ -270,7 +270,7 @@ function impVis(){impDemo();var L=impItens().filter(impNoPrazo),V=ST.impV=ST.imp
  L.forEach(function(x,i){x.i=i;ks[x.k]=1;if(!V[x.k])V[x.k]=t;x.em=V[x.k];});
  Object.keys(V).forEach(function(k){if(!ks[k])delete V[k];});
  L.sort(function(a,b){return b.em-a.em||a.i-b.i;});
- return L.filter(function(x,i){return i<5||t-x.em<72*36e5;});}
+ return L.filter(function(x,i){return i<5||t-x.em<72*36e5||/^f(rasc|fin):/.test(x.k);});} /* folhas por finalizar ou enviar ficam até o fim do período */
 function impRow(x){return '<div class="impr"><button type="button" class="impb" data-go="'+x.go+'"'+(x.c?' data-setcomp="'+x.c+'"':'')+(x.pre?' data-pre=\''+JSON.stringify(x.pre).replace(/'/g,'&#39;')+'\'':'')+'><span class="impt">'+esc(x.t)+'</span><i>›</i></button>'+(x.adiar?'<button type="button" class="impad" data-adiar="'+esc(x.adiar)+'">Adiar</button>':'')+'</div>';}
 function impHero(){impCss();var L=impVis(),n=L.length,ex=IMPX&&n>5;
  if(!n)return '<div class="hk"><span>Importante</span><span class="pill-w">Tudo em dia</span></div><div class="impok"><span class="impoki">'+IC.check16+'</span><span><b>Parabéns, você está em dia!</b><span>Tudo o que o contador pediu já foi feito. Quando surgir algo novo, aparece aqui.</span></span></div><div class="hb"><span class="due">Os próximos prazos estão em Verificar rotinas</span></div>';
@@ -1398,6 +1398,14 @@ function seedRot2(){var d=MULTI.data&&MULTI.data.alvorada;if(!d||d.seedRot2)retu
  delete off['despesas:'+p1];if(d.desp)delete d.desp[p1];['folha','notas','extratos','despesas'].forEach(function(g){delete off[g+':'+p2];});
  d.seedRot2=1;save();}
 seedRot2();
+/* teste do encerramento das folhas (24/10/2026), na Alvorada, mês da data real: Ana com folha lançada e não finalizada, Bruno com folha finalizada e não enviada,
+   Carlos com folha enviada, Juliana e Marcos sem folha (ficam sem variáveis no fim do prazo). Mude a Data do sistema para ver cada fase. */
+function seedFolhaT1(){var d=MULTI.data&&MULTI.data.alvorada;if(!d||d.seedFolhaT1)return;var r=new Date(),c=cName(r.getFullYear(),r.getMonth()),h=('0'+r.getDate()).slice(-2)+' '+['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][r.getMonth()];
+ if(!d.folhas)d.folhas=JSON.parse(JSON.stringify(ST0.folhas||[]));d.folhas=d.folhas.filter(function(f){return f.comp!==c;});
+ [['Ana Lima','rascunho',{he50:'4'}],['Bruno Reis','finalizada',{he50:'6'}],['Carlos Souza','enviada',{}]].forEach(function(x,i){d.folhas.unshift({id:'ft'+i,comp:c,func:x[0],tipo:'Mensal',st:x[1],vars:x[2],obs:'',criada:h,data:h});});
+ if(d.enc_folha)delete d.enc_folha[c];if(d.rotOff)delete d.rotOff['folha:'+c];d.ped=(d.ped||[]).filter(function(p){return p.autoC!==c;});
+ d.seedFolhaT1=1;save();}
+seedFolhaT1();
 
 /* encerrar: só a competência de um mês que já terminou (do dia 1º do mês seguinte até o prazo do contador) */
 function encIni(c){var p=cParse(c);return new Date(p.y,p.m+1,1);}
