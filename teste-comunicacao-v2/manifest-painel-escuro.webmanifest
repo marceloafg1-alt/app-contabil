@@ -5,7 +5,7 @@
   "lang": "pt-BR",
   "id": "./painel.html",
   "start_url": "./painel.html",
-  "scope": "./",
+  "scope": "./painel.html",
   "display": "standalone",
   "background_color": "#121416",
   "theme_color": "#121416",
