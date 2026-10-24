@@ -255,7 +255,7 @@ function impHero(){impCss();var L=impVis(),n=L.length,ex=IMPX&&n>3;
   '<div class="impl">'+(ex?L:L.slice(0,3)).map(impRow).join('')+'</div>'+
   (pr?'<div class="hb"><span class="due">'+(diasAte(pr.pz)<0?'Atrasado desde ':'Próximo prazo: ')+fmtP(pr.pz)+(pr.pz.getFullYear()!==NOW().getFullYear()?'/'+pr.pz.getFullYear():'')+'</span><button type="button" class="send" data-go="'+pr.go+'"'+(pr.c?' data-setcomp="'+pr.c+'"':'')+(pr.pre?' data-pre=\''+JSON.stringify(pr.pre).replace(/'/g,'&#39;')+'\'':'')+'>Resolver agora</button></div>':'');}
 function impCss(){if(document.getElementById('imp-css'))return;var st=document.createElement('style');st.id='imp-css';st.textContent=
- '.hero.himp,#cont-hero{min-height:308px;gap:12px}.hero.himp .hb{margin-top:auto}.hero.himp .send{width:auto;padding:0 18px;white-space:nowrap}'+
+ '.hero.himp,#cont-hero{min-height:308px;gap:12px}.hero.himp .hb{margin-top:auto}.hero.himp .send{width:auto;padding:0 18px;white-space:nowrap;background:rgba(255,255,255,.14);color:inherit}.phone[data-solido="1"][data-escuro="0"] .hero.himp .send{background:var(--tint);color:var(--accent)}'+
  '.impl{display:flex;flex-direction:column;gap:6px}.impr{display:flex;align-items:center;gap:6px}'+
  '.impb{flex:1;min-width:0;display:flex;align-items:center;gap:8px;height:36px;padding:0 10px 0 12px;border:0;border-radius:11px;background:rgba(255,255,255,.14);color:inherit;font:inherit;font-size:13.5px;font-weight:600;text-align:left}'+
  '.impt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.impb i{font-style:normal;opacity:.8;font-size:18px;line-height:1}'+
