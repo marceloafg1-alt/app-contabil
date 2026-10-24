@@ -40,8 +40,8 @@ button{font:inherit;font-weight:700;border:1px solid var(--line);background:var(
 <p class="sub" style="margin-top:-14px">Versão 2: com a tela Gestão contábil no app do contador.</p>
 <p class="sub">Cliente, contador e painel de gestão usando os mesmos dados, neste navegador.</p>
 <div class="apps">
- <a class="app" href="app.html#__pg=index.html" target="_blank" rel="noopener"><b>App do cliente</b><span>Envia notas, extratos, despesas, folhas e pedidos.</span><i>Abrir em nova aba ↗</i></a>
- <a class="app" href="app.html#__pg=contador.html" target="_blank" rel="noopener"><b>App do contador</b><span>Recebe, confere, devolve e envia guias e holerites.</span><i>Abrir em nova aba ↗</i></a>
+ <a class="app" href="cliente.html" target="_blank" rel="noopener"><b>App do cliente</b><span>Envia notas, extratos, despesas, folhas e pedidos.</span><i>Abrir em nova aba ↗</i></a>
+ <a class="app" href="contador.html" target="_blank" rel="noopener"><b>App do contador</b><span>Recebe, confere, devolve e envia guias e holerites.</span><i>Abrir em nova aba ↗</i></a>
  <a class="app" href="painel.html" target="_blank" rel="noopener"><b>Painel de gestão</b><span>Vê só contagens e situações, sem abrir documentos.</span><i>Abrir em nova aba ↗</i></a>
 </div>
 
@@ -65,7 +65,7 @@ button{font:inherit;font-weight:700;border:1px solid var(--line);background:var(
 </main>
 <script>
 /* os apps abrem sempre na versão mais nova: o endereço muda a cada abertura, então o navegador não usa uma cópia guardada */
-[].forEach.call(document.querySelectorAll('a.app[href^="app.html"]'),function(a){a.href=a.getAttribute('href').replace('app.html','app.html?t='+Date.now());});
+[].forEach.call(document.querySelectorAll('a.app[href$=".html"]:not([href^="painel"])'),function(a){a.href=a.getAttribute('href')+'?t='+Date.now();});
 document.getElementById('zera').addEventListener('click',function(){
  try{['app-multi-v1','app-estado-v2'].forEach(function(k){localStorage.removeItem(k);});}catch(e){}
  var fim=function(t){document.getElementById('ok').textContent=t;};

@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Contabills</title></head>
+<body>
+<script>
+/* Entrada própria de cada app: o escopo instalado (manifesto) é este endereço, então cliente e contador abrem em janelas separadas. Carrega o mesmo app.html. */
+(function(){
+ location.hash='__pg=contador.html';
+ fetch('app.html?t='+Date.now()).then(function(r){return r.text();}).then(function(t){document.open();document.write(t);document.close();}).catch(function(){document.body.textContent='Não foi possível abrir o app. Volte à página inicial e tente de novo.';});
+})();
+</script>
+</body></html>

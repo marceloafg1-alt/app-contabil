@@ -496,7 +496,7 @@ V.geral=()=>{
  </div>`};
 V.aovivo=()=>{
  const M=LIVE.M;
- const links=`<div class="lvlinks"><a class="btn sm" href="app.html#__pg=index.html" target="_blank" rel="noopener">${I('store','s')}Abrir app do cliente</a><a class="btn gh sm" href="app.html#__pg=contador.html" target="_blank" rel="noopener">${I('office','s')}Abrir app do contador</a></div>`;
+ const links=`<div class="lvlinks"><a class="btn sm" href="cliente.html" target="_blank" rel="noopener">${I('store','s')}Abrir app do cliente</a><a class="btn gh sm" href="contador.html" target="_blank" rel="noopener">${I('office','s')}Abrir app do contador</a></div>`;
  if(!M)return `<div class="card"><div style="display:flex;gap:10px;align-items:center"><span class="livedot off"></span><b>Ainda não há dados dos apps neste navegador</b></div>
   <div style="font-size:13px;color:var(--muted);margin-top:8px;line-height:1.5">Abra o app do cliente ou o app do contador em outra aba deste mesmo navegador. Assim que um deles abrir, este painel passa a mostrar as contagens e atualiza sozinho.</div>${links}</div>`;
  const E=M.emps.map(e=>({e,s:lvStats(M,e)}));const T=k=>E.reduce((a,x)=>a+x.s[k],0);
