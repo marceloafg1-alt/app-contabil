@@ -686,7 +686,7 @@ function cSisLimpa(){var L=cMsgs('sis'),ag=Date.now();L.forEach(function(m){if(!
 function cBub(m,ix,C,nm){var sis=C==='sis',me=sis?!!m.me:!m.me,x='';
  if(sis&&m.opts&&m.opts.length)x+='<div class="faqopts">'+m.opts.map(function(q){return '<button type="button" class="faqo" data-faqpick="'+esc(q)+'">'+esc(q)+'</button>';}).join('')+'</div>';
  if(sis&&m.sim)x+='<div class="faqopts"><button type="button" class="faqo sim" data-faqsim="'+ix+'">Ver perguntas parecidas</button></div>';
- return '<div class="msg'+(me?' me':'')+'" data-mi="'+ix+'"><div class="bb">'+esc(m.t)+(m.go&&m.gl?(sis?'<button type="button" class="bl" data-go="'+m.go+'">'+esc(m.gl)+' '+IC.chev16+'</button>':'<span class="bl">'+esc(m.gl)+'</span>'):'')+'</div>'+x+'<span class="mh">'+esc((!me&&!sis?nm+' · ':'')+m.h)+(me&&!sis?' · '+chatSt(m):'')+'</span></div>';}
+ return '<div class="msg'+(me?' me':'')+'" data-mi="'+ix+'"><div class="bb">'+esc(m.t)+(m.go&&m.gl?'<button type="button" class="bl" data-go="'+(/^ped-[^|]+$/.test(m.go)?m.go.replace(/^ped-/,'ped-'+UI.chatEmp+'|'):m.go)+'">'+esc(m.gl)+' '+IC.chev16+'</button>':'')+'</div>'+x+'<span class="mh">'+esc((!me&&!sis?nm+' · ':'')+m.h)+(me&&!sis?' · '+chatSt(m):'')+'</span></div>';}
 function vMsg(){return vChat('');}
 function vChat(id){var e=eById(id)||eById(UI.chatEmp)||eById(cChDef());if(!e)return null;UI.chatEmp=e.id;var C=UI.cht==='sis'?'sis':'ct',nm=e.fant||e.nome;
  cSisLimpa();var L=cMsgs(C,e.id);if(C==='ct'){B(e.id);LIDAS[e.id]=clientMsgs(ST);done();chatRecibo(1,e.id);}keep();
