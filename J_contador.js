@@ -58,8 +58,8 @@ function fileF(id,lab){return '<div class="fld"><span class="fl">'+(lab||'Arquiv
 function txt(id,lab,ph,val,opt){return '<div class="fld"><label class="fl" for="'+id+'">'+lab+(opt?' <i>(opcional)</i>':'')+'</label><input id="'+id+'" type="text" placeholder="'+esc(ph||'')+'" value="'+esc(val||'')+'" autocomplete="off"></div>';}
 var tt;function toast(m){var t=$('toast'),d=toastPinta(t,m);clearTimeout(tt);tt=setTimeout(function(){t.classList.remove('show');},d);}
 /* ===== navegação ===== */
-var TABS=[['inicio','Início','home'],['msg','Chat','chat'],null,['arquivo','Documentos','folder'],['ajustes','Perfil','user']];
-var TABOF={ped:'inicio',pedidos:'inicio',arquivo:'arquivo',pasta:'arquivo',doc:'arquivo',folha:'arquivo',msg:'msg',chat:'msg',ajustes:'ajustes'};
+var TABS=[['inicio','Início','home'],['msg','Chat','chat'],null,['arquivo','Documentos','folder'],['perfil','Perfil','user']];
+var TABOF={ped:'inicio',pedidos:'inicio',arquivo:'arquivo',pasta:'arquivo',doc:'arquivo',folha:'arquivo',msg:'msg',chat:'msg',ajustes:'perfil',perfil:'perfil'};
 function head(r){return r.split('-')[0];}
 function navHTML(){P.classList.toggle('chat',head(cur)==='chat'||cur==='msg');var s=stats('all'),cnt={pedidos:s.nv,msg:s.msg,arquivo:s.doc+s.fo},on=TABOF[head(cur)]||'inicio';
  return TABS.map(function(t){if(!t)return '<div class="fw"><button type="button" class="fab" id="fab" aria-label="Novo envio" data-fab>'+IC.plus+'</button></div>';
@@ -78,7 +78,7 @@ function rerender(){var y=SCR.scrollTop,vals={},ae=document.activeElement,aid=ae
  for(var k in vals){var x=$(k);if(x&&x.type!=='file'&&!x.dataset.fresh)x.value=vals[k];}
  SCR.scrollTop=y;if(aid&&$(aid))try{$(aid).focus();}catch(e){}
  if(isChat())SCR.scrollTop=SCR.scrollHeight;}
-function route(r){var h=head(r),a=r.slice(h.length+1);var R={recnovo:vRecNovo,rec:vRec,chk:vChk,lote:vLote,fecha:vFecha,dp:vDP,desp:vDesp,inicio:vInicio,pedidos:vPedidos,ped:vPed,receb:vReceb,arquivo:vArquivo,pasta:vPasta,doc:vDoc,folha:vFolha,msg:vMsg,chat:vChat,ajuda:vAjuda,novodoc:vNovoDoc,novoguia:vNovoGuia,guias:vGuias,colab:vColab,socio:vSocio,cguia:vGuiaC,novoped:vNovoPed,ajustes:vAjustes,ajnotif:vAjNotif,ajprazos:vAjPrazos,ajacomp:vAjAcomp,ajadm:vAjAdm,ajequipe:vAjEquipe,ajclientes:vAjClientes,cli:vCli,gestao:vGestao,notif:vNotif}[h];return R?R(a):null;}
+function route(r){var h=head(r),a=r.slice(h.length+1);var R={recnovo:vRecNovo,rec:vRec,chk:vChk,lote:vLote,fecha:vFecha,dp:vDP,desp:vDesp,inicio:vInicio,pedidos:vPedidos,ped:vPed,receb:vReceb,arquivo:vArquivo,pasta:vPasta,doc:vDoc,folha:vFolha,msg:vMsg,chat:vChat,ajuda:vAjuda,novodoc:vNovoDoc,novoguia:vNovoGuia,guias:vGuias,colab:vColab,socio:vSocio,cguia:vGuiaC,novoped:vNovoPed,ajustes:vAjustes,perfil:vPerfilC,ajnotif:vAjNotif,ajprazos:vAjPrazos,ajacomp:vAjAcomp,ajadm:vAjAdm,ajequipe:vAjEquipe,ajclientes:vAjClientes,cli:vCli,gestao:vGestao,notif:vNotif}[h];return R?R(a):null;}
 /* ===== início ===== */
 function vInicio(){var s=stats('all'),tot=s.nv+s.doc+s.fo+s.msg,partes=[];
  if(s.nv)partes.push(s.nv+(s.nv===1?' pedido novo':' pedidos novos'));if(s.doc)partes.push(s.doc+(s.doc===1?' documento para conferir':' documentos para conferir'));if(s.fo)partes.push(s.fo+(s.fo===1?' folha para fechar':' folhas para fechar'));if(s.msg)partes.push(s.msg+(s.msg===1?' mensagem':' mensagens'));
@@ -926,6 +926,14 @@ function envio(k){if(k==='doc'&&V('nd-c')==='guias'){var gv=$('nd-v').value,gd=V
 /* ===== ajustes, clientes e aparência ===== */
 /* Configurações: mesmo jeito do app do cliente, com cada grupo de ajustes na própria tela */
 function ajRow(ic,a,b,go){return '<button type="button" class="r" data-go="'+go+'"><span class="ri">'+ic+'</span><span class="rt"><span class="a">'+a+'</span>'+(b?'<span class="b">'+esc(b)+'</span>':'')+'</span><span class="cv">'+IC.chev18+'</span></button>';}
+/* Perfil do contador: a mesma ideia do Perfil do cliente, mas com a conta, o escritório e os atalhos do contador */
+function vPerfilC(){var n=MULTI.emps.length,eq=(MULTI.equipe||[]).length,c=MULTI.cfg,pd=pedAll('all').length;
+ var h='<div class="phd"><span class="pav">PM</span><div><h1>Paula Mendes</h1><div class="s">Contadora · Contabilidade Horizonte</div></div></div>';
+ h+='<section>'+sec('Minha conta')+'<div class="card pad">'+kv('Nome','Paula Mendes')+kv('E-mail','<span class="sel-t">paula@horizonte.exemplo</span>')+kv('Celular','(11) 97000-0000')+'</div></section>';
+ h+='<section>'+sec('Meu escritório')+'<div class="card">'+ajRow(IC.people,'Clientes',n+(n===1?' cliente':' clientes'),'ajclientes')+ajRow(IC.people,'Equipe do escritório',eq+(eq===1?' pessoa':' pessoas'),'ajequipe')+ajRow(IC.cal||IC.clock,'Prazos de envio','Folha: '+c.folhaDU+'º dia útil · demais: dia '+c.docsDia,'ajprazos')+'</div></section>';
+ h+='<section>'+sec('Com os clientes')+'<div class="card">'+ajRow(IC.sol,'Pedidos recebidos',pd+(pd===1?' pedido':' pedidos'),'pedidos')+ajRow(IC.chat,'Chat','Conversas com os clientes','msg')+'</div></section>';
+ h+='<section>'+sec('Atalhos')+'<div class="card">'+ajRow(IC.bell,'Notificações push','Tipos de aviso e teste','ajnotif')+ajRow(CH_GEAR,'Configurações','Aparência, escritório e testes','ajustes')+ajRow(IC.duv||IC.chat,'Ajuda','Perguntas frequentes','ajuda')+'</div></section>';
+ return h+'<p class="foot">Dados de exemplo.</p>';}
 function vAjustes(){var c=MULTI.cfg,n=NOW(),on=window.syncStatus==='online',eq=MULTI.equipe||[],na=['notas','extratos','folha'].filter(function(k){return acompOn(k);}).length,ad=admDias();
  var h=hdr('Configurações','Ajustes do app');
  var tt=TEMAS.filter(function(x){return x[0]===UI.tema;})[0]||TEMAS[0];
