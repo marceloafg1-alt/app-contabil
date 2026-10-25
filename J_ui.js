@@ -371,7 +371,7 @@ syncSim();
 document.addEventListener('change',function(e){if(e.target.id!=='cfg-sim')return;var v=e.target.value;MULTI.sim=(!v||v===realIso())?null:v;syncSim();applySim();show(cur,false,true);say('Hoje no app: '+fmtP(NOW()));});
 /* início */
 document.getElementById('rst').addEventListener('click',function(){(window.syncReset?syncReset():Promise.resolve()).then(function(){location.reload();});});
-window.applyRemote=function(){setTimeout(function(){if(window.pedRecebe&&pedRecebe())save();},0);var ae=document.activeElement,aid=ae&&ae.id,av=ae&&'value' in ae?ae.value:null;useEmp(MULTI.cur);setDark(!!EMP().escuro);setT(document.getElementById('tema-'+EMP().tema)?EMP().tema:'verde');syncSim();renderLists();if(MAIN.indexOf(cur)<0&&head(cur)!=='f')show(cur,false,true);if(cur==='chat'){ST.unread=0;}if(aid){var ne=document.getElementById(aid);if(ne&&av!==null&&ne!==ae){ne.value=av;ne.focus();}}};
+window.applyRemote=function(){setTimeout(function(){if(window.pedRecebe&&pedRecebe())save();chatRecibo(0,cur==='chat'&&CHT!=='sis'?MULTI.cur:null);},0);var ae=document.activeElement,aid=ae&&ae.id,av=ae&&'value' in ae?ae.value:null;useEmp(MULTI.cur);setDark(!!EMP().escuro);setT(document.getElementById('tema-'+EMP().tema)?EMP().tema:'verde');syncSim();renderLists();if(MAIN.indexOf(cur)<0&&head(cur)!=='f')show(cur,false,true);if(cur==='chat'){ST.unread=0;}if(aid){var ne=document.getElementById(aid);if(ne&&av!==null&&ne!==ae){ne.value=av;ne.focus();}}};
 renderLists();
 setDark(!!EMP().escuro);setT(document.getElementById('tema-'+EMP().tema)?EMP().tema:'verde');
 var h=(location.hash||'').slice(1);if(!ST.logged){show('login',false);}else if(h&&h!=='inicio'){hist=chain(h);show(h,false);if(cur!==h){hist=[];show('inicio',false);}}else show('inicio',false);
@@ -437,7 +437,7 @@ function askPedLib(g,c,depois){if(pedLibAberto(g,c)){say('Você já pediu a libe
   else{if(head(cur)==='f'){if(FS&&FS.step<FLOWS[FS.id].steps.length){var nx=document.querySelector('#s-dyn [data-next]');if(nx)nx.click();}return;}if(FWD.length){window.__fwdNav=1;go(FWD.pop());window.__fwdNav=0;}}},{passive:true});})();
 document.addEventListener('toggle',function(e){var t=e.target;if(t&&t.classList&&t.classList.contains('facc'))FACC[t.dataset.acc]=t.open;},true);
 window.__refresh=function(){show(cur,false,true);};
-setTimeout(function(){if(window.pedRecebe&&pedRecebe())save();},800);
+setTimeout(function(){if(window.pedRecebe&&pedRecebe())save();chatRecibo(0,null);},800);
 /* puxar de cima para baixo atualiza a tela (celular): só no começo da rolagem, nunca sobre campos, painéis abertos ou áreas com rolagem própria */
 (function(){var P=document.querySelector('.phone');if(!P||!window.matchMedia)return;var ind=document.createElement('div');ind.className='ptr';ind.setAttribute('aria-hidden','true');ind.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"></path></svg>';P.appendChild(ind);
  var sy=0,sx=0,st=0,scr=null,on=false,pull=false,busy=false,d=0,LIM=44,mouse=false,wa=0,wt=0;

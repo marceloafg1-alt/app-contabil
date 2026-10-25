@@ -721,10 +721,19 @@ function syncEmp(){var e=EMP();document.querySelectorAll('.empn').forEach(functi
 function setBadge(id,n){var b=document.getElementById(id);if(!b)return;b.textContent=n;b.hidden=!n;}
 
 /* ===== chat ===== */
-function bubble(m,ix){var x='';if(m.opts&&m.opts.length)x+='<div class="faqopts">'+m.opts.map(function(q){return '<button type="button" class="faqo" data-faqpick="'+esc(q)+'">'+esc(q)+'</button>';}).join('')+'</div>';
+/* situação das mensagens da conversa com o contador: Enviado (gravada), Entregue (chegou ao app do outro lado) e Visualizado (o outro lado abriu a conversa).
+   Cada app marca o que recebe: ct=1 no app do contador (recebe as do cliente, me:1), ct=0 no do cliente (recebe as do contador). vis é a empresa com a conversa aberta.
+   A gravação sai depois do applyRemote, para chegar ao outro app. */
+function chatRecibo(ct,vis){var mud=0,hr=horaAgora();
+ (MULTI.emps||[]).forEach(function(e){var d=(MULTI.data||{})[e.id];(d&&d.chat||[]).forEach(function(m){if(ct?!m.me:m.me)return;
+  if(!m.en){m.en=hr;mud=1;}if(vis===e.id&&!m.vi){m.vi=hr;mud=1;}});});
+ if(mud)setTimeout(function(){if(window.save)save();},0);return mud;}
+function chatSt(m){var k=m.vi?'vi':m.en?'en':'ev',t={ev:'Enviado',en:'Entregue',vi:'Visualizado'}[k],q=k==='vi'?m.vi:k==='en'?m.en:'';
+ return '<span class="mst mst-'+k+'"'+(q&&q!==1?' title="'+t+' em '+esc(q)+'"':'')+'><b aria-hidden="true">'+(k==='ev'?'✓':'✓✓')+'</b> '+t+'</span>';}
+function bubble(m,ix,C){var x='';if(m.opts&&m.opts.length)x+='<div class="faqopts">'+m.opts.map(function(q){return '<button type="button" class="faqo" data-faqpick="'+esc(q)+'">'+esc(q)+'</button>';}).join('')+'</div>';
  if(m.sim)x+='<div class="faqopts"><button type="button" class="faqo sim" data-faqsim="'+ix+'">Ver perguntas parecidas</button></div>';
  if(m.ct&&m.q)x+='<div class="faqopts"><button type="button" class="faqo ct" data-chtoct="'+ix+'">Perguntar ao contador</button></div>';
- return '<div class="msg'+(m.me?' me':'')+'" data-mi="'+ix+'"><div class="bb">'+esc(m.t)+(m.go?'<button type="button" class="bl" data-go="'+m.go+'">'+esc(m.gl)+' '+IC.chev16+'</button>':'')+'</div>'+(m.re?'<span class="rx">'+esc(m.re)+'</span>':'')+x+'<span class="mh">'+esc(m.h)+'</span></div>';}
+ return '<div class="msg'+(m.me?' me':'')+'" data-mi="'+ix+'"><div class="bb">'+esc(m.t)+(m.go?'<button type="button" class="bl" data-go="'+m.go+'">'+esc(m.gl)+' '+IC.chev16+'</button>':'')+'</div>'+(m.re?'<span class="rx">'+esc(m.re)+'</span>':'')+x+'<span class="mh">'+esc(m.h)+(C==='ct'&&m.me?' · '+chatSt(m):'')+'</span></div>';}
 var CHT='ct',PENDCHAT=null;
 /* ===== busca por semelhança nas perguntas da Ajuda (sem IA, grátis) ===== */
 var FQ_STOP={};'a o as os um uma uns umas de do da dos das em no na nos nas por para pra com sem que e ou eu me meu minha meus minhas se ao aos qual quais como onde quando porque pq posso pode podem consigo preciso quero queria gostaria tem ter fazer faco ha esta estou fica isso esse essa este aqui la mais muito ja so tambem sobre app aplicativo sistema tela pagina botao opcao vez uso usar dou da dar pro pra pros pras vc voce gente favor ai entao'.split(' ').forEach(function(w){FQ_STOP[w]=1;});
@@ -823,12 +832,12 @@ function chatFan(cx,cy){var ico=function(g,f){var e=document.querySelector('#s-i
  var I=[['inicio','Início',IC.home],['dp','DP',ico('dp',IC.people)],['contabil','Gestão contábil',ico('contabil',IC.receipt)],['guias','Guias',ico('guias',IC.tax)],['config','Configurações',CH_GEAR]],rx=Math.min(148,cx-42),ry=170;
  return '<div class="chfov"></div><div class="chfttl" style="top:'+Math.round(cy+72)+'px">Menu</div>'+I.map(function(x,i){var a=(160-i*35)*Math.PI/180;return '<button type="button" class="chfi" data-go="'+x[0]+'" style="left:'+Math.round(cx+Math.cos(a)*rx-36)+'px;top:'+Math.round(cy+Math.sin(a)*ry-36)+'px;--dx:'+Math.round(-Math.cos(a)*rx)+'px;--dy:'+Math.round(-Math.sin(a)*ry)+'px"><span>'+x[2]+'</span><span'+(x[1].length>10&&x[1].indexOf(' ')<0?' class="lg"':'')+'>'+x[1]+'</span></button>';}).join('')+
  '<button type="button" class="chfx" data-chfan aria-label="Fechar menu" style="left:'+Math.round(cx-22)+'px;top:'+Math.round(cy-22)+'px">'+IC.plus+'</button>';}
-function renderChat(){ST.unread=0;chatSisLimpa();save();extraLists();var C=CHT||'ct',L=chatL(C);
+function renderChat(){ST.unread=0;chatSisLimpa();save();extraLists();var C=CHT||'ct',L=chatL(C);if(C==='ct')chatRecibo(0,MULTI.cur);
  var tab=function(k,t){return '<button type="button" class="cht cht-'+k+(C===k?' on':'')+'" role="tab" aria-selected="'+(C===k)+'" data-chtab="'+k+'"><b>'+t+'</b></button>';};
  
  var head='<div class="dhd chd chtop"><button type="button" class="bk" data-back aria-label="Voltar">'+IC.back+'</button><div class="chtabs" role="tablist">'+tab('ct',CH_CT_NOME)+'<button type="button" class="chplus" data-chfan aria-expanded="false" aria-label="Abrir menu">'+IC.plus+'</button>'+tab('sis',CH_SIS_NOME)+'</div><i class="chsp" aria-hidden="true"></i></div>',tabs='';
  var info=C==='ct'?'Aqui você fala com a contadora: prazos, documentos, impostos, folha e trabalhista. Dúvidas de como usar o app vão para o '+CH_SIS_NOME+'.':'Aqui você tira dúvidas de como usar o app, com base na Ajuda. Assunto de lei, imposto ou trabalhista vai para o contador.';
- var msgs='<div class="msgs" id="msgs"><div class="chinfo chi-'+C+'">'+info+'</div>'+L.map(function(m,i){return bubble(m,i);}).join('')+'</div>';
+ var msgs='<div class="msgs" id="msgs"><div class="chinfo chi-'+C+'">'+info+'</div>'+L.map(function(m,i){return bubble(m,i,C);}).join('')+'</div>';
  var pend=PENDCHAT?'<div class="chroute"><p>'+esc(PENDCHAT.why)+'</p><div class="g2b"><button type="button" class="wb pri" data-chroute="'+PENDCHAT.to+'">'+esc(PENDCHAT.btn)+'</button><button type="button" class="wb" data-chkeep="1">'+esc(PENDCHAT.keep)+'</button></div></div>':'';
  var who='<div class="cwho cw-'+C+'">Falando com <b>'+(C==='ct'?'o contador':'o sistema')+'</b></div>';
  return head+tabs+msgs+pend+who+'<form class="cbar" id="cform"><div class="cin"><button type="button" class="ce" data-chemo aria-label="Emojis">'+CH_ICO_EMO+'</button><textarea id="cmsg" rows="1" placeholder="'+(C==='ct'?'Escreva para o contador':'Pergunte sobre o app')+'" autocomplete="off" enterkeyhint="enter"></textarea>'+(C==='ct'?'<button type="button" class="ca" data-go="f-enviar" aria-label="Anexar arquivo">'+IC.clip+'</button>':'')+'</div><button type="submit" class="cs" aria-label="Enviar">'+IC.send+'</button><div class="chemo" hidden></div></form>';}
@@ -889,8 +898,6 @@ function renderPerfil(){
  '<section><div class="sec"><h2>Acesso e segurança</h2></div><div class="card">'+prow('people','Usuários e permissões',USR().length+' usuários · quem acessa o app','usuarios')+prow('lock','Senha e segurança','Senha, duas etapas e aparelhos','seguranca')+'</div></section>'+
  '<section><div class="sec"><h2>Com o contador</h2></div><div class="card">'+prow('sol','Meus pedidos',ST.ped.length+' pedidos','pedidos')+prow('cal','Prazos de envio','Folha: '+MULTI.cfg.folhaDU+'º dia útil · demais: dia '+MULTI.cfg.docsDia,'prazos')+prow('chat','Meu contador','Contabilidade Horizonte','contador')+'</div></section>'+
  '<p class="foot">Dados de exemplo.</p>';}
-function verRows(){var pg=((window.__PAGE||'index.html')||'index.html'),V=[['index.html','mini','App no celular','Mesmo app, tela de celular'],['web.html','home','App no computador','Versão web, para tela grande'],['contador.html','people','Painel do contador','No computador: pedidos, guias e documentos'],['contador-app.html','mini','App do contador','O mesmo painel, no celular']].filter(function(v){return v[0]!==pg&&!(pg==='index.html'&&v[0]==='index.html');});
- return '<section><div class="sec"><h2>Outras versões</h2></div><div class="card">'+V.map(function(v){return '<a class="r vlink" href="'+v[0]+'"><span class="ri">'+(IC[v[1]]||IC.doc)+'</span><span class="rt"><span class="a">'+v[2]+'</span><span class="b">'+v[3]+'</span></span>'+IC.chev18+'</a>';}).join('')+'</div></section>';}
 function renderConfig(){var e=EMP(),tt=TEMAS.filter(function(x){return x[0]===e.tema;})[0]||TEMAS[0];
  return hdr('Configurações','Ajustes do app')+
  '<section><div class="sec"><h2>Aparência</h2></div><div class="card"><button type="button" class="r" data-tema-go><span class="ri">'+IC.palette+'</span><span class="rt"><span class="a">Tema do app</span><span class="b">'+tt[1]+(e.solido?' sólida':' em degradê')+' · escuro '+(e.escuro?'ligado':'desligado')+' · cor de '+esc(e.fant||e.nome)+'</span></span><span class="cfg-sw" style="'+tsw(e.tema)+'"></span>'+IC.chev18+'</button></div></section>'+
@@ -899,7 +906,7 @@ function renderConfig(){var e=EMP(),tt=TEMAS.filter(function(x){return x[0]===e.
  '<section><div class="sec"><h2>Alerta de prazo</h2></div><div class="card">'+tg('term','Termômetro do último dia','No último dia de envio, a cor do app muda suavemente em 5 s e mostra o que vence, a cada 1 min')+'<button type="button" class="r" data-termtest><span class="ri">'+IC.clock+'</span><span class="rt"><span class="a">Testar agora</span><span class="b">Mostra a animação uma vez</span></span>'+IC.chev18+'</button></div></section>'+
  '<section><div class="sec"><h2>Suporte</h2></div><div class="card">'+prow('duv','Ajuda','Perguntas frequentes','ajuda')+'</div></section>'+
  cfgTeste()+
- verRows()+'<button type="button" class="cta ghost danger" data-sair>Sair da conta</button><div class="conf" id="conf" hidden><p>Sair da conta neste aparelho?</p><div class="g2b"><button type="button" class="wb" data-sair-no>Cancelar</button><button type="button" class="wb red" data-go="login" data-sair-yes>Sair</button></div></div><p class="foot">Versão 1.0 · protótipo</p>';}
+ '<button type="button" class="cta ghost danger" data-sair>Sair da conta</button><div class="conf" id="conf" hidden><p>Sair da conta neste aparelho?</p><div class="g2b"><button type="button" class="wb" data-sair-no>Cancelar</button><button type="button" class="wb red" data-go="login" data-sair-yes>Sair</button></div></div><p class="foot">Versão 1.0 · protótipo</p>';}
 /* provisório, para testes: data do sistema (MULTI.sim) e zerar os impostos */
 function cfgTeste(){var n=NOW(),v=n.getFullYear()+'-'+('0'+(n.getMonth()+1)).slice(-2)+'-'+('0'+n.getDate()).slice(-2);
  return '<section><div class="sec"><h2>Testes (provisório)</h2></div><div class="card">'+
@@ -1084,11 +1091,13 @@ function DEV(){return ST.devs||(ST.devs=[{n:'Este aparelho',d:'Celular Android �
 function usrIni(n){return n.split(' ').map(function(x){return x[0];}).slice(0,2).join('').toUpperCase();}
 function pf(k,d){var v=ST.prefs[k];return v===undefined?d:v;}
 function renderNotifCfg(){[['push',1],['email',0],['msg',1],['venc',1],['prazo',1],['docs',1],['fer',1],['ped',1],['dnd',0]].forEach(function(x){if(ST.prefs[x[0]]===undefined)ST.prefs[x[0]]=x[1];});
+ /* igual ao contador: liga neste aparelho e, ligado, os tipos de aviso, o Não perturbar e o teste */
+ var on=window.PUSH?PUSH.ligado():!!ST.prefs.push;
  return hdr('Notificações','Configurações')+
- '<section><div class="sec"><h2>Como avisar</h2></div><div class="card">'+tg('push','Notificações push','Alertas na tela do aparelho')+tg('email','E-mail','Avisos importantes na sua caixa de entrada')+tg('sem','Resumo semanal','Por e-mail, às segundas')+'</div></section>'+
- '<section><div class="sec"><h2>O que avisar</h2></div><div class="card">'+tg('msg','Mensagens do contador','Quando ele escrever para você')+tg('venc','Vencimento de guias','Até você pagar')+tg('prazo','Prazos de envio','Folhas, extratos, despesas e notas')+tg('docs','Documentos pedidos','Quando o contador pedir algo com prazo')+tg('fer','Férias a vencer','Período aquisitivo dos colaboradores')+tg('ped','Atualização de pedidos','Quando o contador responder')+'</div></section>'+
- '<section><div class="sec"><h2>Silêncio</h2></div><div class="card">'+tg('dnd','Não perturbar','Sem avisos das 22h às 7h')+'</div></section>'+
- '<button type="button" class="cta ghost" data-ntest>'+IC.clock+' Enviar notificação de teste</button>';}
+ '<section><div class="sec"><h2>Notificações push</h2></div><div class="card">'+tg('push','Notificações neste aparelho','Alertas na tela do aparelho')+(on?tg('msg','Mensagens do contador','Quando ele escrever para você')+tg('venc','Vencimento de guias','Até você pagar')+tg('prazo','Prazos de envio','Folhas, extratos, despesas e notas')+tg('docs','Documentos pedidos','Quando o contador pedir algo com prazo')+tg('fer','Férias a vencer','Período aquisitivo dos colaboradores')+tg('ped','Atualização de pedidos','Quando o contador responder')+tg('dnd','Não perturbar','Sem avisos das 22h às 7h'):'')+'</div>'+
+ (on?'<div class="gap"></div><button type="button" class="wb" data-ntest>'+IC.clock+' Enviar notificação de teste</button>':'')+
+ '<p class="fh">Os avisos do sino e as mensagens do contador aparecem no aparelho quando o app está aberto em segundo plano (outra aba, outra janela ou o app instalado minimizado). Tocar no aviso abre o pedido, a guia, o documento ou o chat.</p></section>'+
+ '<section><div class="sec"><h2>Por e-mail</h2></div><div class="card">'+tg('email','E-mail','Avisos importantes na sua caixa de entrada')+tg('sem','Resumo semanal','Por e-mail, às segundas')+'</div></section>';}
 function renderUsuarios(){return hdr('Usuários e permissões','Perfil')+'<div class="card">'+USR().map(function(u,i){return '<button type="button" class="r" data-go="usuario-'+i+'"><span class="av2">'+usrIni(u.n)+'</span><span class="rt"><span class="a">'+esc(u.n)+(u.eu?' (você)':'')+'</span><span class="b">'+u.r+(u.pend?' · convite enviado':'')+'</span></span>'+IC.chev18+'</button>';}).join('')+'</div><p class="foot">Cada perfil define o que a pessoa pode ver e pedir no app.</p><div class="fbar"><button type="button" class="cta" data-go="f-convite">Convidar usuário</button></div>';}
 function renderUsuario(i){var u=USR()[+i];if(!u)return '';
  return hdr(u.n,'Usuário')+'<div class="card pad">'+kv('E-mail','<span class="sel-t">'+esc(u.e)+'</span>')+kv('Situação',u.pend?'Convite enviado':'Ativo')+'</div>'+
