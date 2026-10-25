@@ -225,6 +225,7 @@ function renderLists(){
  if(window.filtraDocs)filtraDocs();
  if(window.extraLists)extraLists();
  if(window.__impSeqCheck)__impSeqCheck();
+ if(window.__rotVCheck)__rotVCheck();
 }
 
 /* Solicitações de cada área (DP, Gestão contábil, Guias de impostos e Documentos): até 5, com Ver todos quando passar */
@@ -627,7 +628,8 @@ function showVal(f){var v=FS.v[f.k];if(f.type==='toggle')return v?'Sim':'Não';i
  if(f.type==='tema'&&v){var tt=TEMAS.filter(function(x){return x[0]===v;})[0];return tt?esc(tt[1]):'—';}return v?esc(v):'—';}
 function renderFlow(){var F=FLOWS[FS.id],n=F.steps.length,last=FS.step===n,done=FS.step>n;
  var h='<div class="dhd"><button type="button" class="bk" data-fback aria-label="Voltar">'+IC.back+'</button><div class="dtt"><div class="s">'+AREA_NOME[F.a]+'</div><h1>'+esc(F.t)+'</h1></div></div>';
- if(done&&IMPSEQ&&IMPSEQ.atual&&(IMPSEQ.go==='f-'+FS.id||!impPend(IMPSEQ.atual)))return impSeqTela(); /* veio do Resolver agora: só Próximo e Voltar */
+ if(done&&IMPSEQ&&IMPSEQ.atual&&(IMPSEQ.go==='f-'+FS.id||!impPend(IMPSEQ.atual)))return impSeqTela();
+ if(done&&ROTV&&window.__rotVolta){var okm=FS.id==='notas'?(FS.nfK||0)+((FS.nfK||0)===1?' nota carregada':' notas carregadas')+' no cofre de '+cMes(FS.v.comp):FS.final?'Folha finalizada. Falta enviar ao contador':F.ok;setTimeout(function(){__rotVolta(okm);},0);return '';} /* veio de Verificar rotinas: volta para lá, já atualizado */ /* veio do Resolver agora: só Próximo e Voltar */
  if(done&&FS.id==='notas'){var cc=FS.v.comp,kq=FS.nfK||0,dq=(FS.nfDup||[]).length,pzq=prazo('notas',cc);return '<div class="okv"><span class="okc">'+IC.check32+'</span><h2>'+kq+(kq>1?' notas carregadas':' nota carregada')+' no cofre</h2><p>'+(dq?dq+(dq>1?' notas já estavam no cofre e não foram carregadas de novo. ':' nota já estava no cofre e não foi carregada de novo. '):'')+'Elas ficam guardadas no cofre de '+cMes(cc)+'. Vão para o contador quando você encerrar o cofre ou, automaticamente, em '+fmtP(pzq)+'.</p><span class="prot">Cofre de '+cMes(cc)+' · aberto</span></div><div class="fbar col"><button type="button" class="cta" data-go="cofre" data-setcomp="'+cc+'" data-reset="contabil">Ver cofre de notas</button><button type="button" class="cta ghost" data-go="f-notas" data-pre=\'{"comp":"'+cc+'"}\'>Carregar mais notas</button></div>';}
  if(done){var p=FS.res;if(FS.final)return '<div class="okv"><span class="okc fin">'+IC.check32+'</span><h2>Folha finalizada</h2><p>A folha de '+esc(FS.v.func)+' está pronta, mas <b>ainda não foi enviada</b> ao contador. Envie quando quiser pelo + em Folhas de pagamento › Finalizar folhas.</p><span class="prot warnp">Não enviada</span></div><div class="fbar col"><button type="button" class="cta" data-go="folhas" data-reset="dp">Ir para Folhas de pagamento</button><button type="button" class="cta ghost" data-env1="'+FS.fid+'">Enviar agora</button></div>';return '<div class="okv"><span class="okc">'+IC.check32+'</span><h2>'+esc(F.ok)+'</h2><p>'+esc(F.okS)+'</p>'+(FS.id==='senha'||FS.id==='convite'?'':'<span class="prot">'+(FS.id==='empresa'?'CNPJ '+esc(p):'Protocolo #'+p)+'</span>')+'</div><div class="fbar col"><button type="button" class="cta" data-go="'+(FS.id==='folha'?'folha-'+FS.fid:FS.ped?'ped-'+FS.ped:FS.id==='convite'?'usuarios':FS.id==='senha'?'seguranca':F.a)+'" data-reset="'+F.a+'">'+(FS.id==='folha'?'Ver folha':FS.ped?'Acompanhar pedido':FS.id==='convite'?'Ver usuários':FS.id==='senha'?'Voltar para segurança':'Ver em '+AREA_NOME[F.a])+'</button><button type="button" class="cta ghost" data-home>Voltar ao início</button></div>';}
  h+='<div class="stp"><div class="sl"><span>Etapa '+(FS.step+1)+' de '+(n+1)+'</span><b>'+(last?(F.rev||'Revisar e enviar'):esc(F.steps[FS.step].t))+'</b></div><div class="sb">'+Array.apply(null,Array(n+1)).map(function(_,i){return '<i class="'+(i<=FS.step?'on':'')+'"></i>';}).join('')+'</div></div>';
@@ -705,8 +707,8 @@ function extraLists(){
   document.getElementById('g-total').textContent=cnt?'R$ '+fmt(tot):'R$ 0,00';
   document.getElementById('g-cnt').textContent=cnt?cnt+(cnt>1?' guias':' guia'):'Em dia';
   document.getElementById('g-lbl').textContent=cnt?'A pagar até 20 out':'Nada vencendo esta semana';}
- var nu=ST.notif.filter(function(n){return n.u;}).length;
- setBadge('bd-chat',ST.unread);setBadge('bd-notif',nu+avisosPrazo().filter(function(a){return a.u==='bad';}).length);
+ if(window.__ntOn)ntSync();var nu=(ST.notif||[]).filter(function(n){return n.u;}).length;
+ setBadge('bd-chat',ST.unread);setBadge('bd-notif',nu);
  syncEmp();var hs=document.getElementById('hello-name');if(hs)hs.textContent='Olá, Marina';
 }
 function syncEmp(){var e=EMP();document.querySelectorAll('.empn').forEach(function(x){x.textContent=e.nome;});
@@ -844,10 +846,38 @@ function horaAgora(){var d=new Date();return hoje()+', '+('0'+d.getHours()).slic
 function scrollChat(){var d=document.getElementById('s-dyn');d.scrollTop=d.scrollHeight;}
 
 /* ===== notificações ===== */
-function renderNotif(){var nu=ST.notif.filter(function(n){return n.u;}).length,av=avisosPrazo();
+/* Só avisos do contador (pedidos, guias, documentos, respostas e situação dos pedidos) e os alertas dos últimos dias de prazo; o chat tem o próprio sinal no ícone.
+ Alertas de prazo (envios do mês, documentos pedidos, guias e férias): do 3º dia antes até o último dia, um por dia, cada um no lugar do anterior; nos envios do mês, no dia seguinte vem o aviso de envio encerrado. Depois saem de vez (também do servidor, pelo save).
+ Situação de pedido some no dia seguinte ao que foi lida. Pedido de documento lido some 24 horas depois e volta como alerta nos 3 últimos dias. */
+var NT_ST=/^(Pedido concluído|Contador está analisando|Pagamento confirmado|Recálculo concluído|O contador cobrou)/;
+function ntId(){return 'n'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function ntGet(id){return (ST.notif||[]).filter(function(n){return n.id===id;})[0];}
+function ntDocDe(n){if(n.t!=='O contador pediu um documento')return null;var nm=String(n.s||'').split(' · ')[0];return docsPed().filter(function(x){return pedNome(x)===nm;})[0]||null;}
+function ntFase(dd,env){if(env)return dd<0?'envio encerrado':dd===0?'último dia':dd===1?'falta 1 dia':'faltam '+dd+' dias';return dd===0?'vence hoje':dd===1?'vence amanhã':'vence em '+dd+' dias';}
+function ntAlertas(){var A=[],n=NOW();
+ if(pf('prazo',1)!==0){
+  rotItens().forEach(function(x){if(x.kind!=='prazo'||x.st!=='aberto')return;var dd=diasAte(x.pz);if(dd<0||dd>3)return;A.push({pz:'prazo|'+x.rg+'|'+x.c,fase:ntFase(dd,1),t:x.t+': '+ntFase(dd,1),s:rotSub(x),go:x.go,c:x.c});});
+  ['folha','extratos','notas','despesas'].forEach(function(g){if(g==='folha'&&!FUNC.length)return;[-2,-1,0].forEach(function(k){var c=cName(n.getFullYear(),n.getMonth()+k),pz=prazo(g,c);if(diasAte(pz)!==-1||rotFeito(g,c))return;
+   A.push({pz:'prazo|'+g+'|'+c,fase:'envio encerrado',t:'Envio de '+ROTG[g][3]+' de '+cMes(c)+' encerrado',s:'O prazo terminou em '+fmtP(pz)+'. O que você lançou foi ao contador automaticamente.',go:'rotinas'});});});}
+ if(pf('docs',1)!==0)docsPed().forEach(function(x){if(pedFeito(x))return;var pz=pedLim(x),dd=diasAte(pz);if(dd<0||dd>3)return;A.push({pz:'docs|'+x.id,doc:x.id,fase:ntFase(dd),t:pedNome(x)+': '+ntFase(dd),s:'Pedido do contador · envie até '+fmtP(pz),go:x.go||'f-solicitado'});});
+ if(pf('venc',1)!==0)GU.forEach(function(g,i){if(ST.pagas[i])return;var pz=guiaDt(g),dd=diasAte(pz),nm=g.n.split(' · ')[0];if(dd<0||dd>3)return;A.push({pz:'guia|'+nm+'|'+g.c,fase:ntFase(dd),t:'Guia '+nm+' de '+g.c+': '+ntFase(dd),s:'R$ '+g.v+' · pague até '+fmtP(pz),go:'guia-'+i});});
+ ferAlertas().forEach(function(x){if(x.dd==null||x.dd<0||x.dd>3)return;A.push({pz:'fer|'+x.nm,fase:ntFase(x.dd),t:'Férias de '+x.nm+': '+ntFase(x.dd).replace('vence','vencem'),s:'Peça as férias ou adie para o próximo período aquisitivo',go:'f-ferias',pre:{func:x.nm}});});
+ return A;}
+/* guarda os alertas do dia como notificações e apaga o que venceu pelas regras acima; devolve 1 quando mudou algo */
+function ntSync(){var L=ST.notif=ST.notif||[],t0=NOW().getTime(),hj=+dOnly(NOW()),A=ntAlertas(),ak={},orig={},tem={},mud=0;
+ A.forEach(function(a){ak[a.pz]=a;});
+ var K=L.filter(function(n){if(/^#?chat/.test(n.go||''))return false;
+  if(n.pz){var a=ak[n.pz];return !!a&&a.fase===n.fase;}
+  if(n.lido&&NT_ST.test(n.t||'')&&hj>+dOnly(new Date(n.lido)))return false;
+  if(n.lido&&n.t==='O contador pediu um documento'&&t0-n.lido>=864e5)return false;
+  return true;});
+ if(K.length!==L.length)mud=1;
+ K.forEach(function(n){if(!n.id){n.id=ntId();mud=1;}if(!n.ch){n.ch=t0;mud=1;}if(n.pz)tem[n.pz]=1;var d=ntDocDe(n);if(d)orig[d.id]=1;});
+ A.slice().reverse().forEach(function(a){if(tem[a.pz]||(a.doc&&orig[a.doc]))return;var o={id:ntId(),t:a.t,s:a.s,h:horaAgora(),go:a.go,u:1,pz:a.pz,fase:a.fase,ch:t0};if(a.c)o.c=a.c;if(a.pre)o.pre=a.pre;K.unshift(o);mud=1;});
+ if(mud){ST.notif=K;save();}return mud;}
+function renderNotif(){if(window.__ntOn)ntSync();var L=ST.notif||[],nu=L.filter(function(n){return n.u;}).length;
  return hdr('Notificações',nu?nu+(nu>1?' não lidas':' não lida'):'Tudo lido')+
- (av.length?'<section><div class="sec"><h2>Avisos</h2></div><div class="card">'+av.map(function(a){return '<button type="button" class="r" data-go="'+a.go+'"'+(a.c?' data-setcomp="'+a.c+'"':'')+(a.pre?' data-pre=\''+JSON.stringify(a.pre)+'\'':'')+(a.atr?' data-askatr="'+a.atr+'"':'')+'><span class="ri">'+(a.u==='ok'?IC.lock:IC.clock)+'</span><span class="rt"><span class="a">'+esc(a.t)+'</span><span class="b">'+esc(a.s)+'</span></span><span class="pill '+a.u+'">'+(a.u==='ok'?'Encerrado':'Atenção')+'</span></button>'+(a.adiar?'<button type="button" class="r" data-adiar="'+esc(a.adiar)+'"><span class="ri">'+IC.cal+'</span><span class="rt"><span class="a">Adiar para o próximo período</span><span class="b">Avisamos de novo 60 dias antes do vencimento seguinte</span></span>'+IC.chev18+'</button>':'');}).join('')+'</div></section>':'')+
- '<section><div class="sec"><h2>Recentes</h2>'+(nu?'<button type="button" class="lnk" data-readall>Marcar todas como lidas</button>':'')+'</div><div class="card">'+ST.notif.map(function(n,i){return '<button type="button" class="r nt'+(n.u?' un':'')+'" data-nt="'+i+'"><span class="ri">'+IC.bell+'</span><span class="rt"><span class="a">'+esc(n.t)+'</span><span class="b">'+esc(n.s)+' · '+esc(n.h)+'</span></span>'+(n.u?'<span class="ud"></span>':IC.chev18)+'</button>';}).join('')+'</div></section>';}
+ '<section><div class="sec"><h2>Recentes</h2>'+(nu?'<button type="button" class="lnk" data-readall>Marcar todas como lidas</button>':'')+'</div><div class="card">'+(L.map(function(n){return '<button type="button" class="r nt'+(n.u?' un':'')+'" data-nt="'+esc(n.id)+'" data-go="'+esc(n.go||'inicio')+'"'+(n.c?' data-setcomp="'+esc(n.c)+'"':'')+(n.pre?' data-pre=\''+JSON.stringify(n.pre).replace(/'/g,'&#39;')+'\'':'')+'><span class="ri">'+(n.pz?IC.clock:IC.bell)+'</span><span class="rt"><span class="a">'+esc(n.t)+'</span><span class="b">'+esc(n.s)+' · '+esc(n.h)+'</span></span>'+(n.u?'<span class="ud"></span>':IC.chev18)+'</button>';}).join('')||'<p class="empty">Nenhuma notificação. Tudo em dia.</p>')+'</div></section>';}
 
 /* ===== perfil e sub-telas ===== */
 function prow(ic,a,b,go,extra){return '<button type="button" class="r" '+(go?'data-go="'+go+'"':'')+(extra||'')+'><span class="ri">'+IC[ic]+'</span><span class="rt"><span class="a">'+a+'</span>'+(b?'<span class="b">'+b+'</span>':'')+'</span>'+IC.chev18+'</button>';}
@@ -1356,7 +1386,7 @@ function rotItens(){var L=[],n=dOnly(NOW()),off=ST.rotOff||{};
    if(g==='folha'&&!dn&&FUNC.length&&FUNC.every(function(nm){return folhasOf().some(function(f){return f.comp===c&&f.tipo==='Mensal'&&f.func===nm;});}))dn=1; /* cada um já tem folha: os avisos vêm folha a folha, abaixo */
    if(n<ini){if(k===0&&ROTL[g]&&!dn)L.push({g:'Lembretes do mês',t:ROTL[g](c),pz:pz,ini:ini,done:false,go:R[1],c:c,st:'lembrete',kind:'prazo',rg:g});return;}
    if(n<=pz){if(!dn)L.push({g:'Para enviar agora',t:R[2](c),pz:pz,ini:ini,done:false,go:g==='folha'?'escfolha-'+c:R[1],c:c,st:'aberto',kind:'prazo',rg:g});return;}
-   if(dn||rotLanc(g,c)||off[key])return;
+   if(dn||rotLanc(g,c)||off[key]||pedLibAberto(g,c))return; /* liberação já pedida: sai da lista até o contador responder */
    L.push({g:'Venceu sem envio',t:cap(R[3])+' de '+cMes(c),sub:'Prazo encerrado em '+fmtP(pz)+'. Toque para enviar fora do prazo: peça ao contador para liberar o mês.',pz:pz,ini:ini,done:false,go:ATR_ROTA[g],pre:g==='despesas'?{__manual:1,comp:c,atraso:1}:{comp:c,atraso:1},c:c,atr:g+'|'+c,st:'atraso',key:key,kind:'prazo',rg:g});});});
  /* folhas, no mesmo padrão do card Importante; a não finalizada de um período encerrado fica como aviso, sem enviar */
  folhasOf().forEach(function(f){var c=fComp(f),p=cParse(c),pz=prazo('folha',c),ini=new Date(pz.getFullYear(),pz.getMonth(),1),st=compSt('folha',c);if(p.y*12+p.m<n.getFullYear()*12+n.getMonth()-3)return;
@@ -1380,6 +1410,10 @@ function rotSub(x){if(x.sub)return x.sub;if(x.st==='lembrete')return 'Lembrete �
  if(x.vinc)return 'Readmissão · responda quando tiver as datas';if(x.fer)return 'Período aquisitivo vence '+fmtP(x.pz)+' · peça ou adie';if(x.pers)return 'Lançada pelo contador · vence '+fmtP(x.pz);if(x.voce)return 'Pedido devolvido pelo contador · toque para ver';if(x.kind==='docs')return 'Pedido do contador · até '+fmtP(x.pz);
  if(x.rg==='folha')return 'Folha completa ou variáveis rápidas · aberto de '+fmtP(x.ini)+' até '+fmtP(x.pz);
  return 'Aberto de '+fmtP(x.ini)+' até '+fmtP(x.pz)+' · depois disso o que foi lançado vai automaticamente';}
+/* tarefa tocada em Verificar rotinas: quando ela muda ou sai da lista (enviar, encerrar, assinar, pagar, pedir liberação), o app volta para Verificar rotinas */
+var ROTV=null;
+function rotKey(x){return x.key||[x.kind,x.rg||'',x.go,x.c||'',x.pre&&x.pre.func||'',x.kind==='docs'||x.kind==='guia'||x.kind==='voce'?x.t:''].join('|');}
+function rotSig(k){var x=rotItens().filter(function(y){return rotKey(y)===k;})[0];return x?x.t+'|'+x.st+'|'+rotSt(x).p:'';}
 function renderRotinas(){var L=rotItens(),gs=[],at=0,ab=0,lb=0;
  L.forEach(function(x){if(x.st==='atraso')at++;else if(x.st==='lembrete')lb++;else ab++;});
  L.forEach(function(x){var g=gs.filter(function(y){return y[0]===x.g;})[0];if(!g){g=[x.g,[]];gs.push(g);}g[1].push(x);});
@@ -1387,7 +1421,7 @@ function renderRotinas(){var L=rotItens(),gs=[],at=0,ab=0,lb=0;
  gs.forEach(function(g){g[1].sort(function(a,b){return a.pz-b.pz;});});
  var n=NOW(),pend=at+ab,partes=[];if(at)partes.push(at+(at>1?' envios vencidos':' envio vencido'));if(ab)partes.push(ab+(ab>1?' tarefas no prazo':' tarefa no prazo'));if(lb)partes.push(lb+(lb>1?' lembretes':' lembrete'));
  return hdr('Verificar rotinas','Só o que ainda falta fazer')+'<div class="hero"><div class="hk"><span>Rotinas de '+MESU[n.getMonth()].toLowerCase()+'</span><span class="pill-w">'+(pend?pend+(pend>1?' pendências':' pendência'):'Em dia')+'</span></div><p class="ht">'+(partes.length?cap(listaTxt(partes))+'.':'Nada para fazer agora. O que ainda vai abrir não aparece aqui.')+'</p></div>'+
- gs.map(function(g){return '<section><div class="sec"><h2>'+g[0]+'</h2><span class="cnt'+(g[0]==='Venceu sem envio'?' bad':'')+'">'+g[1].length+'</span></div><div class="card">'+g[1].map(function(x){var s=rotSt(x);return '<div class="r rot rotw'+(x.st==='atraso'?' atr':'')+'"'+(x.key?' data-swk="'+x.key+'"':'')+'><button type="button" class="roto" data-go="'+x.go+'"'+(x.c?' data-setcomp="'+x.c+'"':'')+(x.pre?' data-pre=\''+JSON.stringify(x.pre).replace(/'/g,'&#39;')+'\'':'')+(x.atr?' data-askatr="'+x.atr+'"':'')+'><span class="cbx"></span><span class="rt"><span class="a">'+esc(x.t)+'</span><span class="b">'+esc(rotSub(x))+'</span></span><span class="pill '+s.k+'">'+s.p+'</span></button>'+(x.key?'<button type="button" class="vx" data-rotoff="'+x.key+'" aria-label="Remover este aviso" title="Remover">'+IC.x+'</button>':'')+(x.rg==='folha'&&x.st==='aberto'?'<button type="button" class="mini" data-semvarmes="'+x.c+'" style="flex:none;margin-right:12px">Sem variáveis</button>':'')+'</div>';}).join('')+'</div>'+(g[0]==='Venceu sem envio'?'<p class="foot">Toque no aviso para pedir ao contador o envio fora do prazo. Deslize o aviso para a esquerda (ou toque no X) para apagar: ele vai para os avisos apagados e o envio continua vencido.</p>':g[0]==='Lembretes do mês'?'<p class="foot">Ao virar o mês, os lembretes viram obrigação até o prazo do contador.</p>':'')+'</section>';}).join('')+
+ gs.map(function(g){return '<section><div class="sec"><h2>'+g[0]+'</h2><span class="cnt'+(g[0]==='Venceu sem envio'?' bad':'')+'">'+g[1].length+'</span></div><div class="card">'+g[1].map(function(x){var s=rotSt(x);return '<div class="r rot rotw'+(x.st==='atraso'?' atr':'')+'"'+(x.key?' data-swk="'+x.key+'"':'')+'><button type="button" class="roto" data-rk="'+esc(rotKey(x))+'" data-go="'+x.go+'"'+(x.c?' data-setcomp="'+x.c+'"':'')+(x.pre?' data-pre=\''+JSON.stringify(x.pre).replace(/'/g,'&#39;')+'\'':'')+(x.atr?' data-askatr="'+x.atr+'"':'')+'><span class="cbx"></span><span class="rt"><span class="a">'+esc(x.t)+'</span><span class="b">'+esc(rotSub(x))+'</span></span><span class="pill '+s.k+'">'+s.p+'</span></button>'+(x.key?'<button type="button" class="vx" data-rotoff="'+x.key+'" aria-label="Remover este aviso" title="Remover">'+IC.x+'</button>':'')+(x.rg==='folha'&&x.st==='aberto'?'<button type="button" class="mini" data-semvarmes="'+x.c+'" style="flex:none;margin-right:12px">Sem variáveis</button>':'')+'</div>';}).join('')+'</div>'+(g[0]==='Venceu sem envio'?'<p class="foot">Toque no aviso para pedir ao contador o envio fora do prazo. Deslize o aviso para a esquerda (ou toque no X) para apagar: ele vai para os avisos apagados e o envio continua vencido.</p>':g[0]==='Lembretes do mês'?'<p class="foot">Ao virar o mês, os lembretes viram obrigação até o prazo do contador.</p>':'')+'</section>';}).join('')+
  rotOcultos();}
 function avisosPrazo(){var a=[];
  rotItens().forEach(function(x){if(x.done||x.fer||x.voce||x.st==='lembrete')return;if(x.kind==='prazo'&&x.st==='aberto'&&lembDias().indexOf(diasAte(x.pz))<0)return;var s=rotSt(x);if(x.kind==='guia'?pf('venc',1)===0:x.kind==='docs'?pf('docs',1)===0:pf('prazo',1)===0)return;
