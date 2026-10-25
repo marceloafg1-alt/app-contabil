@@ -53,7 +53,7 @@ function ntVer(){if(ntObs){ntObs.disconnect();ntObs=null;}if(head(cur)!=='notif'
  L.forEach(function(el){ntObs.observe(el);});}
 function refreshFlow(){var y=dyn.scrollTop;dyn.innerHTML=renderFlow();dyn.scrollTop=y;}
 document.addEventListener('click',function(e){var t=e.target.closest('[data-impx],[data-impseq],[data-impprox],[data-impvolta],[data-go],[data-back],[data-soon],[data-toast],[data-copy],[data-next],[data-fback],[data-edit],[data-home],[data-sign],[data-despaga],.op,[data-pf],[data-nt],[data-readall],[data-pref],[data-tema-go],[data-sair],[data-sair-no],[data-faqpick],[data-faqsim],[data-chtoct],[data-emp],[data-esclose],[data-vadd],[data-vdel],[data-semvar],[data-delfolha],[data-vopt],[data-pick],[data-cal],[data-dlarq],[data-rotoff],[data-simhoje],[data-zeraimp],[data-enccofre],[data-semvarmes],[data-desave],[data-dedel],[data-dplc],[data-dplex],[data-dpldel],[data-dplsend],[data-dplclear],[data-encg],[data-periodo],[data-perall],[data-mes],[data-svtog],[data-envall],[data-env1],[data-finfolha],[data-pv],[data-pclose],[data-vpick],[data-cmv],[data-cmode],[data-cyear],[data-cyr],[data-cmes],[data-cday],[data-calok],[data-delnota],[data-delextr],[data-tg],[data-chtab],[data-chroute],[data-chkeep],[data-rotrest],[data-cmlock],[data-pedlib],[data-depadd],[data-depdel],[data-deppick],[data-fepick],[data-fesave],[data-hm],[data-jed],[data-nfdl],[data-cperiodo],[data-adiar],[data-urole],[data-uremove],[data-devout],[data-devall],[data-termtest],[data-rcalc],[data-ntest]');if(!t)return;
- if(t.hasAttribute('data-ntest')){soft('Notificação de teste','É assim que os avisos vão aparecer para você',IC.clock);return;}
+ if(t.hasAttribute('data-ntest')){if(window.PUSH&&PUSH.ligado())PUSH.teste(function(ok,m){say(m);});else soft('Notificação de teste','É assim que os avisos vão aparecer para você. Ligue Notificações push para receber no aparelho.',IC.clock);return;}
  if(t.hasAttribute('data-rcalc')){var rp=t.dataset.rcalc.split('|'),pp=ST.ped.filter(function(x){return x.id===rp[0];})[0];if(pp){var cb=rp[1]==='1';pp.st='ok';pp.rc=1;pp.cobr=cb?'R$ 45,00':'';ST.notif.unshift({t:cb?'O contador cobrou R$ 45,00 pelo recálculo':'Recálculo concluído sem cobrança',s:pp.quem||'Guia',h:'Agora',go:'ped-'+pp.id,u:1});ST.act.unshift([cb?'Recálculo cobrado: R$ 45,00':'Recálculo concluído, sem cobrança','Agora',1]);save();renderLists();show(cur,false,true);soft(cb?'O contador cobrou R$ 45,00':'Recálculo sem cobrança',cb?'Pelo recálculo da guia · veja os detalhes no pedido':'Nada a pagar por este recálculo',cb?IC.tax:IC.check16);}return;}
  if(t.hasAttribute('data-termtest')){termPlay(true);return;}
  if(t.hasAttribute('data-urole')){var pr=t.dataset.urole.split('|'),uu=USR()[+pr[0]];if(uu&&!uu.eu){uu.r=pr[1];save();show(cur,false,true);say('Perfil de '+uu.n+': '+pr[1]);}return;}
@@ -68,6 +68,7 @@ document.addEventListener('click',function(e){var t=e.target.closest('[data-impx
  if(t.hasAttribute('data-pf')){PF=t.dataset.pf;show('pedidos',false,true);return;}
  if(t.hasAttribute('data-nt')){var nn=ntGet(t.dataset.nt);if(nn&&nn.u){nn.u=0;nn.lido=NOW().getTime();save();}extraLists();} /* segue para o data-go da linha */
  if(t.hasAttribute('data-readall')){ST.notif.forEach(function(x){if(x.u){x.u=0;x.lido=NOW().getTime();}});save();extraLists();show('notif',false,true);return;}
+ if(t.hasAttribute('data-pref')&&t.dataset.pref==='push'&&window.PUSH){if(PUSH.ligado()){PUSH.desligar();ST.prefs.push=0;save();show(cur,false,true);say('Notificações push desligadas neste aparelho');}else PUSH.ligar(function(ok,m){ST.prefs.push=ok?1:0;save();show(cur,false,true);say(m);});return;}
  if(t.hasAttribute('data-pref')){var kq=t.dataset.pref;ST.prefs[kq]=ST.prefs[kq]?0:1;save();t.setAttribute('aria-checked',ST.prefs[kq]?'true':'false');if(kq==='term'&&ST.prefs.term)setTimeout(termCheck,400);var sc2=['dois','bio','alog','term','semfolha'].indexOf(kq)>-1;say(ST.prefs[kq]?(sc2?'Ligado':'Aviso ligado'):(sc2?'Desligado':'Aviso desligado'));return;}
  if(t.hasAttribute('data-svtog')){var l=document.getElementById('svl-'+t.dataset.svtog);l.hidden=!l.hidden;t.classList.toggle('open',!l.hidden);return;}
  if(t.hasAttribute('data-simhoje')){MULTI.sim=null;syncSim();applySim();show(cur,false,true);say('Voltou para a data de hoje');return;}
@@ -644,4 +645,19 @@ document.addEventListener('change',function(e){var t=e.target;if(!t||t.id!=='dpl
  dplXlsx(function(okx){if(!okx){fim([],'Não foi possível abrir a leitura de Excel agora. Tente salvar a planilha como CSV.');return;}
   rd.onload=function(){try{var wb=XLSX.read(new Uint8Array(rd.result),{type:'array',cellDates:true}),ws=wb.Sheets[wb.SheetNames[0]];fim(dplRows(XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''})));}catch(x){fim([],'Não foi possível ler essa planilha.');}};rd.readAsArrayBuffer(f);});});
 
+/* notificações push: os avisos do sino (do contador e alertas de prazo) e as mensagens do contador, de todas as empresas, no aparelho com o app em segundo plano.
+   Cada tipo segue Configurações > Notificações da empresa; Não perturbar silencia das 22h às 7h. */
+function pushTipo(n){var z=String(n.pz||'').split('|')[0];if(z)return z==='guia'?'venc':z;if(/^guia/.test(n.go||''))return 'venc';if(n.t==='O contador pediu um documento')return 'docs';return 'ped';}
+function pushLista(){var L=[],multi=MULTI.emps.length>1;
+ MULTI.emps.forEach(function(e){var d=MULTI.data[e.id];if(!d)return;var pr=d.prefs||{},q=function(k){return pr[k]!==0;},en=multi?' · '+(e.fant||e.nome):'';
+  (d.notif||[]).forEach(function(n){if(!n.u||!q(pushTipo(n)))return;L.push({k:'n|'+e.id+'|'+(n.id||n.t+'|'+n.h),t:n.t,s:(n.s||'')+en,go:n.go||'notif'});});
+  var ch=d.chat||[],u=ch[ch.length-1];if(d.unread>0&&u&&!u.me&&q('msg'))L.push({k:'c|'+e.id+'|'+ch.length,t:'Mensagem do contador'+en,s:String(u.t||'').slice(0,140),go:'chat'});});
+ return L;}
+function pushAbre(dt){var q=String(dt.k||'').split('|'),eid=q[1],b=document.createElement('button');
+ if(eid&&eid!==MULTI.cur&&MULTI.emps.some(function(x){return x.id===eid;}))switchEmp(eid,true);
+ b.type='button';b.hidden=true;
+ if(q[0]==='n'){var n=ntGet(q.slice(2).join('|'));if(n){b.setAttribute('data-nt',n.id);if(n.c)b.setAttribute('data-setcomp',n.c);if(n.pre)b.setAttribute('data-pre',JSON.stringify(n.pre));}b.setAttribute('data-go',(n&&n.go)||dt.go||'notif');}
+ else b.setAttribute('data-go',dt.go||'inicio');
+ document.body.appendChild(b);b.click();b.remove();}
+if(window.PUSH)PUSH.fonte(pushLista,pushAbre,function(){var h=new Date().getHours();return !!(ST&&ST.prefs&&ST.prefs.dnd)&&(h>=22||h<7);});
 })();
