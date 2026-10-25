@@ -78,7 +78,7 @@ function rerender(){var y=SCR.scrollTop,vals={},ae=document.activeElement,aid=ae
  for(var k in vals){var x=$(k);if(x&&x.type!=='file'&&!x.dataset.fresh)x.value=vals[k];}
  SCR.scrollTop=y;if(aid&&$(aid))try{$(aid).focus();}catch(e){}
  if(isChat())SCR.scrollTop=SCR.scrollHeight;}
-function route(r){var h=head(r),a=r.slice(h.length+1);var R={recnovo:vRecNovo,rec:vRec,chk:vChk,lote:vLote,fecha:vFecha,dp:vDP,desp:vDesp,inicio:vInicio,pedidos:vPedidos,ped:vPed,receb:vReceb,arquivo:vArquivo,pasta:vPasta,doc:vDoc,folha:vFolha,msg:vMsg,chat:vChat,ajuda:vAjuda,novodoc:vNovoDoc,novoguia:vNovoGuia,guias:vGuias,colab:vColab,socio:vSocio,cguia:vGuiaC,novoped:vNovoPed,ajustes:vAjustes,perfil:vPerfilC,ajnotif:vAjNotif,ajprazos:vAjPrazos,ajacomp:vAjAcomp,ajadm:vAjAdm,ajequipe:vAjEquipe,ajclientes:vAjClientes,cli:vCli,gestao:vGestao,notif:vNotif}[h];return R?R(a):null;}
+function route(r){var h=head(r),a=r.slice(h.length+1);var R={recnovo:vRecNovo,rec:vRec,chk:vChk,lote:vLote,fecha:vFecha,dp:vDP,desp:vDesp,inicio:vInicio,pedidos:vPedidos,ped:vPed,receb:vReceb,arquivo:vArquivo,pasta:vPasta,doc:vDoc,folha:vFolha,msg:vMsg,chat:vChat,ajuda:vAjuda,novodoc:vNovoDoc,novoguia:vNovoGuia,guias:vGuias,colab:vColab,ctr:vContrato,socio:vSocio,cguia:vGuiaC,novoped:vNovoPed,ajustes:vAjustes,perfil:vPerfilC,ajnotif:vAjNotif,ajprazos:vAjPrazos,ajacomp:vAjAcomp,ajadm:vAjAdm,ajequipe:vAjEquipe,ajclientes:vAjClientes,cli:vCli,gestao:vGestao,notif:vNotif}[h];return R?R(a):null;}
 /* ===== início ===== */
 function vInicio(){var s=stats('all'),tot=s.nv+s.doc+s.fo+s.msg,partes=[];
  if(s.nv)partes.push(s.nv+(s.nv===1?' pedido novo':' pedidos novos'));if(s.doc)partes.push(s.doc+(s.doc===1?' documento para conferir':' documentos para conferir'));if(s.fo)partes.push(s.fo+(s.fo===1?' folha para fechar':' folhas para fechar'));if(s.msg)partes.push(s.msg+(s.msg===1?' mensagem':' mensagens'));
@@ -148,6 +148,7 @@ function vColab(a){var q=String(a).split('|'),e=eById(q[0]);if(!e)return null;B(
  var h=hdr(nm,(d.c||'—')+' · '+(e.fant||e.nome))+'<div class="hero"><div class="hk"><span>'+esc(kind)+'</span><span class="pill-w">'+esc(s[1])+'</span></div><p class="ht">'+(d.dem?'Desligado em '+esc(d.dem)+'.':d.adm==='Em admissão'?'Admissão em andamento'+(d.ini?', início em '+esc(fmtD(d.ini)||d.ini):'')+'.':'Admitido em '+esc(d.adm||'—')+'.')+(d.cad?' Cadastro registrado em '+esc(d.cad)+'.':'')+'</p></div>';
  var acc=function(id,ic,t,sub,body){return '<details class="facc" data-cacc="'+id+'"'+(CACC[id]?' open':'')+'><summary><span class="ri">'+(ic||'')+'</span><span class="rt"><span class="a">'+t+'</span><span class="b">'+esc(sub||'')+'</span></span><span class="fchev">'+(IC.chevd||'▾')+'</span></summary><div class="fbody">'+body+'</div></details>';},
   em=d.emerg&&(d.emerg.n||d.emerg.tel)?esc([d.emerg.n,d.emerg.rel].filter(Boolean).join(' · '))+(d.emerg.tel?'<br>'+esc(d.emerg.tel):''):'—',en=d.end||{},ds=d.deps||[];
+ if(!d.dem)h+='<div class="fbar" style="margin-top:0"><button type="button" class="cta" data-go="ctr-'+e.id+'|'+esc(nm)+'">'+IC.doc+' Gerar contrato</button></div>';
  h+='<div class="faccw"><p class="foot" style="margin:0 0 2px">Toque numa seção para abrir os dados.</p>'
  +acc('pessoal',IC.people,'Pessoal','CPF '+(d.cpf||'—')+(d.nasc?' · nasc. '+(fmtD(d.nasc)||d.nasc):''),kv('CPF',v(d.cpf))+kv('Nascimento',v(fmtD(d.nasc)||d.nasc))+kv('Gênero',v(d.gen))+kv('Nome da mãe',v(d.mae))+kv('Nome do pai',v(d.pai))+kv('Nacionalidade',v(d.nac))+kv('Estado civil',v(d.ecivil))+kv('Escolaridade',v(d.esc))+kv('Raça',v(d.raca))+kv('PcD',esc(pcd)))
  +acc('prof',IC.folha||IC.doc,'Profissional',[d.c,d.sal&&d.sal!=='—'?'R$ '+d.sal:''].filter(Boolean).join(' · '),kv('Cargo',v(d.c))+kv('Relação de emprego',v(d.tipo))+kv('Admissão',v(d.adm))+(d.ini?kv('Início',v(fmtD(d.ini)||d.ini)):'')+kv('Salário',d.sal&&d.sal!=='—'?'R$ '+esc(d.sal):'—')+kv('CTPS',d.ctpsN?esc(d.ctpsN)+' · série '+esc(d.ctpsS||'—'):'—')+(d.exame?kv('Exame admissional',v(fmtD(d.exame))):'')+(d.exp?kv('Experiência',v(d.exp)):'')+(d.fim?kv('Término do contrato',v(fmtD(d.fim))):'')+(d.interv?kv('Intervalo',v(d.interv)):'')+(d.tur?kv('Turno',v(d.tur)):'')+(fe?kv('Período aquisitivo',fmtA(fe.ini)+' a '+fmtA(fe.fim))+kv('Férias até',fmtA(fe.lim)):'')+(d.dem?kv('Desligamento',v(d.dem)):'')+(d.ant?kv('Vínculo anterior',esc(d.ant.adm)+' a '+esc(d.ant.dem)+(d.ant.mot?' · '+esc(d.ant.mot):'')):''))
@@ -159,6 +160,146 @@ function vColab(a){var q=String(a).split('|'),e=eById(q[0]);if(!e)return null;B(
  h+='<section>'+sec('Histórico de solicitações','<span class="s">'+PD.length+'</span>')+'<div class="card">'+(PD.map(function(p){return pedRow({e:e,p:p});}).join('')||'<p class="empty">Nenhuma solicitação para este colaborador.</p>')+'</div></section>';
  if(FO.length)h+='<section>'+sec('Folhas','<span class="s">'+FO.length+'</span>')+'<div class="card">'+FO.map(function(f){return folhaRow(e,f);}).join('')+'</div></section>';
  h+='<div class="fbar"><button type="button" class="cta ghost" data-go="chat-'+e.id+'">'+IC.chat+' Chamar o cliente</button></div>';done();return h;}
+/* ===== contrato de trabalho (experiência) preenchido com o cadastro do colaborador; sem IA ===== */
+var CTG=null;
+var CT_U=['zero','um','dois','três','quatro','cinco','seis','sete','oito','nove','dez','onze','doze','treze','quatorze','quinze','dezesseis','dezessete','dezoito','dezenove'];
+var CT_D=['','','vinte','trinta','quarenta','cinquenta','sessenta','setenta','oitenta','noventa'];
+var CT_C=['','cento','duzentos','trezentos','quatrocentos','quinhentos','seiscentos','setecentos','oitocentos','novecentos'];
+var CT_MES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+var CT_DIAS=[['seg','Segunda'],['ter','Terça'],['qua','Quarta'],['qui','Quinta'],['sex','Sexta'],['sab','Sábado'],['dom','Domingo']];
+function ctExt3(n){if(n===100)return 'cem';var c=Math.floor(n/100),r=n%100,p=[];if(c)p.push(CT_C[c]);if(r<20){if(r)p.push(CT_U[r]);}else p.push(CT_D[Math.floor(r/10)]+(r%10?' e '+CT_U[r%10]:''));return p.join(' e ');}
+function ctNum(n){n=Math.round(n);if(n===0)return 'zero';var m=Math.floor(n/1000),r=n%1000,p=[];if(m)p.push(m===1?'um mil':ctExt3(m)+' mil');if(r)p.push(ctExt3(r));return p.join(' e ');}
+function ctVal(n){var c=Math.round(n*100),i=Math.floor(c/100),k=c%100,s=ctNum(i)+(i===1?' real':' reais');if(k)s+=' e '+ctNum(k)+(k===1?' centavo':' centavos');return s;}
+function ctNumOf(s){return parseFloat(String(s||'').replace(/\./g,'').replace(',','.'))||0;}
+function ctDataExt(iso){var p=String(iso||'').split('-');return p.length===3?('0'+(+p[2])).slice(-2)+' de '+CT_MES[+p[1]-1]+' de '+p[0]:'';}
+function ctBr(iso){var p=String(iso||'').split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:'';}
+function ctIsoBr(s){var p=String(s||'').split('/');return p.length===3?p[2]+'-'+p[1]+'-'+p[0]:'';}
+function ctHoje(){var t=new Date();return t.getFullYear()+'-'+('0'+(t.getMonth()+1)).slice(-2)+'-'+('0'+t.getDate()).slice(-2);}
+function ctMenor(nasc,ref){if(!nasc||!ref)return false;var a=nasc.split('-'),b=ref.split('-');var idade=+b[0]-a[0];if(+b[1]<+a[1]||(+b[1]===+a[1]&&+b[2]<+a[2]))idade--;return idade<18;}
+function ctFimPad(ini,exp){var n=String(exp||'').match(/\d+/g);if(!ini||!n)return '';var t=0;n.forEach(function(x){t+=+x;});var p=ini.split('-'),dt=new Date(+p[0],+p[1]-1,+p[2]+t-1);return dt.getFullYear()+'-'+('0'+(dt.getMonth()+1)).slice(-2)+'-'+('0'+dt.getDate()).slice(-2);}
+function ctMinDia(L){var m=0;(L||[]).forEach(function(x){m+=Math.max(0,hmMin(x[1])-hmMin(x[0]));});return m;}
+function ctJorTot(j){var m=0;CT_DIAS.forEach(function(d){m+=ctMinDia((j||{})[d[0]]);});return m;}
+function ctJorTab(j){var c=function(x){return x?esc(x):'–';};
+ return '<table><tr><th>Dia</th><th>Entrada</th><th>Saída (intervalo)</th><th>Volta (intervalo)</th><th>Saída</th></tr>'+CT_DIAS.map(function(d){var L=(j||{})[d[0]]||[],a=L[0]||[],b=L[1]||[];
+  var cols=L.length>1?[a[0],a[1],b[0],b[1]]:L.length?[a[0],'','',a[1]]:[];
+  return '<tr><td>'+d[1]+'</td>'+(cols.length?cols.map(function(x){return '<td>'+c(x)+'</td>';}).join(''):'<td colspan="4">Folga</td>')+'</tr>';}).join('')+'</table>';}
+function ctPre(e,nm,d){var en=d.end||{};return {RZ:e.nome,CNPJ:e.cnpj||'',EEND:'',ENUM:'',EBAI:'',ECEP:'',EUF:'',
+ NOME:nm,NAC:(d.nac||'').toLowerCase(),ECIV:(d.ecivil||'').toLowerCase(),RG:'',CPF:d.cpf||'',CTPSN:d.ctpsN||'',CTPSS:d.ctpsS||'',PIS:'',
+ FEND:en.rua||'',FNUM:en.num||'',FBAI:en.bairro||'',FCEP:en.cep||'',FCID:en.cidade||'',FUF:en.uf||'',
+ FUNC:d.c&&d.c!=='—'?d.c:'',INI:d.adm==='Em admissão'||!d.adm?(d.ini||''):ctIsoBr(d.adm),FIM:d.fim||ctFimPad(d.adm==='Em admissão'?d.ini:ctIsoBr(d.adm),d.exp),
+ SAL:d.sal&&d.sal!=='—'?d.sal:'',PAG:'mensal',CIDA:en.cidade||'',DATAX:ctHoje(),RESP:''};}
+function ctForm(e,nm,d){var P=ctPre(e,nm,d),menor=ctMenor(d.nasc,ctHoje());
+ var F=function(k,l,t){return '<div class="fld"><label class="fl" for="ct-'+k+'">'+l+'</label><input id="ct-'+k+'" data-ck="'+k+'" type="'+(t||'text')+'" value="'+esc(P[k]||'')+'" autocomplete="off"></div>';};
+ var jt=ctJorTot(d.jornada),jh=Math.floor(jt/60)+'h'+(jt%60?('0'+jt%60).slice(-2):'');
+ return hdr('Gerar contrato',nm)+'<p class="foot">Preenchemos com o que o cliente cadastrou. O que faltar sai como linha em branco no contrato; confira e corrija antes de gerar.</p>'
+  +'<div class="form" id="ctform">'
+  +'<section>'+sec('Empregadora')+'<div class="card pad">'+F('RZ','Razão social')+F('CNPJ','CNPJ')+F('EEND','Endereço (rua)')+F('ENUM','Número')+F('EBAI','Bairro')+F('ECEP','CEP')+F('EUF','UF')+'</div></section>'
+  +'<section>'+sec('Empregado(a)')+'<div class="card pad">'+F('NOME','Nome completo')+F('NAC','Nacionalidade')+F('ECIV','Estado civil')+F('RG','RG')+F('CPF','CPF')+F('CTPSN','CTPS número')+F('CTPSS','CTPS série')+F('PIS','PIS')+F('FEND','Endereço (rua)')+F('FNUM','Número')+F('FBAI','Bairro')+F('FCEP','CEP')+F('FCID','Cidade')+F('FUF','UF')+'</div></section>'
+  +'<section>'+sec('Contrato')+'<div class="card pad">'+F('FUNC','Função')+'<p class="foot">Jornada: '+jh+' por semana, como está na ficha do colaborador.</p>'+F('INI','Início do contrato','date')+F('FIM','Término do contrato','date')+F('SAL','Salário (R$)')+F('PAG','Forma de pagamento')+F('CIDA','Cidade da assinatura')+F('DATAX','Data da assinatura','date')
+  +(menor?F('RESP','Responsável legal (menor de 18 anos)'):'')+'</div></section></div>'
+  +'<div class="fbar"><button type="button" class="cta" data-ctgen="'+esc(e.id+'|'+nm)+'">'+IC.doc+' Gerar contrato</button></div>';}
+function ctTexto(d){var fixo=[
+ ['t','CONTRATO DE TRABALHO'],
+ ['p','{RZ}, pessoa jurídica de direito privado, inscrita no CNPJ sob o n. {CNPJ}, com sede na {EEND}, n. {ENUM}, bairro {EBAI}, CEP {ECEP}, no Estado {EUF}, doravante denominada simplesmente EMPREGADORA;'],
+ ['p','{NOME}, {NAC}, {ECIV}, Carteira de Identidade nº {RG}, C.P.F. nº {CPF}, Carteira de Trabalho nº {CTPSN} e série {CTPSS}, PIS {PIS}, residente e domiciliado na {FEND}, nº {FNUM}, bairro {FBAI}, CEP {FCEP}, Cidade {FCID}, no Estado {FUF}, doravante denominado(a) simplesmente EMPREGADO(A).'],
+ ['p','Pelo presente instrumento particular de contrato de trabalho individual e na melhor forma de direito, as partes acima identificadas e ao final assinadas, doravante simplesmente designadas EMPREGADORA e EMPREGADO(A), firmam o presente Contrato Individual De Trabalho, em caráter de experiência, conforme a letra “c”, parágrafo 2º do artigo 443 da Consolidação das Leis do Trabalho, mediante as seguintes condições:'],
+ ['h','DO OBJETO DO CONTRATO'],
+ ['p','Cláusula 1ª. O(A) EMPREGADO(A) concorda em trabalhar para sua EMPREGADORA de acordo com as normas estabelecidas neste instrumento, nos regulamentos internos e legislação pertinente, declarando estar apto para o exercício da função de {FUNC} a ser desempenhada.'],
+ ['p','§ 1º. Os serviços relativos à sua função são inerentes ao EMPREGADO, portanto, não poderá transferir sua responsabilidade na execução para outrem que não esteja previamente contratado.'],
+ ['p','§ 2º. O(A) EMPREGADO(A) obriga-se a prestar todos os serviços que lhe forem atribuídos, de acordo com as previsões da presente contratação assim como cumprir todas as ordens verbais e/ou escritas dedicando-se com zelo e eficiência ao serviço, cumprindo inclusive as normas internas estipuladas pela EMPREGADORA, especialmente o trato com o material e equipamento de trabalho.'],
+ ['h','DAS OBRIGAÇÕES DO EMPREGADO(A)'],
+ ['p','Cláusula 2ª. No período de vigência do presente instrumento, o EMPREGADO se compromete a realizar de forma responsável e pontual o trabalho que lhe for dirigido, seguindo, contudo, todas as instruções que o EMPREGADOR lhe determinar e que estejam de acordo com o que lhe é cabível e possível de realizar dentro da função estabelecida.'],
+ ['p','§1º. Durante a vigência deste contrato, o EMPREGADO poderá ser reconduzido a outra função, por conveniência da EMPREGADORA, desde que haja anuência ou que sejam verificadas as hipóteses legais.'],
+ ['p','§2º. Ressalva-se ao EMPREGADOR o direito de proceder à transferência do empregado para outro cargo ou função quando este demonstrar melhor capacidade de adaptação desde que compatível com sua condição pessoal.'],
+ ['p','Cláusula 3ª. O(A) EMPREGADO(A) obriga-se a cumprir fielmente as normas da EMPREGADORA e o regulamento interno, de cujo teor declara ter ficado ciente, os quais fazem parte integrante do presente contrato, inclusive o que for objeto de cartas, circulares, avisos e comunicações internas, comprometendo-se, outrossim, a manter sigilo absoluto com referência a documentos e assuntos pertinentes à organização, de que venha a ter conhecimento direta ou indiretamente.'],
+ ['p','Cláusula 4ª. É vedado ao(a) EMPREGADO(A), sob pena de dispensa por justa causa, prestar, fora da EMPREGADORA, serviços a terceiros ou trabalhar por conta própria dentro do horário de trabalho.'],
+ ['h','DA JORNADA'],
+ ['p','Cláusula 5ª. A jornada de trabalho consistirá em:'],
+ ['tab'],
+ ['p','Parágrafo único. Pode não haver expediente aos sábados, caso haja compensação durante o horário da semana. Em observância ao § 2° do art. 59 da CLT, o salário dos minutos excedentes não sofrerá majoração, visto tratar-se de compensação pela ausência de trabalho aos sábados.'],
+ ['p','Cláusula 6ª. O horário a ser obedecido será de {HD} ({HDX} horas) diárias e {HS} ({HSX}) semanais.'],
+ ['h','DA COMPENSAÇÃO E DAS HORAS EXTRAS'],
+ ['p','Cláusula 7ª. O Empregado se compromete a trabalhar em regime de compensação e de prorrogação de horas, inclusive no período noturno, sempre que as necessidades assim exigirem, observadas as formalidades legais.'],
+ ['p','§1º. A realização de horas extraordinárias somente será permitida mediante requerimento formal ao seu superior.'],
+ ['p','§ 2º. Se houver necessidade de horas extras, estas serão pagas na forma da lei ou serão compensadas com repouso correspondente.'],
+ ['h','DA MODALIDADE DE EXPERIÊNCIA'],
+ ['p','Cláusula 8ª. Este contrato tem início a partir de {INI} ({INIX}), vencendo-se em {FIM} ({FIMX}), podendo ser prorrogado, obedecendo ao disposto no parágrafo único do art. 445, da CLT.'],
+ ['p','§ 1º. A parte que rescindir antecipadamente o contrato por prazo determinado deverá indenizar pagamento a remuneração referente a 50% do tempo restante até o prazo final de referido contrato, sendo que na hipótese de ser o empregado que rescindiu antecipadamente, para que seja efetuado referido desconto deverá ser comprovado pela empresa prejuízo oriundo de referido pedido de demissão (artigo 480 da CLT), caso contrário não será efetuado desconto.'],
+ ['p','§ 2º. Vencido o período experimental e continuando o (a) empregado (a) a prestar serviços à empregadora, por tempo indeterminado, ficam prorrogadas todas as cláusulas aqui estabelecidas, enquanto não se rescindir o contrato de trabalho.'],
+ ['h','DO LOCAL DE TRABALHO E DA POSSIBILIDADE DE TRANSFERÊNCIA'],
+ ['p','Cláusula 9ª. O(A) EMPREGADO(A), desde já, anui que a EMPREGADORA utilize seus serviços e assim se compromete a prestá-los em qualquer localidade, sempre que esta, a seu critério e real necessidade de serviço, julgar conveniente, ainda que implique na transferência de seu domicílio.'],
+ ['h','DO SALÁRIO'],
+ ['p','Cláusula 10ª. O(A) EMPREGADO(A) trabalhará para a EMPREGADORA, exercendo a função de {FUNC}, percebendo o salário de R$ {SAL} ({SALX}) por mês, pagável de forma {PAG}.'],
+ ['p','Cláusula 11ª. O(A) EMPREGADO(A) está ciente de que estará sujeito ao recebimento de remuneração constituída do salário estabelecido na Convenção Coletiva de Trabalho e os adicionais eventualmente aplicáveis, declarando, ainda, neste ato, estar plenamente ciente das normas que regulamentam a concessão de adiantamentos e benefícios.'],
+ ['p','Cláusula 12ª. O(A) EMPREGADO(A) autoriza a EMPREGADORA a efetuar o pagamento de seu salário por meio de Conta Bancária, em conformidade com o artigo 465, da Consolidação das Leis do Trabalho.'],
+ ['p','§1º. Em havendo rescisão contratual, o encerramento da conta salário será de responsabilidade do EMPREGADO (A).'],
+ ['p','§ 2º. O pagamento poderá ser realizado por meio de conta salário, todavia, não obrigatoriamente será desta forma, podendo ser efetuado em espécie diretamente ao empregado ou por meio de cheque.'],
+ ['p','Cláusula 13ª. Resta desde já acordado que havendo necessidade de realização de viagens a serviço, o EMPREGADO as fará e cumprirá as determinações do EMPREGADOR, que arcará com todas as despesas, mediante apresentação de recibo.'],
+ ['p','Cláusula 14ª. A EMPREGADORA compromete-se a reembolsar o (a) EMPREGADO (A) pelas despesas com almoço/alimentação, jantar e hospedagem a título de diárias de viagem em sua folha de pagamento, conforme §2º, art. 457 da CLT.'],
+ ['h','DOS DESCONTOS LEGAIS'],
+ ['p','Cláusula 15ª. Fica estabelecido que sempre que causar prejuízos a EMPREGADORA, mediante condutas dolosas ou culposas, o(a) EMPREGADO(A) ficará obrigado a ressarcir os danos causados.'],
+ ['p','Parágrafo único: Fica expressamente autorizado pelo (a) EMPREGADO (A), o desconto em sua remuneração mensal e/ou rescisão, de prejuízos que venha causar, nos termos do § 1º, art. 462 da CLT.'],
+ ['p','Cláusula 16ª. O (A) EMPREGADO(A) declara pleno conhecimento de que os benefícios concedidos pela EMPREGADORA como vales transportes, cartão alimentação, plano de saúde, seguros, poderão ser levados a desconto no salário mensal com observação dos limites previstos na legislação, especialmente a CCT da categoria.'],
+ ['p','§ 1º. Se a empresa oferecer benefício de convênio com farmácias e o empregado vier a afastar-se por qualquer motivo, o convênio com a farmácia será cessado, haja vista que não haverá pagamento mensal em folha para efetuar o devido desconto.'],
+ ['p','§ 2º. Uma vez cessado o afastamento, tendo o empregado retornado ao trabalho, volta a vigorar o convênio com a farmácia.'],
+ ['p','Cláusula 17ª. Caso faça uso de bens e/ou serviços oferecidos pela empresa, o empregado terá o valor correspondente descontado em sua folha de pagamento.'],
+ ['h','DO SIGILO EMPRESARIAL E DA IMAGEM DA EMPRESA'],
+ ['p','Cláusula 18ª. É de ciência do (a) EMPREGADO (A), que são considerados “segredos de empresa”, dentre aqueles bens e direitos de propriedade do empregador, a atividade material e/ou intelectual do empregado, bem como o aperfeiçoamento técnico adquirido durante a vigência do contrato, seja através de prática, seja através de estudos, sendo assim o (a) empregado (a) deverá manter sigilo, desde o mais simples até o mais complexo ato, dentre os quais podemos destacar a confidencialidade de toda e qualquer informação técnica, comercial e administrativa, durante a vigência ou após a rescisão do contrato, sob pena de ser responsabilizado civil e criminalmente, sem prejuízo da aplicação das penalidades previstas na legislação trabalhista, especialmente a justa causa.'],
+ ['p','§ 1º. A regra estabelecida no caput, também se aplica na relação com clientes e terceiros, sendo que o empregado deve manter sigilo de informações, documentos ou quaisquer outras questões vinculadas aos clientes/terceiros.'],
+ ['p','§ 2º. É vedada ainda ao empregado toda a espécie de anúncios em quaisquer meios de comunicação social, mídia social ou qualquer outra forma, direta ou indireta, de publicidade pessoal ou profissional divulgando o nome da empresa do empregador, dos clientes ou de terceiros com quem manteve contato durante a vigência deste contrato, mesmo após a rescisão deste instrumento.'],
+ ['p','Cláusula 19ª. Será de responsabilidade do (a) EMPREGADO (A), a reparação por conta de dano de natureza extra patrimonial (Dano Moral), referente a ação ou omissão que ofenda a esfera moral da empresa, sendo elas: a imagem, a marca, o nome, o segredo empresarial e o sigilo da correspondência, nos termos dos arts. 223-B e 223-D da CLT.'],
+ ['p','Parágrafo Único: Será de responsabilidade da EMPREGADORA a reparação por conta de dano de natureza extra patrimonial (Dano Moral), referente a ação ou omissão que ofenda a esfera moral do empregado, sendo elas: a etnia, a idade, a nacionalidade, a honra, a imagem, a intimidade, a liberdade de ação, a autoestima, o gênero, a orientação sexual, a saúde, o lazer e a integridade física, nos termos dos arts. 223-B e 223-C da CLT.'],
+ ['h','DA AUTORIZAÇÃO DO USO DA IMAGEM'],
+ ['p','Cláusula 20ª. O EMPREGADO, desde já autoriza o uso de sua imagem em todo e qualquer material entre fotos e documentos, para ser utilizada em campanhas promocionais e institucional relacionados à empresa EMPREGADORA, sejam essas destinadas à divulgação interna ou ao público em geral.'],
+ ['p','Parágrafo único. A presente autorização é concedida a título gratuito, abrangendo o uso da imagem acima mencionada em todo território nacional e no exterior, das seguintes formas: I. Outdoor; II. Busdoor; III. Folhetos em geral (encartes, mala direta, catálogo, etc.); IV. Folder de apresentação; V. Anúncios em revistas e jornais em geral; VI. Home page; VII. Cartazes; VIII. Black-light; IX. Mídia eletrônica (painéis, vídeo-tapes, televisão, cinema, programa para rádio, entre outros); X. Redes sociais.'],
+ ['h','DA RESCISÃO POR JUSTA CAUSA E DAS SANÇÕES DISCIPLINARES'],
+ ['p','Cláusula 21ª. Caso o (a) empregado (a) cometa quaisquer das condutas elencadas nos arts. 482 e 483, da CLT, a empregadora tomará as devidas providências, tais como advertência, suspensão disciplinar e em últimos casos rescisão por justa causa.'],
+ ['h','DISPOSIÇÕES GERAIS'],
+ ['p','Cláusula 22ª. O (a) empregado (a) que, tendo acesso a lista de clientes, se compromete, mesmo após a rescisão do contrato, a não solicitar clientes ou recrutar empregados da empregadora.'],
+ ['p','Cláusula 23ª. Não são aceitos vínculos societários, próprios ou por intermédio de familiares, com fornecedores ou concorrentes da EMPREGADORA, se o cargo que o empregado ocupa lhe conferiu o poder de influenciar transações ou de acesso a informações privilegiadas.'],
+ ['p','Cláusula 24ª. O empregado que ocupar posições em entidades externas deve comunicar à sua chefia imediata, por escrito, a qual avaliará possíveis conflitos de interesse e eventual concorrência com o horário de trabalho.'],
+ ['p','Cláusula 25ª. O EMPREGADO (A) se compromete a utilizar os veículos do EMPREGADOR (A) exclusivamente a serviço desta, bem como a observar com rigor as cautelas adequadas e o respeito às leis e regulamentos de trânsito, especialmente ao que se refere ao limite de velocidade, segurança e o porte da habilitação.'],
+ ['p','Cláusula 26ª. O uso de equipamentos e materiais fornecidos pela empregadora (notebooks e celulares, por exemplo) deve ser feito no local de trabalho e voltado exclusivamente ao exercício da função laboral.'],
+ ['p','Cláusula 27ª. A internet, para fins deste contrato, é ferramenta de trabalho, portanto, acesso a sites como Facebook, Twitter e demais redes sociais são expressamente proibidas. Essa proibição se estende ao uso do Snapchat e WhatsApp.'],
+ ['p','Parágrafo único. O uso do Skype é liberado, limitado, contudo, aos assuntos estritamente profissionais.'],
+ ['p','Cláusula 28ª. Problemas de saúde ou de ausência no trabalho serão comunicados diretamente ao EMPREGADOR, que ratificará a ausência, após a apresentação de atestado de dispensa médica.'],
+ ['p','Cláusula 29ª. No caso de alteração nos dados pessoais, como: endereço, telefone, CNH, estado civil, grau de instrução, beneficiários (ate 21 anos, apresentar CPF dos mesmos e certidão de nascimento), é de caráter obrigatório por parte do EMPREGADO, avisar o EMPREGADOR para devidas atualizações no E-Social.'],
+ ['p','Cláusula 30ª. O presente instrumento passa a valer a partir da assinatura pelas partes.'],
+ ['p','Por estarem, assim justos e contratados, firmam o presente instrumento, em duas vias de igual teor, juntamente com 2 (duas) testemunhas.'],
+ ['p','{CIDA}, {DATAX}.'],
+ ['sig']];
+ return fixo;}
+function ctDoc(e,nm,d,v){var x={},k;for(k in v)x[k]=(v[k]||'').trim();
+ ['RZ','EEND','EBAI','NOME','FEND','FBAI','FCID','FUF','EUF','CIDA','FUNC'].forEach(function(f){x[f]=x[f].toUpperCase();});
+ var jt=ctJorTot(d.jornada),hd=0,dia=CT_DIAS.filter(function(c){return ctMinDia((d.jornada||{})[c[0]])>0;})[0];
+ if(dia)hd=Math.round(ctMinDia(d.jornada[dia[0]])/60);
+ var hs=Math.round(jt/60),pad=function(n){return ('0'+n).slice(-2);};
+ x.HD=pad(hd);x.HDX=ctNum(hd);x.HS=pad(hs);x.HSX=ctNum(hs);
+ x.INIX=ctDataExt(v.INI);x.INI=ctBr(v.INI);x.FIMX=ctDataExt(v.FIM);x.FIM=ctBr(v.FIM);
+ x.SALX=ctVal(ctNumOf(v.SAL));x.SAL=v.SAL?v.SAL:'';x.DATAX=ctDataExt(v.DATAX);
+ var menor=ctMenor(d.nasc,v.DATAX||ctHoje());
+ var out='<div id="ctwrap"><style>'
+  +'#ctdoc{background:#fff;color:#111;font:13px/1.6 Georgia,"Times New Roman",serif;padding:22px 20px;border-radius:14px;text-align:justify;box-shadow:0 1px 4px rgba(0,0,0,.12)}'
+  +'#ctdoc h2{font:700 15px/1.3 Georgia,serif;text-align:center;margin:0 0 12px}#ctdoc p{margin:0 0 9px}#ctdoc h3{font:700 13px/1.3 Georgia,serif;margin:14px 0 6px;text-align:center}'
+  +'#ctdoc table{width:100%;border-collapse:collapse;font-size:11.5px;margin:6px 0 10px;text-align:center}#ctdoc th,#ctdoc td{border:1px solid #333;padding:3px 4px}'
+  +'#ctdoc .ctb{display:inline-block;min-width:90px;border-bottom:1px solid #111;vertical-align:bottom}#ctdoc .ctsg{margin:26px 0 0;text-align:center}#ctdoc .ctsg .ctb{min-width:70%}@media print{#ctdoc{box-shadow:none;border-radius:0;padding:0}#ctdoc .ctsg,#ctdoc h3{break-inside:avoid;break-after:avoid}}</style>'
+  +'<div id="ctdoc">';
+ var ph=function(k){return x[k]?esc(x[k]):'<span class="ctb"></span>';};
+ var fill=function(t){return t.replace(/\{([A-Z0-9]+)\}/g,function(m,kk){return ph(kk);});};
+ ctTexto(d).forEach(function(l){
+  if(l[0]==='t')out+='<h2>'+l[1]+'</h2>';
+  else if(l[0]==='h')out+='<h3>'+l[1]+'</h3>';
+  else if(l[0]==='tab')out+=ctJorTab(d.jornada);
+  else if(l[0]==='sig')out+=ctSig(x,menor);
+  else out+='<p>'+fill(l[1])+'</p>';});
+ return out+'</div></div>';}
+function ctSig(x,menor){var L=function(n){return '<div class="ctsg"><span class="ctb"></span><br>'+n+'</div>';};
+ return '<div style="margin-top:22px">'+L(x.RZ?esc(x.RZ)+'<br>EMPREGADORA':'EMPREGADORA')+L(x.NOME?esc(x.NOME)+'<br>EMPREGADO(A)':'EMPREGADO(A)')+(menor?L((x.RESP?esc(x.RESP):'Responsável legal')+'<br>Responsável legal (quando menor)'):'')+L('1ª TESTEMUNHA')+L('2ª TESTEMUNHA')+'</div>';}
+function vContrato(a){var q=String(a||'').split('|'),e=eById(q[0]);if(!e)return null;B(e.id);var nm=q.slice(1).join('|'),d=FUNCD[nm];if(!d){done();return null;}
+ var h;
+ if(CTG&&CTG.k===a){h=hdr('Contrato de trabalho',nm)+ctDoc(e,nm,d,CTG.v)+'<div class="fbar"><button type="button" class="cta" data-ctprint>'+IC.doc+' Imprimir ou salvar em PDF</button></div><div class="fbar"><button type="button" class="cta ghost" data-ctedit>Voltar e corrigir os dados</button></div>';}
+ else h=ctForm(e,nm,d);
+ done();return h;}
 /* ===== guias de impostos: controle das guias enviadas aos clientes ===== */
 var GUIA_TP={parcelar:'Parcelamento',recalculo:'Recálculo',duvida:'Dúvida',via2:'2ª via',comprovante:'Guia paga'};
 function guiaPeds(g){var k=g.n.split(' · ')[0]+' · '+g.c;return ST.ped.filter(function(p){if(!GUIA_TP[p.f])return false;var v=dvP(p,/^(qual guia|o que voc|sobre qual)/i);return v.indexOf(k)===0;});}
@@ -1154,6 +1295,10 @@ document.addEventListener('click',function(ev){var t=ev.target.closest('[data-dl
  if(t.hasAttribute('data-vladd')){var vt=V('vl-t'),vd=V('vl-d'),vx=(($('vl-x')||{}).value||'').trim();if(!vt||!vd){toast('Escolha o documento e a validade');return;}B(ED.id);ST.validades=ST.validades||[];ST.validades.push({id:'v'+Date.now().toString(36),tipo:vt,desc:vt==='Outro'?(vx||'Documento'):vt,ate:vd});done();FV['vl-d']='';commit('Validade cadastrada');return;}
  if(d.vldel){var vi=d.vldel;askGen({t:'Tirar esta validade?',d:'O documento deixa de ser acompanhado.',ok:'Tirar',cb:function(){B(ED.id);ST.validades=(ST.validades||[]).filter(function(x){return x.id!==vi;});done();commit('Validade removida');}});return;}
  if(t.hasAttribute('data-ltsend')){loteEnviar();return;}
+if(d.ctgen){var gv={};document.querySelectorAll('#ctform [data-ck]').forEach(function(i){gv[i.dataset.ck]=i.value;});if(!gv.NOME||!gv.FUNC){toast('Preencha o nome e a função do colaborador');return;}CTG={k:d.ctgen,v:gv};show(cur,false,true);return;}
+ if(t.hasAttribute('data-ctedit')){CTG=null;show(cur,false,true);return;}
+ if(t.hasAttribute('data-ctprint')){var cw=document.getElementById('ctwrap');if(!cw)return;var w=window.open('','_blank');if(!w){window.print();return;}
+  w.document.write('<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Contrato de trabalho</title></head><body style="margin:0;padding:18mm;background:#fff">'+cw.outerHTML+'</body></html>');w.document.close();setTimeout(function(){w.focus();w.print();},300);return;}
  if(d.recsave){var sq=d.recsave.split('|'),soc=sq[1]==='soc',v0=($('rc-v')||{}).value||'',q0=V('rc-q'),t0=V('rc-t'),n0=(($('rc-n')||{}).value||'').trim(),i0=V('rc-i')||compOf();
   if(!errOn('rc-err',!q0?(soc?'Escolha o sócio':'Escolha o colaborador'):!t0?'Escolha o lançamento':!money(v0)?'Digite o valor':n0&&!(/^\d{1,3}$/.test(n0)&&+n0>=1&&+n0<=240)?'Parcelas: um número de 1 a 240':''))return;
   B(sq[0]);if(soc&&t0==='Pró-labore'){if(SOCD[q0])SOCD[q0].pl=v0;}else{ST.rec=ST.rec||[];ST.rec.push({id:'r'+Date.now().toString(36),al:soc?'s':'c',quem:q0,tipo:t0,valor:v0,freq:V('rc-f')||'Mensal',ini:i0,parc:n0?+n0:0,desc:(($('rc-d')||{}).value||'').trim(),desde:hoje()});}
