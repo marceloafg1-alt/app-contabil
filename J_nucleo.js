@@ -881,7 +881,7 @@ function renderNotif(){if(window.__ntOn)ntSync();var L=ST.notif||[],nu=L.filter(
 
 /* ===== perfil e sub-telas ===== */
 function prow(ic,a,b,go,extra){return '<button type="button" class="r" '+(go?'data-go="'+go+'"':'')+(extra||'')+'><span class="ri">'+IC[ic]+'</span><span class="rt"><span class="a">'+a+'</span>'+(b?'<span class="b">'+b+'</span>':'')+'</span>'+IC.chev18+'</button>';}
-function tg(k,a,b){var on=ST.prefs[k];return '<button type="button" class="r tgl" role="switch" aria-checked="'+(on?'true':'false')+'" data-pref="'+k+'"><span class="rt"><span class="a">'+a+'</span><span class="b">'+b+'</span></span><span class="sw2" aria-hidden="true"></span></button>';}
+function tg(k,a,b){var on=ST.prefs[k];if(k==='push'&&window.PUSH){on=PUSH.ligado();b=PUSH.estado();}return '<button type="button" class="r tgl" role="switch" aria-checked="'+(on?'true':'false')+'" data-pref="'+k+'"><span class="rt"><span class="a">'+a+'</span><span class="b">'+b+'</span></span><span class="sw2" aria-hidden="true"></span></button>';}
 function renderPerfil(){
  return '<div class="phd"><span class="pav">MA</span><div><h1>Marina Alves</h1><div class="s">Sócia · '+esc(EMP().nome)+'</div></div></div>'+
  '<section><div class="sec"><h2>Minha conta</h2></div><div class="card pad">'+kv('Nome','Marina Alves')+kv('E-mail','<span class="sel-t">marina@alvorada.exemplo</span>')+kv('Celular','(11) 98000-0000')+'</div></section>'+
@@ -1085,7 +1085,7 @@ function usrIni(n){return n.split(' ').map(function(x){return x[0];}).slice(0,2)
 function pf(k,d){var v=ST.prefs[k];return v===undefined?d:v;}
 function renderNotifCfg(){[['push',1],['email',0],['msg',1],['venc',1],['prazo',1],['docs',1],['fer',1],['ped',1],['dnd',0]].forEach(function(x){if(ST.prefs[x[0]]===undefined)ST.prefs[x[0]]=x[1];});
  return hdr('Notificações','Configurações')+
- '<section><div class="sec"><h2>Como avisar</h2></div><div class="card">'+tg('push','Notificações no celular','Alertas na tela do aparelho')+tg('email','E-mail','Avisos importantes na sua caixa de entrada')+tg('sem','Resumo semanal','Por e-mail, às segundas')+'</div></section>'+
+ '<section><div class="sec"><h2>Como avisar</h2></div><div class="card">'+tg('push','Notificações push','Alertas na tela do aparelho')+tg('email','E-mail','Avisos importantes na sua caixa de entrada')+tg('sem','Resumo semanal','Por e-mail, às segundas')+'</div></section>'+
  '<section><div class="sec"><h2>O que avisar</h2></div><div class="card">'+tg('msg','Mensagens do contador','Quando ele escrever para você')+tg('venc','Vencimento de guias','Até você pagar')+tg('prazo','Prazos de envio','Folhas, extratos, despesas e notas')+tg('docs','Documentos pedidos','Quando o contador pedir algo com prazo')+tg('fer','Férias a vencer','Período aquisitivo dos colaboradores')+tg('ped','Atualização de pedidos','Quando o contador responder')+'</div></section>'+
  '<section><div class="sec"><h2>Silêncio</h2></div><div class="card">'+tg('dnd','Não perturbar','Sem avisos das 22h às 7h')+'</div></section>'+
  '<button type="button" class="cta ghost" data-ntest>'+IC.clock+' Enviar notificação de teste</button>';}

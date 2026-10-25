@@ -272,6 +272,68 @@ html[data-disp="tab"] .side .nv{padding-top:12px;padding-bottom:12px}
  <div class="sheet" id="sheet"></div>
  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </div>
+<script>window.__PUSH_APP='painel';
+/* Notificações push: o aviso do aparelho (fora da tela do app) quando chega algo novo para quem usa este app.
+   Sem servidor de push, o aviso sai enquanto o app está aberto, também em segundo plano (outra aba, outra janela, app instalado minimizado).
+   Cada app diz o que é aviso: PUSH.fonte(lista, abrir). lista() devolve [{k,t,s,go}]; o que já foi avisado fica guardado neste aparelho, por app.
+   Com a tela do app à frente, o aviso não sai (o app já mostra o sino e o cartão). O sw.js mostra o aviso e, no toque, volta ao app no ponto do aviso.
+   Quando houver servidor de push, o evento "push" do sw.js já mostra o que chegar. */
+(function(){
+ if(window.PUSH)return;
+ var APP=window.__PUSH_APP||(/contador/.test(window.__PAGE||'')?'contador':'cliente'),KEY='push-'+APP,DIA=864e5;
+ var S={on:0,v:{}},lista=null,abrir=null,silencio=null,ini=false,tm=null;
+ try{var o=JSON.parse(localStorage.getItem(KEY)||'null');if(o){S.on=o.on?1:0;S.v=o.v||{};}}catch(e){}
+ function guarda(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+ function suporte(){return 'Notification' in window&&window.isSecureContext!==false;}
+ function permissao(){return suporte()?Notification.permission:'sem';}
+ function ligado(){return !!S.on&&permissao()==='granted';}
+ function aFrente(){return document.visibilityState==='visible'&&(!document.hasFocus||document.hasFocus());}
+ function icone(){var l=document.querySelector('link[rel="icon"]');return l?l.href:'';}
+ function reg(){if(!('serviceWorker' in navigator))return Promise.resolve(null);
+  return navigator.serviceWorker.getRegistration().then(function(r){return r||null;}).catch(function(){return null;});} /* o próprio app registra o sw.js ao abrir */
+ /* mostra um aviso: pelo service worker (necessário no Android) e, sem ele, pelo próprio navegador */
+ function mostrar(t,s,go,k){var tag=APP+'|'+(k||t),dt={app:APP,go:go||'',k:k||'',url:location.href.split('#')[0]};
+  var op={body:s||'',tag:tag,icon:icone(),badge:icone(),lang:'pt-BR',data:dt};
+  return reg().then(function(r){if(r&&r.showNotification)return r.showNotification(t,op).then(function(){return true;});
+   var n=new Notification(t,op);n.onclick=function(){try{window.focus();}catch(e){}n.close();vai(dt);};return true;}).catch(function(){return false;});}
+ function vai(dt){if(!dt||dt.app!==APP||!abrir)return;try{abrir(dt);}catch(e){console.error(e);}}
+ if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('message',function(e){var m=e.data||{};if(m.tipo==='push-abrir')vai(m.data);});
+ /* marca como avisado tudo o que já está na lista (ao ligar e na primeira leitura): só o que chegar depois vira aviso */
+ function base(){if(!lista)return;var L=[];try{L=lista()||[];}catch(e){}var n=Date.now();L.forEach(function(x){S.v[x.k]=n;});guarda();}
+ function verificar(){if(!lista)return;
+  if(!ini){ini=true;base();return;}
+  if(!ligado())return;
+  var L=[];try{L=lista()||[];}catch(e){return;}
+  var n=Date.now(),novos=L.filter(function(x){return !S.v[x.k];});
+  L.forEach(function(x){S.v[x.k]=n;});
+  for(var k in S.v)if(n-S.v[k]>7*DIA)delete S.v[k];
+  guarda();
+  if(!novos.length||aFrente()||(silencio&&silencio()))return;
+  novos.slice(0,3).forEach(function(x){mostrar(x.t,x.s,x.go,x.k);});
+  if(novos.length>3)mostrar('Mais '+(novos.length-3)+(novos.length-3>1?' avisos novos':' aviso novo'),'Abra o app para ver todos','','resto');}
+ function agenda(){clearTimeout(tm);tm=setTimeout(verificar,400);}
+ addEventListener('storage',function(e){if(e.key==='app-multi-v1')agenda();});
+ document.addEventListener('visibilitychange',agenda);
+ setInterval(verificar,15000);
+ window.PUSH={app:APP,suporte:suporte,permissao:permissao,ligado:ligado,mostrar:mostrar,verificar:agenda,
+  /* lista: o que hoje é aviso para este app; abrir: o que fazer quando tocam no aviso; silencio: true para não avisar agora */
+  fonte:function(fn,ab,si){lista=fn;abrir=ab||null;silencio=si||null;ini=false;setTimeout(verificar,1500);},
+  /* avisos que o app já sabe que são novos (painel): sem guardar a lista */
+  avisar:function(L){if(!ligado()||aFrente()||!L||!L.length)return;L.slice(0,3).forEach(function(x){mostrar(x.t,x.s,x.go,x.k);});},
+  /* ligar pede a permissão do navegador (precisa de um toque); cb(ok, texto) */
+  ligar:function(cb){cb=cb||function(){};
+   if(!suporte()){cb(false,'Este navegador não mostra notificações. No iPhone, instale o app na tela de início.');return;}
+   var fim=function(p){if(p==='granted'){S.on=1;base();cb(true,'Notificações ligadas neste aparelho');}
+    else if(p==='denied'){S.on=0;guarda();cb(false,'O navegador bloqueou as notificações. Libere nas configurações do site e tente de novo.');}
+    else{S.on=0;guarda();cb(false,'Sem permissão: as notificações continuam desligadas');}};
+   if(Notification.permission==='granted'){fim('granted');return;}
+   try{var r=Notification.requestPermission(fim);if(r&&r.then)r.then(fim);}catch(e){fim('default');}},
+  desligar:function(){S.on=0;guarda();},
+  estado:function(){var p=permissao();return p==='sem'?'Este navegador não mostra notificações':p==='denied'?'Bloqueadas no navegador: libere nas configurações do site':ligado()?'Ligadas neste aparelho, também com o app em segundo plano':'Desligadas neste aparelho';},
+  teste:function(cb){cb=cb||function(){};if(!ligado()){cb(false,'Ligue as notificações push primeiro');return;}
+   mostrar('LivTask','É assim que os avisos vão aparecer neste aparelho','','teste-'+Date.now()).then(function(ok){cb(ok,ok?'Notificação de teste enviada':'Não foi possível mostrar a notificação');});}};
+})();
+</script>
 <script>
 (function(){
 'use strict';
@@ -408,7 +470,7 @@ function lvMonta(){const M=lvLer();
   else if(so)USR.find(u=>u.live&&u.nome===so).emps.push(id)});
  USR.unshift({id:'ulive',nome:'Paula',email:'paula@horizonte.com.br',tipo:'contador',papel:'Contador',esc:'e1',emps:ids,ult:0,mfa:true,st:'ativo',live:1})}
 function lvAtualiza(primeira){const antes=LIVE.base;lvMonta();const agora=lvResumo(LIVE.M);
- if(!primeira&&antes&&Object.keys(antes).length){const ev=lvDiff(antes,agora);if(ev.length){const h=new Date();ev.forEach(x=>{x.h=h});LIVE.ev=ev.concat(LIVE.ev).slice(0,40);toast(ev[0].e+' · '+ev[0].t+(ev.length>1?' (+'+(ev.length-1)+')':''))}}
+ if(!primeira&&antes&&Object.keys(antes).length){const ev=lvDiff(antes,agora);if(ev.length){const h=new Date();ev.forEach(x=>{x.h=h});LIVE.ev=ev.concat(LIVE.ev).slice(0,40);toast(ev[0].e+' · '+ev[0].t+(ev.length>1?' (+'+(ev.length-1)+')':''));if(window.PUSH)PUSH.avisar(ev.map((x,i)=>({k:'pn|'+(+h)+'|'+i,t:x.e,s:x.t,go:'aovivo'})))}}
  LIVE.base=agora;LIVE.em=Date.now()}
 lvAtualiza(true);
 const CFG={mfaCont:true,mfaCli:false,lgpd:true,retencao:'5 anos',backup:true,manut:false,cadastro:true,emailResumo:true,limiteUp:'25 MB'};
@@ -635,6 +697,9 @@ V.config=()=>{
  <div><div class="sec">Aparência</div>
   <div class="card"><b>Cor do painel</b><div class="sws" style="margin-top:12px">${[['verde','#1E5E4E'],['rosa','#FF3F6C'],['azul','#1D3E8F'],['roxo','#6A2CBF']].map(c=>`<button class="swt${S.tema===c[0]?' on':''}" style="background:${c[1]}" data-tema="${c[0]}" aria-label="${c[0]}"></button>`).join('')}</div>
   <div class="tg" style="margin-top:12px"><div class="tx"><div class="t">Modo escuro</div><div class="s">Mesmo visual escuro dos apps</div></div><button class="sw${S.escuro?' on':''}" data-act="escuro"></button></div></div>
+  <div class="sec">Notificações push</div>
+  <div class="card"><div class="tg"><div class="tx"><div class="t">Notificações neste aparelho</div><div class="s">${window.PUSH?PUSH.estado():'Este navegador não mostra notificações'}</div></div><button class="sw${window.PUSH&&PUSH.ligado()?' on':''}" data-act="push" aria-label="Notificações push"></button></div>
+   ${window.PUSH&&PUSH.ligado()?`<div class="tg"><div class="tx"><div class="t">Teste ao vivo</div><div class="s">O que o cliente e o contador fazem chega como aviso, com o painel em segundo plano</div></div><button class="btn gh sm" data-act="pushteste">Testar</button></div>`:''}</div>
   <div class="sec">Segurança</div>
   <div class="card">${t('mfaCont','2 etapas para contadores','Obrigatório para entrar no app do contador')}${t('mfaCli','2 etapas para clientes','Quando desligado, o cliente escolhe')}${t('lgpd','Bloquear documentos no painel','O painel mostra só estrutura e métricas')}</div>
  </div>
@@ -750,6 +815,8 @@ document.addEventListener('click',ev=>{
    case 'tema':S.escuro=S.escuro?0:1;salvaTema();if(S.v==='config')render();toast(S.escuro?'Modo escuro':'Modo claro');break;
    case 'escuro':S.escuro=S.escuro?0:1;salvaTema();render();break;
    case 'mais-menu':menuMais();break;
+   case 'push':if(!window.PUSH)break;if(PUSH.ligado()){PUSH.desligar();toast('Notificações push desligadas neste aparelho');render()}else PUSH.ligar((ok,m)=>{toast(m);render()});break;
+   case 'pushteste':if(window.PUSH)PUSH.teste((ok,m)=>toast(m));break;
    case 'mais':S.lim=(S.lim||40)+40;render();break;
    case 'novoEsc':formEsc();break;
    case 'novaEmp':formEmp();break;
@@ -804,6 +871,7 @@ const onQ=v=>{S.q=v.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')
 document.addEventListener('input',ev=>{if(ev.target.id==='q'||ev.target.classList.contains('qm'))onQ(ev.target.value)});
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape')fecha()});
 salvaTema();render();
+if(window.PUSH)PUSH.fonte(()=>[],dt=>go(dt.go||'aovivo'));
 /* outra aba gravou: recalcula e redesenha (as folhas de detalhe abertas ficam como estão) */
 addEventListener('storage',e=>{if(e.key!=='app-multi-v1')return;lvAtualiza(false);if(['geral','aovivo','escritorios','empresas','usuarios','uso'].includes(S.v)){const y=window.scrollY;render();window.scrollTo(0,y)}});
 })();

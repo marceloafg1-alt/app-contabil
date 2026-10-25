@@ -114,6 +114,20 @@ function ctNotifs(){var L=[];
   folhasFechar().forEach(function(f){L.push({k:'f|'+e.id+'|'+f.id,ic:IC['var'],t:'Folha para fechar: '+f.func+' · '+f.tipo,s:en+' · '+f.comp,go:'folha-'+e.id+'|'+f.id});});
   var nm=clientMsgs(ST),n=nm-(LIDAS[e.id]||0);if(n>0)L.push({k:'m|'+e.id+'|'+nm,ic:IC.chat,t:n+(n===1?' mensagem nova':' mensagens novas'),s:en+' · Chat',go:'chat-'+e.id});});done();
  L.forEach(function(x){x.u=!NLIDAS[x.k];});return L.filter(function(x){return x.u;}).concat(L.filter(function(x){return !x.u;}));}
+/* notificações push: os mesmos avisos do sino, no aparelho, com o app em segundo plano; ligar e os tipos ficam guardados neste aparelho (Ajustes) */
+var PUSHT={};try{PUSHT=JSON.parse(localStorage.getItem('contador-push-tipos')||'{}');}catch(e){}
+var PUSH_TP=[['p','Pedidos e respostas','Pedidos novos e respostas dos clientes'],['a','Documentos recebidos','Para conferir'],['f','Folhas para fechar','Folhas e variáveis enviadas'],['m','Mensagens do chat','Quando um cliente escrever']];
+function pushTpSave(){try{localStorage.setItem('contador-push-tipos',JSON.stringify(PUSHT));}catch(e){}}
+function pushLista(){var s0=ST,c0=MULTI.cur,e0=MULTI.emps.filter(function(e){return MULTI.data[e.id]===s0;})[0];
+ try{return ctNotifs().filter(function(x){return x.u&&PUSHT[x.k.charAt(0)]!==0;}).map(function(x){var q=x.k.split('|'),en=String(x.s).split(' · ')[0];
+  if(q[0]==='m'){var u=((MULTI.data[q[1]]||{}).chat||[]).filter(function(m){return m.me;}).pop();if(u)return {k:x.k,t:'Mensagem de '+en,s:String(u.t||'').slice(0,140),go:x.go};}
+  return {k:x.k,t:x.t,s:x.s,go:x.go};});}
+ finally{if(e0)B(e0.id);MULTI.cur=c0;}}
+if(window.PUSH)PUSH.fonte(pushLista,function(dt){if(dt.k){NLIDAS[dt.k]=1;nlSave();}if(dt.go&&dt.go!==cur)go(dt.go);else rerender();});
+function ajPush(){if(!window.PUSH)return '';var on=PUSH.ligado(),sw=function(a,b,on,at){return '<button type="button" class="r tgl" role="switch" aria-checked="'+(on?'true':'false')+'" '+at+'><span class="rt"><span class="a">'+a+'</span><span class="b">'+b+'</span></span><span class="sw2" aria-hidden="true"></span></button>';};
+ return '<section>'+sec('Notificações push')+'<div class="card">'+sw('Notificações neste aparelho',PUSH.estado(),on,'data-ctpush')+(on?PUSH_TP.map(function(x){return sw(x[1],x[2],PUSHT[x[0]]!==0,'data-ctpusht="'+x[0]+'"');}).join(''):'')+'</div>'+
+ (on?'<div class="gap"></div><button type="button" class="wb" data-ctpushtest>'+IC.bell+' Enviar notificação de teste</button>':'')+
+ '<p class="fh">Os avisos do sino aparecem no aparelho quando o app está aberto em segundo plano (outra aba, outra janela ou o app instalado minimizado). Tocar no aviso abre o pedido, o documento, a folha ou o chat.</p></section>';}
 function nbellCt(){var nu=ctNotifs().filter(function(x){return x.u;}).length;
  return '<button type="button" class="tbtn ic nbell" data-go="notif" aria-label="Notificações">'+IC.bell+(nu?'<span class="bd">'+(nu>99?'99+':nu)+'</span>':'')+'</button>';}
 function vNotif(){var L=ctNotifs(),nu=L.filter(function(x){return x.u;}).length,vale={};L.forEach(function(x){vale[x.k]=1;});
@@ -915,6 +929,7 @@ function vAjustes(){var c=MULTI.cfg,n=NOW(),on=window.syncStatus==='online';
   (jt?pickF('pz-dd','Notas, extratos, despesas e documentos encerram no',D28,String(c.docsDia)):
    pickF('pz-dn','Cofre de notas fiscais encerra no',D28,String(diaG('notas')))+pickF('pz-dx','Envio de extratos encerra no',D28,String(diaG('extratos')))+pickF('pz-dp','Envio de despesas encerra no',D28,String(diaG('despesas')))+pickF('pz-dd','Outros documentos encerram no',D28,String(c.docsDia)));})()+'<p class="fh">Vale no app de todos os clientes. O cliente pode encerrar antes; depois do prazo, o que foi lançado chega para você automaticamente.</p></div></section>';
  h+=ajExtra();
+ h+=ajPush();
  h+='<section>'+sec('Acompanhamento dos envios')+'<div class="card">'+[['notas','Notas fiscais'],['extratos','Extratos bancários'],['folha','Folhas e variáveis']].map(function(x){var on=acompOn(x[0]);return '<button type="button" class="r tgl" role="switch" aria-checked="'+(on?'true':'false')+'" data-acomp="'+x[0]+'"><span class="rt"><span class="a">'+x[1]+'</span><span class="b">'+(on?'Com acompanhamento: você confere e o cliente vê cada status':'Recebimento direto: você recebe e dá andamento; se algo estiver errado, chama o cliente')+'</span></span><span class="sw2" aria-hidden="true"></span></button>';}).join('')+'</div><p class="fh">Vale para todos os clientes. Despesas sempre vão direto, sem status.</p></section>';
  h+='<section>'+sec('Admissão de colaboradores')+'<div class="card pad form">'+pickF('ad-dias','Data de admissão a partir de',[0,1,2,3,4,5,7,10,15].map(function(d){return [String(d),d?d+(d===1?' dia':' dias')+' após o lançamento':'No mesmo dia do lançamento'];}),String(admDias()))+pickF('ad-tipo','Contagem dos dias',[['c','Dias corridos'],['u','Dias úteis (sem fins de semana e feriados)']],(c.admTipo==='u'?'u':'c'))+'<p class="fh">Vale para admissões e readmissões de todos os clientes. Com a regra atual, uma admissão lançada hoje pode começar a partir de '+fmtA(admMin())+'.</p></div></section>';
  h+='<section>'+sec('Data do protótipo')+'<div class="card pad form">'+dateF('pz-sim','Hoje no app',dInput(n))+'<button type="button" class="wb" data-real>Usar a data de hoje</button></div></section>';
@@ -1093,6 +1108,9 @@ document.addEventListener('click',function(ev){var t=ev.target.closest('[data-dl
  if(d.gcnf){var gq=d.gcnf.split(':');B(GC.e);var gn=['encerrado','auto'].indexOf(cofreStOf(ST,GC.c))>-1?(((ST.cofre||{})[GC.c]||{}).notas||[])[+gq[0]]:null,gf=gn&&gcNfArq(gn,gq[1]);done();if(!gf){toast('Esta nota não tem '+String(gq[1]).toUpperCase());return;}baixarArq(gf,'Nota de exemplo: o arquivo '+String(gq[1]).toUpperCase()+' não foi guardado');return;}
  if(d.go==='arquivo'&&cur!=='arquivo'&&!/^pasta-/.test(cur))ARQC=''; /* Documentos abre no mês do sistema */
  if(d.ctnt){NLIDAS[d.ctnt]=1;nlSave();go(d.ntgo);return;}
+ if(t.hasAttribute('data-ctpush')&&window.PUSH){if(PUSH.ligado()){PUSH.desligar();toast('Notificações push desligadas neste aparelho');rerender();}else PUSH.ligar(function(ok,m){toast(m);rerender();});return;}
+ if(d.ctpusht){PUSHT[d.ctpusht]=PUSHT[d.ctpusht]===0?1:0;pushTpSave();rerender();return;}
+ if(t.hasAttribute('data-ctpushtest')&&window.PUSH){PUSH.teste(function(ok,m){toast(m);});return;}
  if(t.hasAttribute('data-ntall')){ctNotifs().forEach(function(x){NLIDAS[x.k]=1;});nlSave();rerender();return;}
  if(d.go){if(t.hasAttribute('data-tab')){hist=[];show(d.go);}else go(d.go);return;}
  if(t.hasAttribute('data-back')){back();return;}
