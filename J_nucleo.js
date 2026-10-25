@@ -963,7 +963,7 @@ function renderFunc(n){var d=FUNCD[n];if(!d)return '';var pre=' data-pre=\'{"fun
  var act=[['var','Folha de pagamento','folha'],['ferias','Férias','ferias'],['people','Colaborador','colaborador'],['afast','Afastamento','afastamento'],['pro','Alterar salário','salario'],['adm','Alterar cargo','cargo'],['var','Alterar jornada','jornada'],['clock','Alterar turno','turno'],['people','Dependente','dependente'],['ext','Vale-transporte','vt'],['disc','Medida disciplinar','medida'],['dem','Demissão','demissao']];
  var peds=ST.ped.filter(function(p){return p.quem===n;});
  var fav=feriasAvisos().filter(function(a){return a.pre.func===n;})[0],fe=ferEstado(n);
- return hdr(n,d.c)+(fav?'<div class="note ferav'+(fav.u==='bad'?' bad':'')+'"><b>'+esc(fav.t)+'</b><br>'+esc(fav.s)+'<div class="g2b"><button type="button" class="wb pri" data-go="f-ferias"'+pre+'>Pedir férias</button>'+(fav.adiar?'<button type="button" class="wb" data-adiar="'+esc(n)+'">Adiar para o próximo período</button>':'')+'</div></div>':'')+funcFicha(n,d,fe)+
+ return hdr(n,d.c)+(fav?'<div class="note ferav'+(fav.u==='bad'?' bad':'')+'"><b>'+esc(fav.t)+'</b><br>'+esc(fav.s)+'<div class="g2b"><button type="button" class="wb pri" data-go="f-ferias"'+pre+'>Pedir férias</button>'+(fav.adiar?'<button type="button" class="wb" data-adiar="'+esc(n)+'">Adiar para o próximo período</button>':'')+'</div></div>':'')+funcFicha(n,d,fe)+colabPastas(n)+
  '<section><div class="sec"><h2>Histórico de solicitações</h2><span class="s">'+peds.length+'</span></div><div class="card">'+(peds.map(pedRow).join('')||'<p class="empty">Nenhuma solicitação para este colaborador ainda.</p>')+'</div></section>'+
  '<section><div class="sec"><h2>Solicitar para '+n.split(' ')[0]+'</h2></div><div class="g4">'+act.map(function(a){return '<button type="button" class="t sm4" data-go="f-'+a[2]+'"'+pre+'><span class="ib">'+IC[a[0]]+'</span><span class="tl">'+a[1]+'</span></button>';}).join('')+'</div></section>';}
 function socioLinha(d){return (d.p||'—')+' do capital · '+(d.pl&&d.pl!=='—'?'pró-labore R$ '+d.pl:'sem pró-labore');}
@@ -1141,10 +1141,15 @@ function arqId(){return 'a'+Date.now().toString(36)+Math.random().toString(36).s
 function arqList(st){st=st||ST;st.arq=st.arq||[];return st.arq;}
 function arqAdd(o,st){var l=arqList(st),ev=o.or==='ct'?(o.cat==='interno'?'Guardado no arquivo interno':'Enviado pelo escritório'):'Enviado pelo cliente';
  var a={id:arqId(),n:o.n||o.arq||'Documento',arq:o.arq||'',cat:o.cat||'outros',comp:o.comp||compOf(),or:o.or||'cli',st:o.st||(o.or==='ct'?'disp':'enviado'),ped:o.ped||'',gi:o.gi,data:o.data||hoje(),h:[[ev,o.data||(typeof horaAgora==='function'?horaAgora():hoje())]]};
- if(o.ant)a.ant=o.ant;var fi=window.FILES&&FILES[a.arq];if(o.fileId){a.fileId=o.fileId;a.ftype=o.ftype;}else if(fi&&fi.id){a.fileId=fi.id;a.ftype=fi.type;}l.unshift(a);if(l.length>500)l.length=500;return a;}
+ if(o.ant)a.ant=o.ant;if(o.quem)a.quem=o.quem;var fi=window.FILES&&FILES[a.arq];if(o.fileId){a.fileId=o.fileId;a.ftype=o.ftype;}else if(fi&&fi.id){a.fileId=fi.id;a.ftype=fi.type;}l.unshift(a);if(l.length>500)l.length=500;return a;}
 function arqGet(id,st){return arqList(st).filter(function(a){return a.id===id;})[0];}
 function arqMove(a,st,ev,extra){a.st=st;a.h=a.h||[];a.h.push([ev,typeof horaAgora==='function'?horaAgora():hoje()]);if(extra)for(var k in extra)a[k]=extra[k];}
 function arqDoPed(pid,st){return arqList(st).filter(function(a){return a.ped===pid;});}
+/* pastas do colaborador: Documentos (Documentos de funcionário) e Holerite, só com os arquivos dele */
+function colabPastas(who){var rw=function(L,vazio){return L.length?L.map(function(a){return '<div class="r"><span class="ri">'+IC.doc+'</span><span class="rt"><span class="a">'+esc(a.n)+'</span><span class="b">'+esc(arqSt(a)[0]+' · '+(a.data||''))+'</span></span></div>';}).join(''):'<p class="empty">'+vazio+'</p>';},
+ pasta=function(t,L,vazio){return '<section><div class="sec"><h2>'+t+'</h2><span class="s">'+L.length+'</span></div><div class="card">'+rw(L,vazio)+'</div></section>';},
+ docs=arqList().filter(function(a){return a.quem===who&&a.cat==='dp';}),hol=arqList().filter(function(a){return a.quem===who&&a.cat==='folha';});
+ return pasta('Documentos',docs,'Nenhum documento deste colaborador.')+pasta('Holerite',hol,'Nenhum holerite ainda. Ele aparece aqui quando o contador fecha a folha.');}
 /* arquivos que cada fluxo do cliente envia */
 var FLOW_CAT={turno:'dp',admissao:'dp',demissao:'dp',afastamento:'dp',medida:'dp',variaveis:'folha',folha:'folha',despesas:'despesas',extrato:'extratos',notas:'notas',lucros:'despesas',comprovante:'recibos',dependente:'dp',servico:'outros',outro:'outros',solicitado:'outros',enviar:'outros'};
 var ENV_CAT={'Contrato':'soc','Nota fiscal':'notas','Comprovante':'despesas','Documento pessoal':'dp','Outro':'outros'};CATS.forEach(function(c){ENV_CAT[c[1]]=c[0];});
