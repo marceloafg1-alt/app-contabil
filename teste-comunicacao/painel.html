@@ -248,8 +248,6 @@ html[data-disp="tab"] .side .nv{padding-top:12px;padding-bottom:12px}
 .livedot.off{background:var(--muted2);animation:none}
 @keyframes lvp{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--okc) 55%,transparent)}70%{box-shadow:0 0 0 9px transparent}100%{box-shadow:0 0 0 0 transparent}}
 @media (prefers-reduced-motion:reduce){.livedot{animation:none}}
-.lvlinks{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.lvlinks a{text-decoration:none}
 .lvev{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line);font-size:13px}
 .lvev:first-child{border-top:0}
 .lvev small{color:var(--muted);white-space:nowrap;margin-left:auto}
@@ -566,13 +564,12 @@ V.geral=()=>{
  </div>`};
 V.aovivo=()=>{
  const M=LIVE.M;
- const links=`<div class="lvlinks"><a class="btn sm" href="app.html#__pg=index.html" target="_blank" rel="noopener">${I('store','s')}Abrir app do cliente</a><a class="btn gh sm" href="app.html#__pg=contador.html" target="_blank" rel="noopener">${I('office','s')}Abrir app do contador</a></div>`;
  if(!M)return `<div class="card"><div style="display:flex;gap:10px;align-items:center"><span class="livedot off"></span><b>Ainda não há dados dos apps neste navegador</b></div>
-  <div style="font-size:13px;color:var(--muted);margin-top:8px;line-height:1.5">Abra o app do cliente ou o app do contador em outra aba deste mesmo navegador. Assim que um deles abrir, este painel passa a mostrar as contagens e atualiza sozinho.</div>${links}</div>`;
+  <div style="font-size:13px;color:var(--muted);margin-top:8px;line-height:1.5">Abra o app do cliente ou o app do contador em outra aba deste mesmo navegador. Assim que um deles abrir, este painel passa a mostrar as contagens e atualiza sozinho.</div></div>`;
  const E=M.emps.map(e=>({e,s:lvStats(M,e)}));const T=k=>E.reduce((a,x)=>a+x.s[k],0);
  const hh=d=>String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0');
  return `<div class="card"><div style="display:flex;gap:10px;align-items:center"><span class="livedot"></span><b>Ligado aos apps deste navegador</b><small style="margin-left:auto;color:var(--muted);font-size:12px">Atualizado às ${hh(new Date(LIVE.em))}</small></div>
-  <div style="font-size:13px;color:var(--muted);margin-top:8px;line-height:1.5">O que o cliente envia e o que o contador confere ou devolve aparece aqui sozinho, sem recarregar. Data simulada dos apps: ${fmtD(lvSim(M))}/${lvSim(M).getFullYear()}.</div>${links}</div>
+  <div style="font-size:13px;color:var(--muted);margin-top:8px;line-height:1.5">O que o cliente envia e o que o contador confere ou devolve aparece aqui sozinho, sem recarregar. Data simulada dos apps: ${fmtD(lvSim(M))}/${lvSim(M).getFullYear()}.</div></div>
  <div class="grid kpis" style="margin-top:12px">
   ${kpi('Enviados pelo cliente',num(T('cli')),T('conf')+' aguardando conferência','','file')}
   ${kpi('Conferidos',num(T('ok')),T('dev')+' devolvidos para correção',T('dev')?'dn':'','check')}
