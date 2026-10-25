@@ -665,7 +665,7 @@ function submit(){var F=FLOWS[FS.id];
  var adm0=FS.id==='colaborador'&&FS.v.acao&&FS.v.acao!=='Cadastro';var id='p'+ST.n;ST.ped.unshift({id:id,f:adm0?'admissao':FS.id,tipo:adm0?FS.v.acao:F.t,quem:who||'',data:'Pedido em '+hoje(),st:'enviado',prot:prot,dados:pedDados(),em:hoje()});FS.ped=id;
  var paA=F.solic?pedAberto():null;arqFromFlow(FS.id,FS.v,id,who,paA?pedNome(paA):null);
  if(FS.id==='comprovante'){GUIAS.forEach(function(g,i){if(g===FS.v.guia)ST.pagas[i]=hoje();});}
- if(F.a==='guias'&&FS.id!=='comprovante'){var gn=String(FS.v.guia||'').split(' · ').slice(0,2).join(' · ');ST.chat.push({me:1,t:'Pedido: '+F.t+(gn?' · '+gn:''),h:horaAgora(),go:'ped-'+id,gl:'Ver pedido'});}
+ if(F.a==='guias'&&FS.id!=='comprovante'){var gn=String(FS.v.guia||'').split(' · ').slice(0,2).join(' · '),tx=String(FS.v.msg||FS.v.obs||'').trim();ST.chat.push({me:1,t:'Pedido: '+F.t+(gn?' · '+gn:'')+(tx?'. Mensagem: '+tx:''),h:horaAgora(),go:'ped-'+id,gl:'Ver pedido'});}
  if(FS.id==='variaveis'){ST.vari=1;ST.lotes=ST.lotes||[];ST.lotes.unshift({id:'l'+ST.n,comp:FS.v.mes,grid:JSON.parse(JSON.stringify(FS.v.grid||{})),ped:id,data:hoje(),h:horaAgora()});}
  if(FS.id==='folha'){folhaSave();var gf=getFolha(FS.fid);if(gf){gf.st='enviada';gf.data=hoje();}if(FS.v.comp==='Outubro/2026')ST.vari=1;}
  if(FS.id==='colaborador'&&FS.v.nome)colabRegistra(FS.v);
