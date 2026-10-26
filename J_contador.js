@@ -155,9 +155,10 @@ function vColab(a){var q=String(a).split('|'),e=eById(q[0]);if(!e)return null;B(
  +acc('jornada',IC.clock||IC.cal,'Jornada',d.jornada?jorTotTxt(d.jornada)+' por semana':(d.jor||'—'),d.jornada?jorCard(d.jornada,0)+'<p class="foot">Total na semana: <b>'+jorTotTxt(d.jornada)+'</b></p>':kv('Jornada',v(d.jor)))
  +acc('contato',IC.chat||IC.people,'Contato',[d.tel,d.email].filter(Boolean).join(' · ')||'—',kv('Celular',v(d.tel))+kv('E-mail',v(d.email))+kv('Emergência',em))
  +acc('endereco',IC.folder||IC.doc,'Endereço',en.cep?(en.cidade||'')+(en.uf?'/'+en.uf:''):'Não informado',en.cep?kv('Logradouro',esc((en.rua||'')+(en.num?', '+en.num:'')))+(en.comp?kv('Complemento',v(en.comp)):'')+kv('Bairro',v(en.bairro))+kv('Cidade',esc((en.cidade||'—')+(en.uf?'/'+en.uf:'')))+kv('CEP',v(en.cep)):'<p class="lead0" style="margin:8px 0 0">Endereço não informado.</p>')
+ +acc('docs',IC.folder||IC.doc,'Documentos',colabDocsSub(colabDocs(nm)),colabDocsBody(colabDocs(nm),function(a){return docRow(e,a);}))
  +acc('deps',IC.people,'Dependentes',ds.length?ds.length+(ds.length===1?' dependente':' dependentes'):'Nenhum',ds.length?ds.map(function(x){return kv(esc(x.nome||'—'),esc((x.par==='Outros'?(x.parO||'Outros'):(x.par||''))+(x.nasc?' · '+fmtD(x.nasc):'')+(x.cpf?' · CPF '+x.cpf:'')));}).join(''):'<p class="lead0" style="margin:8px 0 0">Nenhum dependente cadastrado.</p>')+'</div>';
  var PD=ST.ped.filter(function(p){return p.quem===nm;}),FO=folhasOf().filter(function(f){return f.func===nm&&fst(f)!=='rascunho';});
- h+=colabPastas(nm)+'<section>'+sec('Histórico de solicitações','<span class="s">'+PD.length+'</span>')+'<div class="card">'+(PD.map(function(p){return pedRow({e:e,p:p});}).join('')||'<p class="empty">Nenhuma solicitação para este colaborador.</p>')+'</div></section>';
+ h+='<section>'+sec('Histórico de solicitações','<span class="s">'+PD.length+'</span>')+'<div class="card">'+(PD.map(function(p){return pedRow({e:e,p:p});}).join('')||'<p class="empty">Nenhuma solicitação para este colaborador.</p>')+'</div></section>';
  if(FO.length)h+='<section>'+sec('Folhas','<span class="s">'+FO.length+'</span>')+'<div class="card">'+FO.map(function(f){return folhaRow(e,f);}).join('')+'</div></section>';
  h+='<div class="fbar"><button type="button" class="cta ghost" data-go="chat-'+e.id+'">'+IC.chat+' Chamar o cliente</button></div>';done();return h;}
 /* ===== contrato de trabalho (experiência) preenchido com o cadastro do colaborador; sem IA ===== */
@@ -806,12 +807,12 @@ function vArquivo(){var e=arqEmp();B(e.id);arqCofre(ST);var L=arqList(),q=(UI.q|
  h+='<label class="srch">'+(IC.search||'')+'<input id="arq-q" type="search" placeholder="Buscar em '+esc(e.fant||e.nome)+'" autocomplete="off" value="'+esc(UI.q||'')+'"></label>';
  if(q){var R=L.filter(function(a){return (a.n+' '+a.arq+' '+a.comp+' '+catOf(a.cat)[1]).toLowerCase().indexOf(q)>-1;});h+='<section>'+sec('Resultados','<span class="s">'+R.length+'</span>')+'<div class="card">'+(R.map(function(a){return docRow(e,a);}).join('')||'<p class="empty">Nada encontrado.</p>')+'</div></section>';done();return h;}
  var cp=arqComp(),fo=folhasOf().filter(function(f){return f.comp===cp;});
- h+='<section>'+sec('Pastas')+'<div class="g3 pastas">'+CATS.map(function(c){var l=L.filter(function(a){return a.cat===c[0]&&a.comp===cp;}),n=l.length,pc=l.filter(function(a){return a.or==='cli'&&(a.st==='enviado'||a.st==='analise');}).length;
+ h+='<section>'+sec('Pastas')+'<div class="g3 pastas">'+CATS.map(function(c){var l=L.filter(function(a){return arqNaPasta(a,c[0])&&a.comp===cp;}),n=l.length,pc=l.filter(function(a){return a.or==='cli'&&(a.st==='enviado'||a.st==='analise');}).length;
   if(c[0]==='folha'){pc+=fo.filter(function(f){var x=fst(f);return x==='enviada'||x==='auto';}).length;n+=fo.filter(function(f){return fst(f)!=='rascunho';}).length;}
   return '<button type="button" class="t fo" data-go="pasta-'+e.id+'|'+c[0]+'"><span class="foh"><span class="ib">'+(IC[c[2]]||IC.folder)+'</span><span class="foi"><span class="tc">'+n+(n===1?' item':' itens')+'</span>'+(pc?'<span class="pfo">'+pc+' para conferir</span>':'')+'</span></span><span class="tl">'+c[1]+'</span></button>';}).join('')+'</div></section>';
  h+='<p class="foot">Caminho no armazenamento: '+esc(e.cnpj)+' / mês / pasta</p>';done();return h;}
 function vPasta(x){var q=x.split('|'),e=eById(q[0]);if(!e)return null;B(e.id);var c=catOf(q[1]),k=c[0];
- var L=arqList().filter(function(a){return a.cat===k;}),g={};L.forEach(function(a){(g[a.comp]=g[a.comp]||{d:[],f:[]}).d.push(a);});
+ var L=arqList().filter(function(a){return arqNaPasta(a,k);}),g={};L.forEach(function(a){(g[a.comp]=g[a.comp]||{d:[],f:[]}).d.push(a);});
  if(k==='folha')folhasOf().forEach(function(f){if(fst(f)==='rascunho')return;(g[f.comp]=g[f.comp]||{d:[],f:[]}).f.push(f);});
  var cofres=k==='notas'?Object.keys(ST.cofre||{}).filter(function(cc){var y=ST.cofre[cc];return y&&y.notas&&y.notas.length&&cofreStOf(ST,cc)==='aberto';}):[];
  var cs=Object.keys(g).sort(function(a,b){return compOrd(b)-compOrd(a);});
