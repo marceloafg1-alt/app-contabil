@@ -309,12 +309,12 @@ function openCal(k,title){fabClose();document.getElementById('cs-t').textContent
 function openPer(k){fabClose();var t=NOW(),src,grp=null,ttl;
  if(k==='#cofre'){src=CCOMP;grp='view';ttl='Competência do cofre';}
  else if(k==='#docs'){src=docComp();grp='view';ttl='Competência';}
- else if(k==='#pasta'){src=PCOMP!=='all'?PCOMP:'';grp='view';ttl='Período';}
- else if(k==='#var'){src=VCOMP&&VCOMP!=='all'?VCOMP:'';grp=null;ttl='Período';}
+ else if(k==='#pasta'){src=PCOMP!=='all'?PCOMP:'';grp='view';ttl='Competência';}
+ else if(k==='#var'){src=VCOMP&&VCOMP!=='all'?VCOMP:'';grp=null;ttl='Competência';}
  else if(k==='#dpl'){src=DPL.c||'';grp='despesas';ttl='Competência';}
  else if(k==='#env'){src=ECOMP[ENVG]||'';grp='view';ttl='Competência';}
  else if(k){src=FS.v[k]||'';var fd=fieldOf(k);grp=fd&&fd.g||null;ttl=fd&&fd.l||'Competência';}
- else{src=FCOMP&&FCOMP!=='all'?FCOMP:'';ttl='Selecionar período';}
+ else{src=FCOMP&&FCOMP!=='all'?FCOMP:'';ttl='Competência';}
  var p=src?src.split('/'):null,mi=p?MES.indexOf(p[0]):t.getMonth(),yy=p?+p[1]:t.getFullYear();
  CAL={per:1,mesk:k||null,grp:grp,y:yy,m:mi,py:yy,pm:mi,pall:(!k&&FCOMP==='all')||(k==='#pasta'&&PCOMP==='all')||(k==='#var'&&VCOMP==='all'),sel:'x',view:'m'};document.getElementById('cs-t').textContent=ttl;renderCal();cs.hidden=false;ov3.hidden=false;}
 /* setas do seletor de competência: troca o mês direto, usando o mesmo botão OK do seletor (cada tela grava a competência do seu jeito); mês que não pode ser escolhido fecha o seletor */
