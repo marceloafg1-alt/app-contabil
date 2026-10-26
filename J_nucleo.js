@@ -164,7 +164,7 @@ outro:{t:'Outro serviço',a:'servicos',i:'sol',steps:[
  {t:'Seu pedido',f:[{k:'ass',l:'Assunto',type:'text',ph:'Ex.: alterar endereço da empresa',req:1},{k:'desc',l:'Descreva o que precisa',type:'textarea',req:1},{k:'arq',ft:['pdf','img'],l:'Anexo',type:'file',hint:'Opcional'}]}],
  ok:'Pedido enviado',okS:'O contador vai responder pelo chat com os próximos passos.',who:'ass'}
 };
-var FOLDERS={'Contratos de trabalho':[['Carlos Souza · contrato','18 out'],['Ana Lima · contrato','02 mar 2025'],['Bruno Reis · contrato','10 jun 2025'],['Juliana Prado · contrato','05 jan 2026']],
+var FOLDERS={'Contratos de trabalho':[['Carlos Souza · contrato','18 out'],['Bruno Reis · contrato','10 jun 2025'],['Juliana Prado · contrato','05 jan 2026']],
 'Balancetes':[['Balancete · setembro','15 out'],['Balancete · agosto','14 set'],['Balancete · julho','15 ago']],
 'Guias pagas':[],
 'Notas fiscais':[['NF 1042 · Estúdio Lume','30 set'],['NF 1041 · Café Pátio','26 set'],['NF 1040 · Grupo Ateliê','19 set']]};
@@ -1468,6 +1468,17 @@ function seedFolhaT1(){var d=MULTI.data&&MULTI.data.alvorada;if(!d||d.seedFolhaT
  if(d.enc_folha)delete d.enc_folha[c];if(d.rotOff)delete d.rotOff['folha:'+c];d.ped=(d.ped||[]).filter(function(p){return p.autoC!==c;});
  d.seedFolhaT1=1;save();}
 seedFolhaT1();
+/* exemplo da Ana Lima (Alvorada): contrato de trabalho na pasta Documentos de funcionário, e folha de pagamento e holerite de setembro na pasta Folha; cada um é um arquivo só, ligado ao colaborador */
+function seedAnaDocs(){var d=MULTI.data&&MULTI.data.alvorada;if(!d||d.seedAnaDocs2)return;if(!d.arq)d.arq=[];
+ var fo=d.folders||{};if(fo['Contratos de trabalho'])fo['Contratos de trabalho']=fo['Contratos de trabalho'].filter(function(x){return x[0]!=='Ana Lima · contrato';});
+ d.arq=d.arq.filter(function(a){return a.n!=='Ana Lima · contrato'&&a.id.indexOf('ax')!==0;});
+ var fl=(d.folhas||[]).filter(function(f){return f.id==='fl1';})[0]||(ST0.folhas||[]).filter(function(f){return f.id==='fl1';})[0];
+ [{n:'Contrato de trabalho · Ana Lima',arq:'contrato-ana-lima.pdf',cat:'dp',comp:'Março/2025',data:'02 mar 2025'},
+  {n:'Folha de pagamento · Ana Lima · Setembro',arq:'folha-ana-lima-setembro.pdf',cat:'folha',comp:'Setembro/2026',data:'25 set',fid:fl&&fl.id},
+  {n:'Holerite · Ana Lima · Setembro',arq:'holerite-ana-lima-setembro.pdf',cat:'folha',comp:'Setembro/2026',data:'25 set',fid:fl&&fl.id}].forEach(function(x,i){
+  d.arq.unshift({id:'ax'+i,n:x.n,arq:x.arq,cat:x.cat,comp:x.comp,or:'ct',st:'disp',ped:'',quem:'Ana Lima',data:x.data,fid:x.fid,h:[['Enviado pelo escritório',x.data]]});});
+ d.seedAnaDocs2=1;save();}
+seedAnaDocs();
 
 /* encerrar: só a competência de um mês que já terminou (do dia 1º do mês seguinte até o prazo do contador) */
 function encIni(c){var p=cParse(c);return new Date(p.y,p.m+1,1);}
