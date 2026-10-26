@@ -795,7 +795,7 @@ function vFolha(x){var q=x.split('|'),e=eById(q[0]);if(!e)return null;B(e.id);va
  h+='<section>'+sec('Acompanhamento')+tline(fs,at)+'</section>';
  h+='<section>'+sec('Variáveis lançadas')+'<div class="rs">'+(f.sem?'<div class="rv"><span>Variáveis</span><span>Sem variáveis neste mês</span></div>':vt.length?vt.map(function(t){var p=t.split(': ');return '<div class="rv"><span>'+esc(p[0])+'</span><span>'+esc(p.slice(1).join(': ')||'Sim')+'</span></div>';}).join(''):'<div class="rv"><span>Variáveis</span><span>Nenhuma</span></div>')+(f.obs?'<div class="rv"><span>Observação</span><span>'+esc(f.obs)+'</span></div>':'')+'</div></section>';
  var AQ=arqList().filter(function(a){return a.cat==='folha'&&a.fid===f.id;});if(AQ.length)h+='<section>'+sec('Arquivos')+'<div class="card">'+AQ.map(function(a){return docRow(e,a);}).join('')+'</div></section>';
- h+='<div class="fbar">'+((es==='enviada'||es==='auto')?'<button type="button" class="cta" data-fecha="'+e.id+'|'+f.id+'">'+IC.check16+' Fechar folha e liberar holerite</button>':es==='fechada'?'<div class="note">Folha fechada. O holerite está no app do cliente.</div>':'<div class="note">O cliente ainda não enviou esta folha.</div>')+'</div>';done();return h;}
+ h+='<div class="fbar">'+((es==='enviada'||es==='auto')?(dOnly(NOW())>prazo('folha',f.comp)?'<button type="button" class="cta" data-fecha="'+e.id+'|'+f.id+'">'+IC.check16+' Fechar folha e liberar holerite</button>':'<div class="note">O holerite libera depois de '+fmtP(prazo('folha',f.comp))+', quando o prazo de variáveis fecha.</div>'):es==='fechada'?'<div class="note">Folha fechada. O holerite está no app do cliente.</div>':'<div class="note">O cliente ainda não enviou esta folha.</div>')+'</div>';done();return h;}
 /* exemplo da Ana Lima (Alvorada), gerado de verdade: apaga o que era dela (contrato, folhas, variáveis e holerites) e cria arquivos PDF para baixar. Uma vez por navegador; o cliente lê os mesmos arquivos (mesmo armazenamento) */
 function txtPdf(L){var y=800,s='';L.forEach(function(l){var sz=l[1]||10,fn=l[2]||'F1';s+='BT /'+fn+' '+sz+' Tf 40 '+y+' Td '+holeStr(l[0])+' Tj ET\n';y-=sz+7;});return holePdf(s);}
 /* PDF com várias páginas (texto em Helvetica), para o contrato */
@@ -811,8 +811,8 @@ function holePdfN(streams){var n=streams.length,objs=['<< /Type /Catalog /Pages 
 function ctTextoPdf(html){var D=new DOMParser().parseFromString(String(html).replace(/<\/(p|div|h\d|tr|li|table)>|<br\s*\/?>/gi,'\n'),'text/html');D.querySelectorAll('style,script').forEach(function(x){x.remove();});var t=D.body.textContent,L=[];
  t.split('\n').forEach(function(s){s=s.replace(/\s+/g,' ').trim();if(!s){L.push(['',6]);return;}for(var i=0;i<s.length;i+=96)L.push([s.slice(i,i+96),i?9:10,i?'F1':'F2']);});return L;}
 function arqPdf(nome,L){var u=txtPdf(L),file=new File([u],nome,{type:'application/pdf'});if(window.upFiles)upFiles([file]);return nome;}
-function seedAnaArquivos(){var d=MULTI.data&&MULTI.data.alvorada;if(!d||d.seedAnaArq2)return;
- var e=eById('alvorada');if(!e)return;var F=(e.func||{})['Ana Lima']||{},ag=new Date(),cp=cName(ag.getFullYear(),ag.getMonth()),hj=hoje(),E=e.ender||{};
+function seedAnaArquivos(){var d=MULTI.data&&MULTI.data.alvorada;if(!d||d.seedAnaArq3)return;
+ var e=eById('alvorada');if(!e)return;var F=(e.func||{})['Ana Lima']||{},ag=new Date(),cp=cName(ag.getFullYear(),ag.getMonth()-1),hj=hoje(),E=e.ender||{};
  d.arq=(d.arq||[]).filter(function(a){return !(a.quem==='Ana Lima'&&(a.cat==='dp'||a.cat==='folha'))&&a.n!=='Ana Lima · contrato';});
  d.folhas=(d.folhas||[]).filter(function(x){return x.func!=='Ana Lima';});
  var fo={id:'fa'+Date.now().toString(36),comp:cp,func:'Ana Lima',tipo:'Mensal',st:'fechada',vars:{he:{p:'50',h:'4'},com:'350,00',adi:'500,00'},obs:'',criada:hj,data:hj};d.folhas.unshift(fo);
@@ -837,10 +837,16 @@ function seedAnaArquivos(){var d=MULTI.data&&MULTI.data.alvorada;if(!d||d.seedAn
  arqAdd({n:'Folha de pagamento · Ana Lima · '+cMes(cp),arq:nFol,cat:'folha',comp:cp,or:'ct',st:'disp',quem:'Ana Lima',data:hj,fid:fo.id},d);
  arqAdd({n:'Variáveis rápidas · Ana Lima · '+cMes(cp),arq:nVar,cat:'folha',comp:cp,or:'cli',st:'ok',quem:'Ana Lima',data:hj,fid:fo.id},d);
  arqAdd({n:'Holerite · Ana Lima · '+cMes(cp),arq:nHol,cat:'folha',comp:cp,or:'ct',st:'disp',quem:'Ana Lima',data:hj,fid:fo.id},d);
- d.seedAnaArq2=1;save();}
+ d.seedAnaArq3=1;save();}
 /* ===== holerite em PDF (sem IA): cadastro do colaborador, recorrências ativas no mês e variáveis da folha ===== */
 function holeSlug(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
 function holeNome(e,f){return 'holerite-'+holeSlug(e.fant||e.nome)+'-'+holeSlug(f.func)+'-'+holeSlug(f.comp)+'.pdf';}
+/* tabelas de 2026 (INSS progressivo e IRRF com a redução até R$ 7.350): base do INSS até o teto; IRRF sem dependentes e sem dedução simplificada */
+var INSS_TETO=8475.55;
+function inssFx(s){var b=Math.min(s,INSS_TETO),t=0;[[0,1621,0.075],[1621,2902.84,0.09],[2902.84,4354.27,0.12],[4354.27,INSS_TETO,0.14]].forEach(function(x){if(b>x[0])t+=(Math.min(b,x[1])-x[0])*x[2];});return Math.round(t*100)/100;}
+function irrfFx(base){if(base<=5000)return 0;var T=[[2826.65,0.075,182.16],[3751.05,0.15,394.16],[4664.68,0.225,675.49],[Infinity,0.275,908.73]],t=0;
+ for(var i=0;i<T.length;i++){if(base<=T[i][0]){t=base*T[i][1]-T[i][2];break;}}
+ if(base<=7350)t-=978.62-0.133145*base;return t>0?Math.round(t*100)/100:0;}
 function holeDados(e,f){var d=FUNCD[f.func]||(e&&e.func&&e.func[f.func])||{},s=money(d.sal),h=s/220,dia=s/30,P=[],D=[],vars=normVars(f.vars);
  function add(L,t,ref,v){if(v>0)L.push({t:t,ref:ref||'',v:v});}
  add(P,'Salário base','',s);
@@ -857,7 +863,7 @@ function holeDados(e,f){var d=FUNCD[f.func]||(e&&e.func&&e.func[f.func])||{},s=m
   else if(v.k==='insal'){}
   else add(P,v.l,'',money(x));});
  (ST.rec||[]).forEach(function(r){if(r.quem!==f.func||recAl(r)!=='c'||!recAtivo(r,f.comp))return;var p=recParc(r,f.comp);add(recSinal(r.tipo)==='-'?D:P,r.tipo,p.t?'parc. '+p.n+'/'+p.t:'',money(r.valor));});
- var tv=0,td=0;P.forEach(function(x){tv+=x.v;});D.forEach(function(x){td+=x.v;});
+ var tv=0,td=0;P.forEach(function(x){tv+=x.v;});var inss=inssFx(tv),irrf=irrfFx(tv-inss);D.push({t:'INSS',ref:'base '+fmt(Math.min(tv,INSS_TETO)),v:inss},{t:'IRRF',ref:'base '+fmt(tv-inss),v:irrf});D.forEach(function(x){td+=x.v;});
  return {emp:e,f:f,nome:f.func,cargo:d.c||'',adm:d.adm||'',jor:d.jor||'',sal:s,P:P,D:D,tv:tv,td:td,liq:tv-td,fgts:tv*0.08};}
 /* texto do PDF em WinAnsi: acentos saem como octal, o resto vira ? (o arquivo fica só em ASCII) */
 function holeStr(s){return '('+String(s==null?'':s).split('').map(function(c){var k=c.charCodeAt(0);
@@ -1430,7 +1436,8 @@ if(d.ctgen){var gv={};document.querySelectorAll('#ctform [data-ck]').forEach(fun
  if(t.hasAttribute('data-dl')){var ca=CTX&&CTX.a&&(B(CTX.e),arqGet(CTX.a));done();baixarArq(ca);return;}
  if(t.hasAttribute('data-dlo')){var ca2=CTX&&CTX.a&&(B(CTX.e),arqGet(CTX.a));done();if(ca2&&window.abrirArquivo&&abrirArquivo(ca2))toast('Abrindo '+(ca2.arq||ca2.n));else toast('Este arquivo foi registrado só pelo nome');return;}
  if(d.fecha&&!t.hasAttribute('data-ok')){var q0=d.fecha.split('|'),e0=eById(q0[0]);B(q0[0]);var f0=getFolha(q0[1]);done();if(f0)askGen({e:e0,t:'Fechar a folha de '+f0.func+'?',d:f0.tipo+' · '+f0.comp+'. O holerite fica disponível para o cliente.',ok:'Fechar folha',cb:function(){t.setAttribute('data-ok','');t.click();}});return;}
- if(d.fecha){var q=d.fecha.split('|');B(q[0]);var f=getFolha(q[1]);if(f){f.st='fechada';f.data=hoje();var ef=eById(q[0]),nh=holeNome(ef,f);var a=arqAdd({n:'Holerite · '+f.func+' · '+f.tipo,arq:nh,cat:'folha',comp:f.comp,or:'ct',quem:f.func});a.fid=f.id;holeriteArq(ef,f,nh);
+ if(d.fecha){var q=d.fecha.split('|');B(q[0]);var f=getFolha(q[1]);if(f&&dOnly(NOW())<=prazo('folha',f.comp)){done();toast('O holerite libera depois de '+fmtP(prazo('folha',f.comp)));return;}
+  if(f){f.st='fechada';f.data=hoje();var ef=eById(q[0]),nh=holeNome(ef,f);var a=arqAdd({n:'Holerite · '+f.func+' · '+f.tipo,arq:nh,cat:'folha',comp:f.comp,or:'ct',quem:f.func});a.fid=f.id;holeriteArq(ef,f,nh);
   avisar('Holerite de '+f.func+' disponível',f.tipo+' · '+f.comp,'folha-'+f.id);ativ('Folha de '+f.func+' fechada · '+f.comp);commit('Folha fechada e holerite liberado');}return;}
  if(d.ql!==undefined&&t.classList.contains('qk')){QL=QL===d.ql?'':d.ql;SCR.querySelectorAll('.qk').forEach(function(x){x.classList.toggle('on',x.dataset.ql===QL&&!!QL);});return;}
  if(d.send){envio(d.send);return;}
