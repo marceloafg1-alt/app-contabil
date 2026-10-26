@@ -471,6 +471,10 @@ function vDesp(a){var q=String(a||'').split('|'),e=eById(q[0]),c=q[1];if(!e||!c)
 var GC={e:'',c:''};
 function gcComps(){var n=NOW();return [-2,-1,0].map(function(k){return cName(n.getFullYear(),n.getMonth()+k);});}
 /* competência da Gestão contábil: qualquer mês até o atual, escolhido no seletor de competência (o mesmo do app do cliente) */
+/* seletor de competência com setas de mês de cada lado (o mesmo do app do cliente); as setas usam permStepC */
+function gcPerRow(id,c,attr){var at=' data-pk="'+id+'" data-base="'+esc(c)+'"';return '<div class="perrow" style="margin:0 0 14px"><button type="button" class="pern" data-permv="-1"'+at+' aria-label="Mês anterior">'+IC.tri+'</button><button type="button" class="perbtn" '+attr+' aria-haspopup="dialog"><span class="pl">Competência</span><b>'+esc(c)+'</b>'+IC.cal+'</button><button type="button" class="pern nx" data-permv="1"'+at+' aria-label="Próximo mês">'+IC.tri+'</button></div>';}
+/* troca o mês direto: mês fora da faixa permitida (gcOk) só avisa, sem mudar a competência */
+function permStepC(id,base,dv){var q=cParse(base),y=q.y,m=q.m+dv;while(m<0){m+=12;y--;}while(m>11){m-=12;y++;}var v=cName(y,m);if(!gcOk(v)){toast('Esse mês não está disponível para escolher');return;}setVal(id,v);}
 function gcOk(c){var q=cParse(c),n=NOW();if(q.m<0||!q.y)return false;var k=q.y*12+q.m,h=n.getFullYear()*12+n.getMonth();return k<=h&&k>h-120;}
 /* pedidos de liberação de mês encerrado: cada um aparece na área do envio (notas no cofre, extratos, despesas; folha no DP) */
 function libPeds(g){return (ST.ped||[]).filter(function(p){return p.f==='libmes'&&p.st!=='ok'&&String(p.lk||'').indexOf(g+'|')===0;});}
@@ -490,7 +494,7 @@ function vGestao(a){var q=String(a||'').split('|'),ops=gcComps();if(q[0]&&eById(
  var css='<style>.gcg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border-radius:16px;overflow:hidden;margin:0 0 6px}.gcg>div{display:flex;flex-direction:column;gap:2px;padding:10px 12px;background:var(--card);min-width:0}.gcg .gc1{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}.gcg .gc1 svg{width:15px;height:15px}.gcg .gc2{font-weight:700;font-size:13px}.gcg .gc3{font-size:12px;color:var(--muted);overflow-wrap:anywhere}.gcg .ok .gc2{color:var(--okc,#1a7f4b)}.gcg .bad .gc2{color:var(--badc,#c0392b)}.gcg .warn .gc2{color:var(--warnc,#b4541a)}@media (max-width:420px){.gcg{grid-template-columns:1fr}}.sec.gcs{margin-top:16px}</style>';
  var h=css+NF_CSS+hdr('Gestão contábil','O que o cliente envia ao escritório');
  h+='<button type="button" class="empsw empsel" data-gcemp aria-haspopup="dialog" style="margin:0 0 12px">'+esw(e,1)+'<span>Cliente: '+esc(e.fant||e.nome)+'</span>'+IC.chevd+'</button>';
- h+='<button type="button" class="perbtn" data-gcper aria-haspopup="dialog" style="margin:0 0 14px"><span class="pl">Competência</span><b>'+esc(c)+'</b>'+IC.cal+'</button>';
+ h+=gcPerRow('gc-comp',c,'data-gcper');
  /* situação dos envios do mês */
  var G=[['notas','Notas fiscais','nf'],['extratos','Extratos','ext'],['despesas','Despesas','desp']],S=G.map(function(g){var x=celSt(g[0],c);if(g[0]==='notas'&&['encerrado','auto'].indexOf(cofreStOf(ST,c))<0){x={k:x.k,t:x.t,det:'Cofre aberto',f:x.f};}return [g,x];}),rec=S.filter(function(x){return x[1].f==='ok';}).length;
  h+='<div class="hero"><div class="hk"><span>Envios de '+esc(cMes(c))+'</span><span class="pill-w">'+rec+' de 3 recebidos</span></div><p class="ht">Notas, extratos e despesas encerram em '+fmtP(prazo('notas',c))+'. Depois do prazo, o que o cliente lançou chega sozinho.</p></div>';
@@ -798,7 +802,7 @@ function arqComp(){var n=NOW();return ARQC&&gcOk(ARQC)?ARQC:cName(n.getFullYear(
 function arqEmp(){var e=eById(UI.arqEmp)||MULTI.emps[0];UI.arqEmp=e.id;return e;}
 function vArquivo(){var e=arqEmp();B(e.id);arqCofre(ST);var L=arqList(),q=(UI.q||'').toLowerCase().trim();
  var h='<div class="hhd"><div class="hrow" style="justify-content:flex-start"><button type="button" class="bk" data-back aria-label="Voltar">'+IC.back+'</button><button type="button" class="empsw" data-aemp-open aria-haspopup="dialog">'+esw(e,1)+'<span>'+esc(e.nome)+'</span>'+IC.chevd+'</button></div><div class="hrow"><h1 class="big">Documentos</h1></div></div>';
- h+='<button type="button" class="perbtn" data-arqper aria-haspopup="dialog" style="margin:0 0 14px"><span class="pl">Competência</span><b>'+esc(arqComp())+'</b>'+IC.cal+'</button>';
+ h+=gcPerRow('arq-comp',arqComp(),'data-arqper');
  h+='<label class="srch">'+(IC.search||'')+'<input id="arq-q" type="search" placeholder="Buscar em '+esc(e.fant||e.nome)+'" autocomplete="off" value="'+esc(UI.q||'')+'"></label>';
  if(q){var R=L.filter(function(a){return (a.n+' '+a.arq+' '+a.comp+' '+catOf(a.cat)[1]).toLowerCase().indexOf(q)>-1;});h+='<section>'+sec('Resultados','<span class="s">'+R.length+'</span>')+'<div class="card">'+(R.map(function(a){return docRow(e,a);}).join('')||'<p class="empty">Nada encontrado.</p>')+'</div></section>';done();return h;}
  var cp=arqComp(),fo=folhasOf().filter(function(f){return f.comp===cp;});
@@ -1269,6 +1273,7 @@ document.addEventListener('click',function(ev){var t=ev.target.closest('[data-dl
  if(t.hasAttribute('data-aemp-open')){openEmp(UI.arqEmp,function(id){UI.arqEmp=id;UI.q='';keep();rerender();toast('Documentos de '+(eById(id).fant||eById(id).nome));});return;}
  if(t.hasAttribute('data-tema-go')){abrirTema();return;}
  if(t.hasAttribute('data-gcemp')){openEmp(GC.e,function(id){GC.e=id;cur='gestao';rerender();},{t:'Escolher cliente',sub:'Ver a gestão contábil de um cliente'});return;}
+ if(t.hasAttribute('data-permv')){permStepC(t.dataset.pk,t.dataset.base,+t.dataset.permv);return;}
  if(t.hasAttribute('data-arqper')){FV['arq-comp']=arqComp();PLT['arq-comp']='Competência';openPer('arq-comp');return;}
  if(t.hasAttribute('data-gcper')){FV['gc-comp']=GC.c;PLT['gc-comp']='Competência';openPer('gc-comp');return;}
  if(d.gcnf){var gq=d.gcnf.split(':');B(GC.e);var gn=['encerrado','auto'].indexOf(cofreStOf(ST,GC.c))>-1?(((ST.cofre||{})[GC.c]||{}).notas||[])[+gq[0]]:null,gf=gn&&gcNfArq(gn,gq[1]);done();if(!gf){toast('Esta nota não tem '+String(gq[1]).toUpperCase());return;}baixarArq(gf,'Nota de exemplo: o arquivo '+String(gq[1]).toUpperCase()+' não foi guardado');return;}
