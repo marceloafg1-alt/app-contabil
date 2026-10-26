@@ -217,7 +217,7 @@ function renderLists(){
  var chh=document.getElementById('cont-hero');if(chh)chh.innerHTML=contHero();
  var pzi=document.getElementById('prazos-ini');if(pzi)pzi.innerHTML=prazoRows();
  var ask=document.getElementById('ask'),pa=pedAberto();if(ask){ask.classList.toggle('feito',!pa);if(pa){var ab=ask.querySelector('.rt .b');if(ab)ab.textContent=pedNome(pa)+' · até '+fmtP(pedLim(pa));}}
- var dct=document.getElementById('docs-ct');if(dct)dct.innerHTML=arqVis().slice(0,12).map(function(a){return arqRow(a);}).join('');var dpc=document.getElementById('docs-per'),dcp=docComp();if(dpc)dpc.innerHTML='<button type="button" class="perbtn" data-periodo="#docs" aria-haspopup="dialog"><span class="pl">Competência</span><b>'+esc(dcp)+'</b>'+IC.cal+'</button>';
+ var dct=document.getElementById('docs-ct');if(dct)dct.innerHTML=arqVis().slice(0,12).map(function(a){return arqRow(a);}).join('');var dpc=document.getElementById('docs-per'),dcp=docComp();if(dpc)dpc.innerHTML=perBtn('#docs',dcp);
  var dps=document.getElementById('docs-pastas');if(dps)dps.innerHTML=CATS.filter(function(c){return c[0]!=='interno';}).map(function(c){var l=arqVis(c[0]).filter(function(a){return a.comp===dcp||(a.or==='ct'&&a.st==='disp');}),n=l.length,nv=l.filter(function(a){return a.st==='disp';}).length,nd=l.filter(function(a){return a.st==='dev';}).length;return '<button type="button" class="t fo" data-go="pasta-'+c[0]+'"><span class="foh"><span class="ib">'+(IC[c[2]]||IC.folder)+'</span><span class="foi"><span class="tc">'+n+(n===1?' item':' itens')+'</span>'+(nd?'<span class="pfo">'+nd+' a corrigir</span>':nv?'<span class="pfo info">'+nv+(nv===1?' novo':' novos')+'</span>':'')+'</span></span><span class="tl">'+c[1]+'</span></button>';}).join('');if(0)dct.innerHTML=(ST.ctdocs||[]).map(function(d){return '<button type="button" class="r" data-f="ct" data-n="'+esc(d[0].toLowerCase())+'" data-toast="'+esc(d[0])+' baixado"><span class="ri">'+IC.doc+'</span><span class="rt"><span class="a">'+esc(d[0])+'</span><span class="b">Do contador · '+esc(d[1])+' · '+esc(d[2])+'</span></span><span class="dl sm">'+IC.down16+'</span></button>';}).join('');
  var dsv=document.getElementById('dp-semvar');if(dsv){var nsv=NOW(),csv=[cName(nsv.getFullYear(),nsv.getMonth()-1),cName(nsv.getFullYear(),nsv.getMonth())].filter(folhaEnc);dsv.hidden=!csv.length;dsv.innerHTML=csv.map(function(c){var fe=folhaEnc(c);return '<div class="dpsv"><span class="ri">'+IC.check16+'</span><span class="rt"><span class="a">Folha de '+cMes(c)+' encerrada sem variáveis</span><span class="b">Você encerrou em '+esc(fe.em)+'. O contador foi avisado e vai fechar a folha.</span></span></div>';}).join('');}
  var dpf=document.getElementById('dp-fer');if(dpf){var fa=feriasAvisos();dpf.hidden=!fa.length;dpf.innerHTML=fa.length?'<div class="sec"><h2>Férias vencendo</h2><span class="cnt">'+fa.length+'</span></div><div class="card">'+fa.map(ferRow).join('')+'</div>':'';}
@@ -228,10 +228,13 @@ function renderLists(){
  if(window.__rotVCheck)__rotVCheck();
 }
 
+/* seletor de competência padrão: o botão abre ano e mês em janela; as setas ao lado trocam o mês direto (perStep, em ui.js) */
+function perBtn(k,c){return '<div class="perrow"><button type="button" class="pern" data-permv="-1" data-pk="'+k+'" aria-label="Mês anterior">'+IC.tri+'</button><button type="button" class="perbtn" data-periodo="'+k+'" aria-haspopup="dialog"><span class="pl">Competência</span><b>'+esc(c)+'</b>'+IC.cal+'</button><button type="button" class="pern nx" data-permv="1" data-pk="'+k+'" aria-label="Próximo mês">'+IC.tri+'</button></div>';}
+
 /* Solicitações de cada área (DP, Gestão contábil, Guias de impostos e Documentos): até 5, com Ver todos quando passar */
 var SOL_AREAS=[['dp','sol-dp'],['contabil','sol-contabil'],['guias','sol-guias'],['docs','sol-docs']];
 function solRender(){SOL_AREAS.forEach(function(x){var el=document.getElementById(x[1]);if(!el)return;var L=ST.ped.filter(function(p){return p.f!=='despesas'&&FLOWS[p.f]&&FLOWS[p.f].a===x[0];});
- el.innerHTML='<div class="sec"><h2>Solicitações</h2>'+(L.length>5?'<button type="button" class="lnk" data-go="pedidos-'+x[0]+'">Ver todos</button>':'')+'</div><div class="card">'+(L.slice(0,5).map(pedRow).join('')||'<p class="empty">Nenhuma solicitação por aqui.</p>')+'</div>';});}
+ el.innerHTML='<div class="sec"><h2>Solicitações</h2>'+(L.length>5?(x[0]==='docs'?'<button type="button" class="lnk" data-solnova>Ver todos</button>':'<button type="button" class="lnk" data-go="pedidos-'+x[0]+'">Ver todos</button>'):'')+'</div><div class="card">'+(L.slice(0,5).map(pedRow).join('')||'<p class="empty">Nenhuma solicitação por aqui.</p>')+'</div>';});}
 
 /* ===== card Importante (Início): o que o contador pediu, em uma linha cada ===== */
 var IMPX=0; /* 1 = card aberto mostrando todas as pendências */
@@ -273,11 +276,11 @@ function impVis(){impDemo();var L=impItens().filter(impNoPrazo),V=ST.impV=ST.imp
  L.sort(function(a,b){return b.em-a.em||a.i-b.i;});
  return L;}
 function impRow(x){return '<div class="impr"><button type="button" class="impb" data-go="'+x.go+'"'+(x.c?' data-setcomp="'+x.c+'"':'')+(x.pre?' data-pre=\''+JSON.stringify(x.pre).replace(/'/g,'&#39;')+'\'':'')+'><span class="impt">'+esc(x.t)+'</span><i>›</i></button>'+(x.adiar?'<button type="button" class="impad" data-adiar="'+esc(x.adiar)+'">Adiar</button>':'')+'</div>';}
-function impHero(){impCss();var L=impVis(),n=L.length,ex=IMPX&&n>5;
+function impHero(){impCss();var L=impVis(),n=L.length,ex=IMPX&&n>3;
  if(!n)return '<div class="hk"><span>Importante</span><span class="pill-w">Tudo em dia</span></div><div class="impok"><span class="impoki">'+IC.check16+'</span><span><b>Parabéns, você está em dia!</b><span>Tudo o que o contador pediu já foi feito. Quando surgir algo novo, aparece aqui.</span></span></div><div class="hb"><span class="due">Os próximos prazos estão em Verificar rotinas</span></div>';
  var pr=L.filter(function(x){return x.pz;}).sort(function(a,b){return a.pz-b.pz;})[0];
- return '<div class="hk"><span>Importante</span>'+(n>5?'<button type="button" class="pill-w impn" data-impx aria-expanded="'+(ex?'true':'false')+'">'+(ex?'Mostrar últimas pendências':'Mostrar '+n+' pendências')+'</button>':'<span class="pill-w">'+n+(n>1?' pendências':' pendência')+'</span>')+'</div>'+
-  '<div class="impl">'+(ex?L:L.slice(0,5)).map(impRow).join('')+'</div>'+
+ return '<div class="hk"><span>Importante</span>'+(n>3?'<button type="button" class="pill-w impn" data-impx aria-expanded="'+(ex?'true':'false')+'">'+(ex?'Mostrar últimas pendências':'Mostrar '+n+' pendências')+'</button>':'<span class="pill-w">'+n+(n>1?' pendências':' pendência')+'</span>')+'</div>'+
+  '<div class="impl">'+(ex?L:L.slice(0,3)).map(impRow).join('')+'</div>'+
   (pr?'<div class="hb"><span class="due">'+(diasAte(pr.pz)<0?'Atrasado desde ':'Próximo prazo: ')+fmtP(pr.pz)+(pr.pz.getFullYear()!==NOW().getFullYear()?'/'+pr.pz.getFullYear():'')+'</span><button type="button" class="send" data-impseq>Resolver agora</button></div>':'');}
 function impCss(){if(document.getElementById('imp-css'))return;var st=document.createElement('style');st.id='imp-css';st.textContent=
  '.hero.himp,#cont-hero{min-height:308px;gap:12px}.hero.himp .hb{margin-top:auto}.hero.himp .send{width:auto;padding:0 18px;white-space:nowrap;background:rgba(255,255,255,.14);color:inherit}.phone[data-solido="1"][data-escuro="0"] .hero.himp .send{background:var(--tint);color:var(--accent)}'+
@@ -513,7 +516,7 @@ function contHero(){var d=compPad('docs'),cf=cofreSt(d),nn=cofreOf(d).notas.leng
 function closedBanner(g,c,msg,tt){var lg=g==='cofre'?'notas':g,pend=LIBN[lg]&&pedLibAberto(lg,c);
  return '<div class="lock"><span class="lk">'+IC.lock+'</span><div><b>'+(tt||'Envio de '+cMes(c)+' encerrado')+'</b><p>'+msg+'</p>'+(pend?'<p><b>Pedido de liberação enviado.</b> Aguarde o contador.</p>':LIBN[lg]?'<p>Precisa enviar algo de '+cMes(c)+'? Ao lançar, escolha o mês com cadeado e peça ao contador para liberar.</p>':'')+'</div></div>';}
 function renderCofre(){var c=CCOMP||compPad('docs');CCOMP=c;var st=cofreSt(c),cf=cofreOf(c),ns=cf.notas,pz=prazo('notas',c),n=ns.length;
- var h=hdr('Cofre de notas','Gestão contábil')+'<button type="button" class="perbtn" data-cperiodo><span class="pl">Competência</span><b>'+c+'</b>'+IC.cal+'</button>';
+ var h=hdr('Cofre de notas','Gestão contábil')+perBtn('#cofre',c);
  if(st==='aberto')h+='<div class="hero"><div class="hk"><span>Cofre de '+cMes(c)+' · aberto</span><span class="pill-w">'+n+(n===1?' nota':' notas')+'</span></div><p class="ht">'+(podeEnc(c)?'O mês de '+cMes(c)+' terminou. Encerre o cofre para enviar as notas ao contador. Se você não encerrar, ele fecha sozinho em '+fmtP(pz)+' e envia tudo automaticamente.':'Carregue as notas durante o mês. O encerramento abre em '+fmtP(encIni(c))+', quando '+cMes(c)+' terminar. Se você não encerrar, o cofre fecha sozinho em '+fmtP(pz)+' e envia tudo automaticamente.')+'</p><div class="hb"><span class="due">Encerra em '+fmtP(pz)+' · '+falta(pz)+'</span></div></div>';
  else if(st==='futuro')h+='<div class="note">O cofre de '+cMes(c)+' ainda não abriu. Hoje você carrega notas de '+cMes(compPad('docs'))+'.</div>';
  else h+=st==='encerrado'?closedBanner('notas',c,'Você encerrou este cofre em '+(cf.em||fmtP(pz))+' e '+(n?n+(n>1?' notas foram enviadas':' nota foi enviada'):'o contador foi avisado que não houve notas')+'.','Cofre de '+cMes(c)+' encerrado por você'):closedBanner('notas',c,'O cofre fechou sozinho em '+fmtP(pz)+(n?' e '+n+(n>1?' notas foram enviadas':' nota foi enviada')+' automaticamente ao contador.':'. Não havia notas para enviar.'),'Cofre de '+cMes(c)+' encerrado automaticamente');
@@ -1049,7 +1052,9 @@ function filtraFaq(q){q=(q||'').toLowerCase().trim();var n=0;document.querySelec
 
 /* ===== serviços, rotinas, atividade ===== */
 var SVQ='';
-function renderServicos(){SVQ='';var it=[['salario','pro','Alteração salarial','Promoção, mérito, dissídio'],['cargo','adm','Alteração de cargo','Novo cargo e atividades'],['jornada','var','Alteração de jornada','Carga horária e horário'],['turno','clock','Alteração de turno','Manhã, tarde, noite ou escala'],['dependente','people','Inclusão de dependente','Para IR e salário-família'],['vt','ext','Vale-transporte','Incluir, alterar ou cancelar'],['outro','sol','Outro serviço','Descreva o que precisa']];
+/* mais pedidos da tela Serviços; também usados no modal Tipo de solicitação (Documentos › Solicitações › Ver todos) */
+var SV_TOP=[['salario','pro','Alteração salarial','Promoção, mérito, dissídio'],['cargo','adm','Alteração de cargo','Novo cargo e atividades'],['jornada','var','Alteração de jornada','Carga horária e horário'],['turno','clock','Alteração de turno','Manhã, tarde, noite ou escala'],['dependente','people','Inclusão de dependente','Para IR e salário-família'],['vt','ext','Vale-transporte','Incluir, alterar ou cancelar'],['outro','sol','Outro serviço','Descreva o que precisa']];
+function renderServicos(){SVQ='';var it=SV_TOP;
  var cats=Object.keys(SERVS);
  return hdr('Solicitar serviços',SERVL.length+' serviços disponíveis')+
  '<label class="srch">'+IC.search+'<input id="busca-serv" type="search" placeholder="Buscar serviço" autocomplete="off" value="'+esc(SVQ)+'"></label>'+
@@ -1337,7 +1342,7 @@ function compAberta(g){var n=NOW();return [cName(n.getFullYear(),n.getMonth()-1)
 var ECOMP={},ENVG='extratos';
 var ENV_T={extratos:['Extratos bancários','extrato','extratos','f-extrato','Enviar extrato',IC.ext],despesas:['Despesas','despesa','despesas','f-despesas','Cadastrar despesa',IC.desp]};
 function renderEnvio(g){if(!ENV_T[g])return '';ENVG=g;var T=ENV_T[g],c=ECOMP[g]||compAberta(g);ECOMP[g]=c;var st=encSt(g,c),pz=prazo(g,c),L=g==='extratos'?arqList().filter(function(a){return a.cat==='extratos'&&a.comp===c;}):despOf(c),n=L.length,e=(ST['enc_'+g]||{})[c];
- var h=hdr(T[0],'Gestão contábil')+'<button type="button" class="perbtn" data-periodo="#env"><span class="pl">Competência</span><b>'+c+'</b>'+IC.cal+'</button>';
+ var h=hdr(T[0],'Gestão contábil')+perBtn('#env',c);
  if(st==='aberto')h+='<div class="hero"><div class="hk"><span>Envio de '+T[2]+' de '+cMes(c)+' · aberto</span><span class="pill-w">'+n+' '+(n===1?T[1]:T[2])+'</span></div><p class="ht">'+(g==='extratos'?'Envie os extratos de todas as contas do mês. ':'Cada despesa lançada já vai direto ao contador e pode ser editada ou excluída enquanto o envio estiver aberto. ')+'Ao encerrar, o contador fica sabendo que não há mais '+T[2]+' de '+cMes(c)+'. '+(podeEnc(c)?'O mês terminou: encerre o envio quando tiver lançado tudo. ':'Você pode encerrar a partir de '+fmtP(encIni(c))+', quando o mês terminar. ')+'Se você não encerrar, o envio fecha sozinho em '+fmtP(pz)+' e o que foi lançado vai automaticamente.</p><div class="hb"><span class="due">Encerra em '+fmtP(pz)+' · '+falta(pz)+'</span></div></div>';
  else if(st==='futuro')h+='<div class="note">O envio de '+T[2]+' de '+cMes(c)+' ainda não abriu.</div>';
  else h+=closedBanner(g,c,st==='encerrado'?'Você encerrou este envio em '+(e&&e.em||fmtP(pz))+(n?' com '+n+' '+(n===1?T[1]:T[2])+'.':', sem '+T[2]+' no mês.'):'O envio fechou sozinho em '+fmtP(pz)+(n?' e '+n+' '+(n===1?T[1]+' foi enviado':T[2]+' foram enviados')+' automaticamente.':'. Nada tinha sido lançado.'),'Envio de '+T[2]+' de '+cMes(c)+' encerrado');
