@@ -798,25 +798,38 @@ function vFolha(x){var q=x.split('|'),e=eById(q[0]);if(!e)return null;B(e.id);va
  h+='<div class="fbar">'+((es==='enviada'||es==='auto')?'<button type="button" class="cta" data-fecha="'+e.id+'|'+f.id+'">'+IC.check16+' Fechar folha e liberar holerite</button>':es==='fechada'?'<div class="note">Folha fechada. O holerite está no app do cliente.</div>':'<div class="note">O cliente ainda não enviou esta folha.</div>')+'</div>';done();return h;}
 /* exemplo da Ana Lima (Alvorada), gerado de verdade: apaga o que era dela (contrato, folhas, variáveis e holerites) e cria arquivos PDF para baixar. Uma vez por navegador; o cliente lê os mesmos arquivos (mesmo armazenamento) */
 function txtPdf(L){var y=800,s='';L.forEach(function(l){var sz=l[1]||10,fn=l[2]||'F1';s+='BT /'+fn+' '+sz+' Tf 40 '+y+' Td '+holeStr(l[0])+' Tj ET\n';y-=sz+7;});return holePdf(s);}
+/* PDF com várias páginas (texto em Helvetica), para o contrato */
+function holePdfN(streams){var n=streams.length,objs=['<< /Type /Catalog /Pages 2 0 R >>','<< /Type /Pages /Kids ['+streams.map(function(_,i){return (3+2*i)+' 0 R';}).join(' ')+'] /Count '+n+' >>'];
+ var F1=3+2*n,F2=F1+1,F3=F1+2,res='<< /Font << /F1 '+F1+' 0 R /F2 '+F2+' 0 R /F3 '+F3+' 0 R >> >>';
+ streams.forEach(function(s){objs.push('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents '+(objs.length+1)+' 0 R /Resources '+res+' >>');objs.push('<< /Length '+s.length+' >>\nstream\n'+s+'\nendstream');});
+ ['Helvetica','Helvetica-Bold','Courier'].forEach(function(f){objs.push('<< /Type /Font /Subtype /Type1 /BaseFont /'+f+' /Encoding /WinAnsiEncoding >>');});
+ var out='%PDF-1.4\n',offs=[];objs.forEach(function(o,i){offs.push(out.length);out+=(i+1)+' 0 obj\n'+o+'\nendobj\n';});
+ var xref=out.length;out+='xref\n0 '+(objs.length+1)+'\n0000000000 65535 f \n';offs.forEach(function(q){out+=('0000000000'+q).slice(-10)+' 00000 n \n';});
+ out+='trailer\n<< /Size '+(objs.length+1)+' /Root 1 0 R >>\nstartxref\n'+xref+'\n%%EOF';
+ var u=new Uint8Array(out.length);for(var i=0;i<out.length;i++)u[i]=out.charCodeAt(i);return u;}
+/* texto do contrato (o mesmo do Gerar contrato), em linhas de até 96 caracteres */
+function ctTextoPdf(html){var D=new DOMParser().parseFromString(String(html).replace(/<\/(p|div|h\d|tr|li|table)>|<br\s*\/?>/gi,'\n'),'text/html');D.querySelectorAll('style,script').forEach(function(x){x.remove();});var t=D.body.textContent,L=[];
+ t.split('\n').forEach(function(s){s=s.replace(/\s+/g,' ').trim();if(!s){L.push(['',6]);return;}for(var i=0;i<s.length;i+=96)L.push([s.slice(i,i+96),i?9:10,i?'F1':'F2']);});return L;}
 function arqPdf(nome,L){var u=txtPdf(L),file=new File([u],nome,{type:'application/pdf'});if(window.upFiles)upFiles([file]);return nome;}
-function seedAnaArquivos(){var d=MULTI.data&&MULTI.data.alvorada;if(!d||d.seedAnaArq1)return;
+function seedAnaArquivos(){var d=MULTI.data&&MULTI.data.alvorada;if(!d||d.seedAnaArq2)return;
  var e=eById('alvorada');if(!e)return;var F=(e.func||{})['Ana Lima']||{},ag=new Date(),cp=cName(ag.getFullYear(),ag.getMonth()),hj=hoje(),E=e.ender||{};
  d.arq=(d.arq||[]).filter(function(a){return !(a.quem==='Ana Lima'&&(a.cat==='dp'||a.cat==='folha'))&&a.n!=='Ana Lima · contrato';});
  d.folhas=(d.folhas||[]).filter(function(x){return x.func!=='Ana Lima';});
- var fo={id:'fa'+Date.now().toString(36),comp:cp,func:'Ana Lima',tipo:'Mensal',st:'fechada',vars:{he50:'4',he100:'1',com:'350,00',adi:'500,00'},obs:'',criada:hj,data:hj};d.folhas.unshift(fo);
+ var fo={id:'fa'+Date.now().toString(36),comp:cp,func:'Ana Lima',tipo:'Mensal',st:'fechada',vars:{he:{p:'50',h:'4'},com:'350,00',adi:'500,00'},obs:'',criada:hj,data:hj};d.folhas.unshift(fo);
  var sal=F.sal||'4.200,00',mes=cp.replace('/','-').toLowerCase();
- var nCont=arqPdf('contrato-trabalho-ana-lima.pdf',[['CONTRATO DE TRABALHO POR PRAZO INDETERMINADO',13,'F2'],['',8],
-  ['Empregador: '+e.nome+' · CNPJ '+e.cnpj,10],['Endereço: '+(E.rua||'')+', '+(E.num||'')+' · '+(E.bairro||'')+' · '+(E.cidade||'')+'/'+(E.uf||''),10],['',8],
-  ['Empregada: Ana Lima · CPF '+(F.cpf||'')+' · RG '+(F.rg||'')+' · PIS '+(F.pis||''),10],['Nascimento: '+(F.nasc||'')+' · CTPS '+(F.ctpsN||'')+' série '+(F.ctpsS||''),10],['',8],
-  ['Função: '+(F.c||'Designer')+' · Admissão em '+(F.adm||'')+' · Salário mensal R$ '+sal,10],['Jornada: 44 horas semanais, de segunda a sexta.',10],['Local de trabalho: '+(E.cidade||'')+'/'+(E.uf||''),10],['',8],
-  ['Cláusula 1ª: a empregada exerce a função acima, sob a direção da empregadora, pelo prazo indeterminado.',9],
-  ['Cláusula 2ª: o salário será pago até o 5º dia útil do mês seguinte, conforme a folha de pagamento.',9],
-  ['Cláusula 3ª: as partes seguem a Consolidação das Leis do Trabalho (CLT) e demais normas aplicáveis.',9],['',12],
-  [(E.cidade||'São Paulo')+', '+hj+'.',10],['',24],['_______________________________          _______________________________',10],['Empregador                                                     Empregada',9]]);
- var nFol=arqPdf('folha-pagamento-ana-lima-'+mes+'.pdf',[['FOLHA DE PAGAMENTO · '+cp,13,'F2'],['',8],
-  ['Empresa: '+e.nome+' · CNPJ '+e.cnpj,10],['Colaboradora: Ana Lima · '+(F.c||''),10],['',8],
-  ['Salário base: R$ '+sal,10,'F3'],['Comissão: R$ 350,00',10,'F3'],['Adiantamento: R$ 500,00',10,'F3'],['Horas extras 50%: 4 h',10,'F3'],['Horas extras 100%: 1 h',10,'F3'],['',8],
-  ['Situação: fechada',10,'F2'],['Fechada em '+hj,9]]);
+ var v=ctPre(e,'Ana Lima',F);v.RZ=e.nome;v.CNPJ=e.cnpj;v.EEND=E.rua||'';v.ENUM=E.num||'';v.EBAI=E.bairro||'';v.ECEP=E.cep||'';v.EUF=E.uf||'';v.RG=F.rg||'';v.PIS=F.pis||'';
+ var L=ctTextoPdf(ctDoc(e,'Ana Lima',F,v)),pag=[],y=0,s='';L.forEach(function(l){if(!pag.length||y<50){if(pag.length)pag[pag.length-1]=pag[pag.length-1];pag.push('');y=800;}
+  pag[pag.length-1]+='BT /'+l[2]+' '+l[1]+' Tf 40 '+y+' Td '+holeStr(l[0])+' Tj ET\n';y-=l[1]+5;});
+ var nCont='contrato-trabalho-ana-lima.pdf',ucont=holePdfN(pag),fcont=new File([ucont],nCont,{type:'application/pdf'});if(window.upFiles)upFiles([fcont]);
+ var HD=holeDados(e,fo),mon=function(x){return 'R$ '+fmt(x);};
+ var LF=[['FOLHA DE PAGAMENTO · '+cp,13,'F2'],['',8],['Empresa: '+e.nome+' · CNPJ '+e.cnpj,10],['Colaboradora: Ana Lima · '+(F.c||'')+' · Admissão '+(F.adm||''),10],['',8],
+  ['PROVENTOS',10,'F2']];
+ HD.P.forEach(function(x){LF.push([(x.t+(x.ref?' ('+x.ref+')':''))+': '+mon(x.v),10,'F3']);});
+ LF.push(['Total de vencimentos: '+mon(HD.tv),10,'F2'],['',8],['DESCONTOS',10,'F2']);
+ if(!HD.D.length)LF.push(['Nenhum desconto no mês.',10,'F3']);
+ HD.D.forEach(function(x){LF.push([(x.t+(x.ref?' ('+x.ref+')':''))+': '+mon(x.v),10,'F3']);});
+ LF.push(['Total de descontos: '+mon(HD.td),10,'F2'],['',8],['Valor líquido: '+mon(HD.liq),11,'F2'],['FGTS do mês (8%): '+mon(HD.fgts),10,'F3'],['',8],['Fechada em '+hj+'.',9]);
+ var nFol=arqPdf('folha-pagamento-ana-lima-'+mes+'.pdf',LF);
  var nVar=arqPdf('variaveis-rapidas-ana-lima-'+mes+'.pdf',[['VARIÁVEIS RÁPIDAS · '+cp,13,'F2'],['',8],
   ['Colaboradora: Ana Lima',10],['Horas extras 50%: 4 h',10,'F3'],['Horas extras 100%: 1 h',10,'F3'],['Comissão: R$ 350,00',10,'F3'],['Adiantamento: R$ 500,00',10,'F3'],['',8],['Enviado pelo cliente em '+hj,9]]);
  var nHol=holeNome(e,fo);holeriteArq(e,fo,nHol);
@@ -824,11 +837,11 @@ function seedAnaArquivos(){var d=MULTI.data&&MULTI.data.alvorada;if(!d||d.seedAn
  arqAdd({n:'Folha de pagamento · Ana Lima · '+cMes(cp),arq:nFol,cat:'folha',comp:cp,or:'ct',st:'disp',quem:'Ana Lima',data:hj,fid:fo.id},d);
  arqAdd({n:'Variáveis rápidas · Ana Lima · '+cMes(cp),arq:nVar,cat:'folha',comp:cp,or:'cli',st:'ok',quem:'Ana Lima',data:hj,fid:fo.id},d);
  arqAdd({n:'Holerite · Ana Lima · '+cMes(cp),arq:nHol,cat:'folha',comp:cp,or:'ct',st:'disp',quem:'Ana Lima',data:hj,fid:fo.id},d);
- d.seedAnaArq1=1;save();}
+ d.seedAnaArq2=1;save();}
 /* ===== holerite em PDF (sem IA): cadastro do colaborador, recorrências ativas no mês e variáveis da folha ===== */
 function holeSlug(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
 function holeNome(e,f){return 'holerite-'+holeSlug(e.fant||e.nome)+'-'+holeSlug(f.func)+'-'+holeSlug(f.comp)+'.pdf';}
-function holeDados(e,f){var d=FUNCD[f.func]||{},s=money(d.sal),h=s/220,dia=s/30,P=[],D=[],vars=normVars(f.vars);
+function holeDados(e,f){var d=FUNCD[f.func]||(e&&e.func&&e.func[f.func])||{},s=money(d.sal),h=s/220,dia=s/30,P=[],D=[],vars=normVars(f.vars);
  function add(L,t,ref,v){if(v>0)L.push({t:t,ref:ref||'',v:v});}
  add(P,'Salário base','',s);
  if(!f.sem)VARS.forEach(function(v){var x=vars[v.k];if(!vHas(v.k,x))return;
