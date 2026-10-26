@@ -796,6 +796,35 @@ function vFolha(x){var q=x.split('|'),e=eById(q[0]);if(!e)return null;B(e.id);va
  h+='<section>'+sec('Variáveis lançadas')+'<div class="rs">'+(f.sem?'<div class="rv"><span>Variáveis</span><span>Sem variáveis neste mês</span></div>':vt.length?vt.map(function(t){var p=t.split(': ');return '<div class="rv"><span>'+esc(p[0])+'</span><span>'+esc(p.slice(1).join(': ')||'Sim')+'</span></div>';}).join(''):'<div class="rv"><span>Variáveis</span><span>Nenhuma</span></div>')+(f.obs?'<div class="rv"><span>Observação</span><span>'+esc(f.obs)+'</span></div>':'')+'</div></section>';
  var AQ=arqList().filter(function(a){return a.cat==='folha'&&a.fid===f.id;});if(AQ.length)h+='<section>'+sec('Arquivos')+'<div class="card">'+AQ.map(function(a){return docRow(e,a);}).join('')+'</div></section>';
  h+='<div class="fbar">'+((es==='enviada'||es==='auto')?'<button type="button" class="cta" data-fecha="'+e.id+'|'+f.id+'">'+IC.check16+' Fechar folha e liberar holerite</button>':es==='fechada'?'<div class="note">Folha fechada. O holerite está no app do cliente.</div>':'<div class="note">O cliente ainda não enviou esta folha.</div>')+'</div>';done();return h;}
+/* exemplo da Ana Lima (Alvorada), gerado de verdade: apaga o que era dela (contrato, folhas, variáveis e holerites) e cria arquivos PDF para baixar. Uma vez por navegador; o cliente lê os mesmos arquivos (mesmo armazenamento) */
+function txtPdf(L){var y=800,s='';L.forEach(function(l){var sz=l[1]||10,fn=l[2]||'F1';s+='BT /'+fn+' '+sz+' Tf 40 '+y+' Td '+holeStr(l[0])+' Tj ET\n';y-=sz+7;});return holePdf(s);}
+function arqPdf(nome,L){var u=txtPdf(L),file=new File([u],nome,{type:'application/pdf'});if(window.upFiles)upFiles([file]);return nome;}
+function seedAnaArquivos(){var d=MULTI.data&&MULTI.data.alvorada;if(!d||d.seedAnaArq1)return;
+ var e=eById('alvorada');if(!e)return;var F=(e.func||{})['Ana Lima']||{},ag=new Date(),cp=cName(ag.getFullYear(),ag.getMonth()),hj=hoje(),E=e.ender||{};
+ d.arq=(d.arq||[]).filter(function(a){return !(a.quem==='Ana Lima'&&(a.cat==='dp'||a.cat==='folha'))&&a.n!=='Ana Lima · contrato';});
+ d.folhas=(d.folhas||[]).filter(function(x){return x.func!=='Ana Lima';});
+ var fo={id:'fa'+Date.now().toString(36),comp:cp,func:'Ana Lima',tipo:'Mensal',st:'fechada',vars:{he50:'4',he100:'1',com:'350,00',adi:'500,00'},obs:'',criada:hj,data:hj};d.folhas.unshift(fo);
+ var sal=F.sal||'4.200,00',mes=cp.replace('/','-').toLowerCase();
+ var nCont=arqPdf('contrato-trabalho-ana-lima.pdf',[['CONTRATO DE TRABALHO POR PRAZO INDETERMINADO',13,'F2'],['',8],
+  ['Empregador: '+e.nome+' · CNPJ '+e.cnpj,10],['Endereço: '+(E.rua||'')+', '+(E.num||'')+' · '+(E.bairro||'')+' · '+(E.cidade||'')+'/'+(E.uf||''),10],['',8],
+  ['Empregada: Ana Lima · CPF '+(F.cpf||'')+' · RG '+(F.rg||'')+' · PIS '+(F.pis||''),10],['Nascimento: '+(F.nasc||'')+' · CTPS '+(F.ctpsN||'')+' série '+(F.ctpsS||''),10],['',8],
+  ['Função: '+(F.c||'Designer')+' · Admissão em '+(F.adm||'')+' · Salário mensal R$ '+sal,10],['Jornada: 44 horas semanais, de segunda a sexta.',10],['Local de trabalho: '+(E.cidade||'')+'/'+(E.uf||''),10],['',8],
+  ['Cláusula 1ª: a empregada exerce a função acima, sob a direção da empregadora, pelo prazo indeterminado.',9],
+  ['Cláusula 2ª: o salário será pago até o 5º dia útil do mês seguinte, conforme a folha de pagamento.',9],
+  ['Cláusula 3ª: as partes seguem a Consolidação das Leis do Trabalho (CLT) e demais normas aplicáveis.',9],['',12],
+  [(E.cidade||'São Paulo')+', '+hj+'.',10],['',24],['_______________________________          _______________________________',10],['Empregador                                                     Empregada',9]]);
+ var nFol=arqPdf('folha-pagamento-ana-lima-'+mes+'.pdf',[['FOLHA DE PAGAMENTO · '+cp,13,'F2'],['',8],
+  ['Empresa: '+e.nome+' · CNPJ '+e.cnpj,10],['Colaboradora: Ana Lima · '+(F.c||''),10],['',8],
+  ['Salário base: R$ '+sal,10,'F3'],['Comissão: R$ 350,00',10,'F3'],['Adiantamento: R$ 500,00',10,'F3'],['Horas extras 50%: 4 h',10,'F3'],['Horas extras 100%: 1 h',10,'F3'],['',8],
+  ['Situação: fechada',10,'F2'],['Fechada em '+hj,9]]);
+ var nVar=arqPdf('variaveis-rapidas-ana-lima-'+mes+'.pdf',[['VARIÁVEIS RÁPIDAS · '+cp,13,'F2'],['',8],
+  ['Colaboradora: Ana Lima',10],['Horas extras 50%: 4 h',10,'F3'],['Horas extras 100%: 1 h',10,'F3'],['Comissão: R$ 350,00',10,'F3'],['Adiantamento: R$ 500,00',10,'F3'],['',8],['Enviado pelo cliente em '+hj,9]]);
+ var nHol=holeNome(e,fo);holeriteArq(e,fo,nHol);
+ arqAdd({n:'Contrato de trabalho · Ana Lima',arq:nCont,cat:'dp',comp:cp,or:'ct',st:'disp',quem:'Ana Lima',data:hj},d);
+ arqAdd({n:'Folha de pagamento · Ana Lima · '+cMes(cp),arq:nFol,cat:'folha',comp:cp,or:'ct',st:'disp',quem:'Ana Lima',data:hj,fid:fo.id},d);
+ arqAdd({n:'Variáveis rápidas · Ana Lima · '+cMes(cp),arq:nVar,cat:'folha',comp:cp,or:'cli',st:'ok',quem:'Ana Lima',data:hj,fid:fo.id},d);
+ arqAdd({n:'Holerite · Ana Lima · '+cMes(cp),arq:nHol,cat:'folha',comp:cp,or:'ct',st:'disp',quem:'Ana Lima',data:hj,fid:fo.id},d);
+ d.seedAnaArq1=1;save();}
 /* ===== holerite em PDF (sem IA): cadastro do colaborador, recorrências ativas no mês e variáveis da folha ===== */
 function holeSlug(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
 function holeNome(e,f){return 'holerite-'+holeSlug(e.fant||e.nome)+'-'+holeSlug(f.func)+'-'+holeSlug(f.comp)+'.pdf';}
@@ -1458,6 +1487,7 @@ window.onSyncError=function(){toast('Não foi possível salvar no banco. A mudan
 window.applyRemote=function(){CLI0=MULTI.cur;if(arqCofreAll())save();chatRecibo(1,null);rerender();};
 window.__ctRerender=function(){rerender();};
 applyLook();fit();if(arqCofreAll()){done();save();}chatRecibo(1,null);
+setTimeout(function(){try{seedAnaArquivos();rerender();}catch(err){console.error(err);}},1800);
 if(window.unificaArquivos)setTimeout(function(){unificaArquivos().then(function(n){if(n)rerender();});},1500);
 var h0=(location.hash||'').slice(1);try{h0=decodeURIComponent(h0);}catch(e){}show(route(h0)!==null&&h0?h0:'inicio');
 })();
