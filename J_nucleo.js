@@ -1466,17 +1466,12 @@ function seedFolhaT1(){var d=MULTI.data&&MULTI.data.alvorada;if(!d||d.seedFolhaT
  if(d.enc_folha)delete d.enc_folha[c];if(d.rotOff)delete d.rotOff['folha:'+c];d.ped=(d.ped||[]).filter(function(p){return p.autoC!==c;});
  d.seedFolhaT1=1;save();}
 seedFolhaT1();
-/* exemplo da Ana Lima (Alvorada): contrato de trabalho na pasta Documentos de funcionário, e folha de pagamento e holerite de setembro na pasta Folha; cada um é um arquivo só, ligado ao colaborador */
-function seedAnaDocs(){var d=MULTI.data&&MULTI.data.alvorada;if(!d||d.seedAnaDocs2)return;if(!d.arq)d.arq=[];
- var fo=d.folders||{};if(fo['Contratos de trabalho'])fo['Contratos de trabalho']=fo['Contratos de trabalho'].filter(function(x){return x[0]!=='Ana Lima · contrato';});
- d.arq=d.arq.filter(function(a){return a.n!=='Ana Lima · contrato'&&a.id.indexOf('ax')!==0;});
- var fl=(d.folhas||[]).filter(function(f){return f.id==='fl1';})[0]||(ST0.folhas||[]).filter(function(f){return f.id==='fl1';})[0];
- [{n:'Contrato de trabalho · Ana Lima',arq:'contrato-ana-lima.pdf',cat:'dp',comp:'Março/2025',data:'02 mar 2025'},
-  {n:'Folha de pagamento · Ana Lima · Setembro',arq:'folha-ana-lima-setembro.pdf',cat:'folha',comp:'Setembro/2026',data:'25 set',fid:fl&&fl.id},
-  {n:'Holerite · Ana Lima · Setembro',arq:'holerite-ana-lima-setembro.pdf',cat:'folha',comp:'Setembro/2026',data:'25 set',fid:fl&&fl.id}].forEach(function(x,i){
-  d.arq.unshift({id:'ax'+i,n:x.n,arq:x.arq,cat:x.cat,comp:x.comp,or:'ct',st:'disp',ped:'',quem:'Ana Lima',data:x.data,fid:x.fid,h:[['Enviado pelo escritório',x.data]]});});
- d.seedAnaDocs2=1;save();}
-seedAnaDocs();
+/* cadastro completo para o exemplo: empresa (Alvorada Design) e a Ana Lima; os arquivos (contrato, folha, variáveis e holerite) são gerados pelo contador */
+function seedAnaCadastro(){var d=MULTI.data&&MULTI.data.alvorada;if(!d||d.seedAnaCad1)return;
+ var e=MULTI.emps.filter(function(x){return x.id==='alvorada';})[0];if(e){e.ender={rua:'Rua das Acácias',num:'210',comp:'Sala 3',bairro:'Pinheiros',cep:'05422-000',cidade:'São Paulo',uf:'SP'};e.cep=e.ender.cep;e.ativ=e.ativ||'Design gráfico e de produto';}
+ var f=(e&&e.func||{})['Ana Lima'];if(f){f.rg='12.345.678-9 SSP/SP';f.pis='123.45678.90-1';f.ctpsN=f.ctpsN||'0001234';f.ctpsS=f.ctpsS||'0001';}
+ d.seedAnaCad1=1;save();}
+seedAnaCadastro();
 
 /* encerrar: só a competência de um mês que já terminou (do dia 1º do mês seguinte até o prazo do contador) */
 function encIni(c){var p=cParse(c);return new Date(p.y,p.m+1,1);}
