@@ -669,6 +669,7 @@ function submit(){var F=FLOWS[FS.id];
  var paA=F.solic?pedAberto():null;arqFromFlow(FS.id,FS.v,id,who,paA?pedNome(paA):null);
  if(FS.id==='comprovante'){GUIAS.forEach(function(g,i){if(g===FS.v.guia)ST.pagas[i]=hoje();});}
  if(F.a==='guias'&&FS.id!=='comprovante'){var gn=String(FS.v.guia||'').split(' · ').slice(0,2).join(' · '),tx=String(FS.v.msg||FS.v.obs||'').trim();ST.chat.push({me:1,t:'Pedido: '+F.t+(gn?' · '+gn:'')+(tx?'. Mensagem: '+tx:''),h:horaAgora(),go:'ped-'+id,gl:'Ver pedido'});}
+ if(FS.id==='variaveis'){var gv=FS.v.grid||{},cv=compOf(FS.v.mes);Object.keys(gv).forEach(function(nc){if(!FUNCD[nc]||!VQ.some(function(c){return gv[nc][c[0]];}))return;arqAdd({n:'Variáveis rápidas · '+nc+' · '+cMes(cv),arq:'variaveis-'+nc.toLowerCase().replace(/\s+/g,'-')+'.pdf',cat:'folha',comp:cv,or:'cli',ped:id,quem:nc});});}
  if(FS.id==='variaveis'){ST.vari=1;ST.lotes=ST.lotes||[];ST.lotes.unshift({id:'l'+ST.n,comp:FS.v.mes,grid:JSON.parse(JSON.stringify(FS.v.grid||{})),ped:id,data:hoje(),h:horaAgora()});}
  if(FS.id==='folha'){folhaSave();var gf=getFolha(FS.fid);if(gf){gf.st='enviada';gf.data=hoje();}if(FS.v.comp==='Outubro/2026')ST.vari=1;}
  if(FS.id==='colaborador'&&FS.v.nome)colabRegistra(FS.v);
@@ -941,6 +942,7 @@ function funcFicha(n,d,fe){var v=function(x){return x==null||x===''?'—':esc(St
  var em=d.emerg&&(d.emerg.n||d.emerg.tel)?esc([d.emerg.n,d.emerg.rel].filter(Boolean).join(' · '))+(d.emerg.tel?'<br>'+esc(d.emerg.tel):''):'—';
  h+=acc('contato',IC.chat||IC.people,'Contato',[d.tel,d.email].filter(Boolean).join(' · ')||'—',kv('Celular',v(d.tel))+kv('E-mail',v(d.email))+kv('Emergência',em),ed('contato'));
  var e=d.end||{};h+=acc('endereco',IC.folder||IC.doc,'Endereço',e.cep?(e.cidade||'')+(e.uf?'/'+e.uf:''):'Não informado',e.cep?kv('Logradouro',esc((e.rua||'')+(e.num?', '+e.num:'')))+(e.comp?kv('Complemento',v(e.comp)):'')+kv('Bairro',v(e.bairro))+kv('Cidade',esc((e.cidade||'—')+(e.uf?'/'+e.uf:'')))+kv('CEP',v(e.cep)):'<p class="lead0" style="margin:8px 0 0">Endereço não informado.</p>',ed('endereco'));
+ var dl=colabDocs(n);h+=acc('docs',IC.folder||IC.doc,'Documentos',colabDocsSub(dl),colabDocsBody(dl,function(a){return arqRow(a,catOf(a.cat)[1]+' · '+a.comp);}));
  var ds=d.deps||[];h+=acc('deps',IC.people,'Dependentes',ds.length?ds.length+(ds.length===1?' dependente':' dependentes'):'Nenhum',(ds.length?ds.map(function(x){return '<div class="r" style="padding-left:0;padding-right:0"><span class="rt"><span class="a">'+esc(x.nome||'—')+'</span><span class="b">'+esc((x.par==='Outros'?(x.parO||'Outros'):(x.par||''))+(x.nasc?' · '+fmtD(x.nasc):'')+(x.cpf?' · CPF '+x.cpf:''))+'</span></span></div>';}).join(''):'<p class="lead0" style="margin:8px 0 0">Nenhum dependente cadastrado.</p>'),'<button type="button" class="lnk" data-go="f-dependente" data-pre=\'{"func":"'+esc(n)+'"}\'>Incluir</button>');
  return h+'</div><p class="foot">Dados pessoais, contato e endereço você mesmo altera; o contador é avisado na hora. Cargo, salário, jornada e demais dados do contrato mudam por pedido ao contador, nos botões abaixo.</p>';}
 var FACC={};
@@ -966,7 +968,7 @@ function renderFunc(n){var d=FUNCD[n];if(!d)return '';var pre=' data-pre=\'{"fun
  var act=[['var','Folha de pagamento','folha'],['ferias','Férias','ferias'],['people','Colaborador','colaborador'],['afast','Afastamento','afastamento'],['pro','Alterar salário','salario'],['adm','Alterar cargo','cargo'],['var','Alterar jornada','jornada'],['clock','Alterar turno','turno'],['people','Dependente','dependente'],['ext','Vale-transporte','vt'],['disc','Medida disciplinar','medida'],['dem','Demissão','demissao']];
  var peds=ST.ped.filter(function(p){return p.quem===n;});
  var fav=feriasAvisos().filter(function(a){return a.pre.func===n;})[0],fe=ferEstado(n);
- return hdr(n,d.c)+(fav?'<div class="note ferav'+(fav.u==='bad'?' bad':'')+'"><b>'+esc(fav.t)+'</b><br>'+esc(fav.s)+'<div class="g2b"><button type="button" class="wb pri" data-go="f-ferias"'+pre+'>Pedir férias</button>'+(fav.adiar?'<button type="button" class="wb" data-adiar="'+esc(n)+'">Adiar para o próximo período</button>':'')+'</div></div>':'')+funcFicha(n,d,fe)+colabPastas(n)+
+ return hdr(n,d.c)+(fav?'<div class="note ferav'+(fav.u==='bad'?' bad':'')+'"><b>'+esc(fav.t)+'</b><br>'+esc(fav.s)+'<div class="g2b"><button type="button" class="wb pri" data-go="f-ferias"'+pre+'>Pedir férias</button>'+(fav.adiar?'<button type="button" class="wb" data-adiar="'+esc(n)+'">Adiar para o próximo período</button>':'')+'</div></div>':'')+funcFicha(n,d,fe)+
  '<section><div class="sec"><h2>Histórico de solicitações</h2><span class="s">'+peds.length+'</span></div><div class="card">'+(peds.map(pedRow).join('')||'<p class="empty">Nenhuma solicitação para este colaborador ainda.</p>')+'</div></section>'+
  '<section><div class="sec"><h2>Solicitar para '+n.split(' ')[0]+'</h2></div><div class="g4">'+act.map(function(a){return '<button type="button" class="t sm4" data-go="f-'+a[2]+'"'+pre+'><span class="ib">'+IC[a[0]]+'</span><span class="tl">'+a[1]+'</span></button>';}).join('')+'</div></section>';}
 function socioLinha(d){return (d.p||'—')+' do capital · '+(d.pl&&d.pl!=='—'?'pró-labore R$ '+d.pl:'sem pró-labore');}
@@ -1150,15 +1152,16 @@ function arqAdd(o,st){var l=arqList(st),ev=o.or==='ct'?(o.cat==='interno'?'Guard
 function arqGet(id,st){return arqList(st).filter(function(a){return a.id===id;})[0];}
 function arqMove(a,st,ev,extra){a.st=st;a.h=a.h||[];a.h.push([ev,typeof horaAgora==='function'?horaAgora():hoje()]);if(extra)for(var k in extra)a[k]=extra[k];}
 function arqDoPed(pid,st){return arqList(st).filter(function(a){return a.ped===pid;});}
-/* pastas do colaborador: Documentos (Documentos de funcionário) e Holerite, só com os arquivos dele */
-function colabPastas(who){var rw=function(L,vazio){return L.length?L.map(function(a){return '<div class="r"><span class="ri">'+IC.doc+'</span><span class="rt"><span class="a">'+esc(a.n)+'</span><span class="b">'+esc(arqSt(a)[0]+' · '+(a.data||''))+'</span></span></div>';}).join(''):'<p class="empty">'+vazio+'</p>';},
- pasta=function(t,L,vazio){return '<section><div class="sec"><h2>'+t+'</h2><span class="s">'+L.length+'</span></div><div class="card">'+rw(L,vazio)+'</div></section>';},
- docs=arqList().filter(function(a){return a.quem===who&&a.cat==='dp';}),hol=arqList().filter(function(a){return a.quem===who&&a.cat==='folha';});
- return pasta('Documentos',docs,'Nenhum documento deste colaborador.')+pasta('Holerite',hol,'Nenhum holerite ainda. Ele aparece aqui quando o contador fecha a folha.');}
+/* Documentos dos colaboradores: cada arquivo é um registro só (quem = colaborador). Ele aparece na pasta Documentos de funcionário (Documentos), na pasta Documentos de cada colaborador (DP) e, se for de folha, também na pasta Folha; cliente e contador leem o mesmo registro */
+function arqEhColab(a){return !!a&&a.cat!=='interno'&&(a.cat==='dp'||(a.cat==='folha'&&!!a.quem));}
+function arqNaPasta(a,k){return a.cat===k||(k==='dp'&&arqEhColab(a));}
+function colabDocs(who){return arqList().filter(function(a){return arqEhColab(a)&&(a.quem===who||(!a.quem&&a.n.indexOf(who+' · ')===0));}).sort(function(a,b){return compOrd(b.comp)-compOrd(a.comp);});}
+function colabDocsSub(L){return L.length?L.length+(L.length===1?' arquivo':' arquivos'):'Nenhum';}
+function colabDocsBody(L,row){return '<style>.fdocs .r{padding-left:0;padding-right:0}</style><div class="fdocs">'+(L.length?L.map(row).join(''):'<p class="lead0" style="margin:8px 0 0">Nenhum documento deste colaborador ainda. Contrato, demissão, medidas disciplinares, folhas e holerites aparecem aqui.</p>')+'</div>';}
 /* arquivos que cada fluxo do cliente envia */
-var FLOW_CAT={turno:'dp',admissao:'dp',demissao:'dp',afastamento:'dp',medida:'dp',variaveis:'folha',folha:'folha',despesas:'despesas',extrato:'extratos',notas:'notas',lucros:'despesas',comprovante:'recibos',dependente:'dp',servico:'outros',outro:'outros',solicitado:'outros',enviar:'outros'};
+var FLOW_CAT={turno:'dp',admissao:'dp',demissao:'dp',afastamento:'dp',medida:'dp',variaveis:'folha',folha:'folha',colaborador:'dp',despesas:'despesas',extrato:'extratos',notas:'notas',lucros:'despesas',comprovante:'recibos',dependente:'dp',servico:'outros',outro:'outros',solicitado:'outros',enviar:'outros'};
 var ENV_CAT={'Contrato':'soc','Nota fiscal':'notas','Comprovante':'despesas','Documento pessoal':'dp','Outro':'outros'};CATS.forEach(function(c){ENV_CAT[c[1]]=c[0];});
-function arqFromFlow(fid,v,pid,who,extra){var F=FLOWS[fid];if(!F)return [];var out=[],cat=FLOW_CAT[fid]||'outros';
+function arqFromFlow(fid,v,pid,who,extra){var F=FLOWS[fid];if(!F)return [];var out=[],cat=FLOW_CAT[fid]||'outros',qm=(F.who==='func'||fid==='colaborador')&&(cat==='dp'||cat==='folha')&&who?who:'';
  if(fid==='enviar')cat=ENV_CAT[v.tipo]||'outros';
  if(fid==='solicitado'&&extra&&/social|contratual|societ/i.test(extra))cat='soc';
  var comp=compOf(v.comp||v.mes||(v.venc&&fid==='despesas'?null:null));
@@ -1171,7 +1174,7 @@ function arqFromFlow(fid,v,pid,who,extra){var F=FLOWS[fid];if(!F)return [];var o
    else if(fid==='despesas')n='Comprovante · '+(v.desc||'despesa');
    else if(fid==='solicitado')n=extra||'Documento solicitado';
    else n=f.l+(who?' · '+who:'');
-   var ra=arqAdd({n:n,arq:nm,cat:cat,comp:comp,or:'cli',ped:pid});if(fid==='comprovante'&&typeof GUIAS!=='undefined'){var gx=GUIAS.indexOf(v.guia);if(gx>-1)ra.gi=gx;}if(fid==='folha'&&FS&&FS.fid)ra.fid=FS.fid;out.push(ra);});});});
+   var ra=arqAdd({n:n,arq:nm,cat:cat,comp:comp,or:'cli',ped:pid,quem:qm});if(fid==='comprovante'&&typeof GUIAS!=='undefined'){var gx=GUIAS.indexOf(v.guia);if(gx>-1)ra.gi=gx;}if(fid==='folha'&&FS&&FS.fid)ra.fid=FS.fid;out.push(ra);});});});
  return out;}
 /* migração: o que já existia vira registro no arquivo */
 function arqMigra(){MULTI.emps.forEach(function(e){var d=MULTI.data[e.id];if(!d||d.arqv===1)return;var L=d.arq=d.arq||[],y=NOW().getFullYear();
@@ -1210,7 +1213,7 @@ function arqCofre(st,pid){st=st||ST;var cf=st.cofre||{};Object.keys(cf).forEach(
 function cofreStOf(st,c){var cf=(st.cofre||{})[c];if(cf&&cf.st==='encerrado')return 'encerrado';var s=compSt('notas',c);return s==='encerrado'?'auto':s;}
 function arqCofreAll(){var mudou=false;MULTI.emps.forEach(function(e){var d=MULTI.data[e.id];if(!d)return;var n=(d.arq||[]).length;arqCofre(d);if((d.arq||[]).length!==n)mudou=true;});return mudou;}
 /* ===== app do cliente: Documentos lê do arquivo ===== */
-function arqVis(cat){return arqList().filter(function(a){return a.cat!=='interno'&&(!cat||a.cat===cat);});}
+function arqVis(cat){return arqList().filter(function(a){return a.cat!=='interno'&&(!cat||arqNaPasta(a,cat));});}
 function arqRow(a,sub){var s=arqSt(a),de=a.or==='ct'?'Do contador':'Enviado por você';
  return '<div class="r arqr" data-f="'+(a.or==='ct'?'ct':'eu')+'" data-n="'+esc((a.n+' '+(a.arq||'')).toLowerCase())+'"><button type="button" class="arqo" data-go="arq-'+a.id+'"><span class="ri">'+(IC[catOf(a.cat)[2]]||IC.doc)+'</span><span class="rt"><span class="a">'+esc(a.n)+'</span><span class="b">'+esc(sub||(de+' · '+a.data))+'</span></span>'+(a.or==='cli'||a.st==='disp'||a.st==='dev'?'<span class="pill '+s[1]+'">'+(a.st==='disp'?'Novo':s[0])+'</span>':'')+'</button><button type="button" class="dl sm" data-dlarq="'+a.id+'" aria-label="Baixar '+esc(a.n)+'" title="Baixar">'+IC.down16+'</button></div>';}
 function renderPasta(n){var c=catOf(n),k=c[0],L=arqVis(k),g={};L.forEach(function(a){(g[a.comp]=g[a.comp]||[]).push(a);});
