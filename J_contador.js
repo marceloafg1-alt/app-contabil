@@ -796,6 +796,68 @@ function vFolha(x){var q=x.split('|'),e=eById(q[0]);if(!e)return null;B(e.id);va
  h+='<section>'+sec('Variáveis lançadas')+'<div class="rs">'+(f.sem?'<div class="rv"><span>Variáveis</span><span>Sem variáveis neste mês</span></div>':vt.length?vt.map(function(t){var p=t.split(': ');return '<div class="rv"><span>'+esc(p[0])+'</span><span>'+esc(p.slice(1).join(': ')||'Sim')+'</span></div>';}).join(''):'<div class="rv"><span>Variáveis</span><span>Nenhuma</span></div>')+(f.obs?'<div class="rv"><span>Observação</span><span>'+esc(f.obs)+'</span></div>':'')+'</div></section>';
  var AQ=arqList().filter(function(a){return a.cat==='folha'&&a.fid===f.id;});if(AQ.length)h+='<section>'+sec('Arquivos')+'<div class="card">'+AQ.map(function(a){return docRow(e,a);}).join('')+'</div></section>';
  h+='<div class="fbar">'+((es==='enviada'||es==='auto')?'<button type="button" class="cta" data-fecha="'+e.id+'|'+f.id+'">'+IC.check16+' Fechar folha e liberar holerite</button>':es==='fechada'?'<div class="note">Folha fechada. O holerite está no app do cliente.</div>':'<div class="note">O cliente ainda não enviou esta folha.</div>')+'</div>';done();return h;}
+/* ===== holerite em PDF (sem IA): cadastro do colaborador, recorrências ativas no mês e variáveis da folha ===== */
+function holeSlug(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
+function holeNome(e,f){return 'holerite-'+holeSlug(e.fant||e.nome)+'-'+holeSlug(f.func)+'-'+holeSlug(f.comp)+'.pdf';}
+function holeDados(e,f){var d=FUNCD[f.func]||{},s=money(d.sal),h=s/220,dia=s/30,P=[],D=[],vars=normVars(f.vars);
+ function add(L,t,ref,v){if(v>0)L.push({t:t,ref:ref||'',v:v});}
+ add(P,'Salário base','',s);
+ if(!f.sem)VARS.forEach(function(v){var x=vars[v.k];if(!vHas(v.k,x))return;
+  if(v.k==='he')add(P,'Horas extras '+x.p+'%',x.h+' h',money(x.h)*h*(1+money(x.p)/100));
+  else if(v.k==='hen')add(P,'Hora extra noturna '+x.p+'%',x.h+' h',money(x.h)*h*(1+money(x.p)/100)*1.2);
+  else if(v.k==='hor')add(P,'Horas trabalhadas',x+' h',money(x)*h);
+  else if(v.k==='not')add(P,'Adicional noturno',x+' h',money(x)*h*0.2);
+  else if(v.k==='peric')add(P,'Periculosidade (30%)','',s*0.3);
+  else if(v.k==='falta'){if(x.m!=='horas')add(D,'Faltas',x.d+' dia(s)',money(x.d)*dia);if(x.m!=='dias')add(D,'Faltas',x.h+' h',money(x.h)*h);}
+  else if(v.k==='atraso')add(D,'Atrasos',x+' h',money(x)*h);
+  else if(v.k==='desc')add(D,'Desconto',x.d||'',money(x.v));
+  else if(v.k==='adi')add(D,'Adiantamento','',money(x));
+  else if(v.k==='insal'){}
+  else add(P,v.l,'',money(x));});
+ (ST.rec||[]).forEach(function(r){if(r.quem!==f.func||recAl(r)!=='c'||!recAtivo(r,f.comp))return;var p=recParc(r,f.comp);add(recSinal(r.tipo)==='-'?D:P,r.tipo,p.t?'parc. '+p.n+'/'+p.t:'',money(r.valor));});
+ var tv=0,td=0;P.forEach(function(x){tv+=x.v;});D.forEach(function(x){td+=x.v;});
+ return {emp:e,f:f,nome:f.func,cargo:d.c||'',adm:d.adm||'',jor:d.jor||'',sal:s,P:P,D:D,tv:tv,td:td,liq:tv-td,fgts:tv*0.08};}
+/* texto do PDF em WinAnsi: acentos saem como octal, o resto vira ? (o arquivo fica só em ASCII) */
+function holeStr(s){return '('+String(s==null?'':s).split('').map(function(c){var k=c.charCodeAt(0);
+ if(c==='('||c===')'||c==='\\')return '\\'+c;if(k>=32&&k<127)return c;if(k===8211||k===8212)return '-';if(k>=160&&k<256)return '\\'+('00'+k.toString(8)).slice(-3);return '?';}).join('')+')';}
+/* um recibo (empregador e empregado, como no modelo): cabeçalho, colaborador, tabela de vencimentos e descontos, totais, bases e assinatura */
+function holeCopia(T,D){var o=[],X=function(v){return v.toFixed(2);},Y=function(y){return X(842-T-y);},
+ txt=function(x,y,t,sz,fn){o.push('BT /'+fn+' '+sz+' Tf '+X(x)+' '+Y(y)+' Td '+holeStr(t)+' Tj ET');},
+ rtx=function(x,y,t,sz,fn){txt(x-String(t).length*sz*(fn==='F3'?0.6:0.55),y,t,sz,fn);},
+ box=function(x,y,w,h){o.push(X(x)+' '+Y(y+h)+' '+X(w)+' '+X(h)+' re S');},
+ lin=function(x1,y1,x2,y2){o.push(X(x1)+' '+Y(y1)+' m '+X(x2)+' '+Y(y2)+' l S');},
+ e=D.emp,rows=D.P.map(function(x){return [x,'v'];}).concat(D.D.map(function(x){return [x,'d'];})),n=rows.length||1,st=Math.min(13,128/n),sz=st>=11?8:7;
+ box(30,12,535,58);
+ txt(38,26,e.nome||e.fant||'',10,'F2');if(e.cnpj)txt(38,38,'CNPJ: '+e.cnpj,8,'F1');
+ rtx(557,26,'Folha Mensal',9,'F2');rtx(557,38,D.f.comp.replace('/',' de '),9,'F1');
+ box(30,70,535,40);
+ txt(38,82,D.nome.toUpperCase(),9,'F2');txt(38,96,String(D.cargo).toUpperCase(),8,'F1');
+ rtx(557,82,'Admissão: '+D.adm,8,'F1');rtx(557,96,'Jornada: '+D.jor,8,'F1');
+ box(30,110,535,160);lin(30,124,565,124);lin(300,110,300,270);lin(370,110,370,270);lin(460,110,460,270);
+ txt(38,120,'Descrição',7,'F2');rtx(362,120,'Referência',7,'F2');rtx(452,120,'Vencimentos',7,'F2');rtx(557,120,'Descontos',7,'F2');
+ rows.forEach(function(r,i){var y=138+i*st,x=r[0];txt(38,y,x.t.slice(0,52),sz,'F1');if(x.ref)rtx(362,y,x.ref,sz,'F3');rtx(r[1]==='v'?452:557,y,fmt(x.v),sz,'F3');});
+ box(30,270,535,62);lin(200,270,200,332);lin(380,270,380,332);lin(30,292,565,292);
+ txt(38,284,'Total de vencimentos',7,'F2');txt(208,284,'Total de descontos',7,'F2');txt(388,284,'Valor líquido',7,'F2');
+ rtx(192,315,fmt(D.tv),10,'F3');rtx(372,315,fmt(D.td),10,'F3');rtx(549,315,fmt(D.liq),10,'F3');
+ box(30,332,535,28);lin(200,332,200,360);lin(380,332,380,360);
+ txt(38,342,'Salário base',7,'F2');txt(208,342,'Base cálc. FGTS',7,'F2');txt(388,342,'FGTS do mês (8%)',7,'F2');
+ txt(38,354,fmt(D.sal),8,'F3');txt(208,354,fmt(D.tv),8,'F3');txt(388,354,fmt(D.fgts),8,'F3');
+ box(30,362,535,36);
+ txt(38,376,'Declaro ter recebido a importância líquida discriminada neste recibo.',7,'F1');txt(38,391,'Data: ____/____/_______',7,'F1');
+ lin(330,384,555,384);txt(330,394,'Assinatura do funcionário',7,'F1');
+ return o.join('\n');}
+function holePdf(stream){var objs=['<< /Type /Catalog /Pages 2 0 R >>','<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+ '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R /F3 7 0 R >> >> >>',
+ '<< /Length '+stream.length+' >>\nstream\n'+stream+'\nendstream',
+ '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>',
+ '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>',
+ '<< /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>'];
+ var out='%PDF-1.4\n',offs=[];objs.forEach(function(o,i){offs.push(out.length);out+=(i+1)+' 0 obj\n'+o+'\nendobj\n';});
+ var xref=out.length;out+='xref\n0 '+(objs.length+1)+'\n0000000000 65535 f \n';offs.forEach(function(p){out+=('0000000000'+p).slice(-10)+' 00000 n \n';});
+ out+='trailer\n<< /Size '+(objs.length+1)+' /Root 1 0 R >>\nstartxref\n'+xref+'\n%%EOF';
+ var u=new Uint8Array(out.length);for(var i=0;i<out.length;i++)u[i]=out.charCodeAt(i);return u;}
+/* guarda o holerite como arquivo de verdade; o registro da folha (arq) é o mesmo que aparece em Holerites e na ficha do colaborador */
+function holeriteArq(e,f,nome){var D=holeDados(e,f),file=new File([holePdf(holeCopia(0,D)+'\n'+holeCopia(421,D))],nome,{type:'application/pdf'});if(window.upFiles)upFiles([file]);}
 /* ===== arquivo ===== */
 /* competência da tela Documentos: abre sempre no mês do sistema; as pastas contam só o que é desse mês */
 var ARQC='';
@@ -1326,7 +1388,7 @@ if(d.ctgen){var gv={};document.querySelectorAll('#ctform [data-ck]').forEach(fun
  if(t.hasAttribute('data-dl')){var ca=CTX&&CTX.a&&(B(CTX.e),arqGet(CTX.a));done();baixarArq(ca);return;}
  if(t.hasAttribute('data-dlo')){var ca2=CTX&&CTX.a&&(B(CTX.e),arqGet(CTX.a));done();if(ca2&&window.abrirArquivo&&abrirArquivo(ca2))toast('Abrindo '+(ca2.arq||ca2.n));else toast('Este arquivo foi registrado só pelo nome');return;}
  if(d.fecha&&!t.hasAttribute('data-ok')){var q0=d.fecha.split('|'),e0=eById(q0[0]);B(q0[0]);var f0=getFolha(q0[1]);done();if(f0)askGen({e:e0,t:'Fechar a folha de '+f0.func+'?',d:f0.tipo+' · '+f0.comp+'. O holerite fica disponível para o cliente.',ok:'Fechar folha',cb:function(){t.setAttribute('data-ok','');t.click();}});return;}
- if(d.fecha){var q=d.fecha.split('|');B(q[0]);var f=getFolha(q[1]);if(f){f.st='fechada';f.data=hoje();var a=arqAdd({n:'Holerite · '+f.func+' · '+f.tipo,arq:'holerite-'+f.func.toLowerCase().replace(/\s+/g,'-')+'.pdf',cat:'folha',comp:f.comp,or:'ct',quem:f.func});a.fid=f.id;
+ if(d.fecha){var q=d.fecha.split('|');B(q[0]);var f=getFolha(q[1]);if(f){f.st='fechada';f.data=hoje();var ef=eById(q[0]),nh=holeNome(ef,f);var a=arqAdd({n:'Holerite · '+f.func+' · '+f.tipo,arq:nh,cat:'folha',comp:f.comp,or:'ct',quem:f.func});a.fid=f.id;holeriteArq(ef,f,nh);
   avisar('Holerite de '+f.func+' disponível',f.tipo+' · '+f.comp,'folha-'+f.id);ativ('Folha de '+f.func+' fechada · '+f.comp);commit('Folha fechada e holerite liberado');}return;}
  if(d.ql!==undefined&&t.classList.contains('qk')){QL=QL===d.ql?'':d.ql;SCR.querySelectorAll('.qk').forEach(function(x){x.classList.toggle('on',x.dataset.ql===QL&&!!QL);});return;}
  if(d.send){envio(d.send);return;}
