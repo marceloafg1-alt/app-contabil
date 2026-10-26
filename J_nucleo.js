@@ -388,7 +388,7 @@ function renderFolhas(){if(!FCOMP)FCOMP=compPad('folha');var all=FCOMP==='all',c
  var grupos={};ls.forEach(function(f){(grupos[f.comp]=grupos[f.comp]||[]).push(f);});
  var mk=function(c){var p=c.split('/');return (+p[1])*12+MESES_ANO.map(function(x){return x.split('/')[0];}).indexOf(p[0]);};var ordem=Object.keys(grupos).sort(function(a,b){return mk(b)-mk(a);});
  return hdr('Folhas de pagamento','Departamento Pessoal')+
- '<button type="button" class="perbtn" data-periodo><span class="pl">Período</span><b>'+(all?'Todos os períodos':FCOMP)+'</b>'+IC.cal+'</button>'+
+ perBtn('',all?'Todos os períodos':FCOMP)+
  '<div class="hero"><div class="hk"><span>'+(all?'Todos os períodos':'Competência '+FCOMP)+'</span><span class="pill-w">'+(cst==='encerrado'?'Encerrada':ls.length+(ls.length===1?' folha':' folhas'))+'</span></div><p class="ht">'+msg+'</p>'+(pz?'<div class="hb"><span class="due">Envio encerra em '+fmtP(pz)+' · '+falta(pz)+'</span></div>':'')+'</div>'+
  (!all&&folhaEnc(FCOMP)?closedBanner('folha',FCOMP,'Você informou em '+folhaEnc(FCOMP).em+' que nenhum colaborador teve variáveis. A folha mensal de '+folhaEnc(FCOMP).n+(folhaEnc(FCOMP).n===1?' colaborador foi enviada':' colaboradores foi enviada')+' ao contador.','Folha de '+cMes(FCOMP)+' encerrada sem variáveis'):'')+
  (!all&&!folhaEnc(FCOMP)&&cst==='aberto'&&podeEnc(FCOMP)&&FUNC.length?'<button type="button" class="r solo" data-semvarmes="'+FCOMP+'"><span class="ri">'+(IC.check16||'')+'</span><span class="rt"><span class="a">Sem variáveis em '+cMes(FCOMP)+'</span><span class="b">Nenhum colaborador teve variáveis: encerra a folha e envia ao contador</span></span>'+(IC.chev18||'')+'</button>':'')+
@@ -1240,7 +1240,7 @@ function renderPasta(n){var c=catOf(n),k=c[0],all=PCOMP==='all',L=arqVis(k).filt
  var cs=Object.keys(g).sort(function(a,b){return compOrd(b)-compOrd(a);}),nv=L.filter(function(a){return a.st==='disp';}).length,nd=L.filter(function(a){return a.st==='dev';}).length,ne=L.filter(function(a){return a.or==='cli'&&(a.st==='enviado'||a.st==='analise');}).length;
  var msg=!L.length?(all?'Nenhum arquivo nesta pasta ainda. Toque no + para enviar.':'Nenhum arquivo de '+cMes(PCOMP)+' nesta pasta.'):nd?nd+(nd===1?' arquivo foi devolvido pelo contador. Abra para ver o motivo.':' arquivos foram devolvidos pelo contador. Abra para ver o motivo.'):nv?nv+(nv===1?' arquivo novo do contador.':' arquivos novos do contador.'):ne?ne+(ne===1?' arquivo seu em conferência pelo contador.':' arquivos seus em conferência pelo contador.'):'Tudo conferido neste período.';
  return hdr(c[1],'Documentos')+
- '<button type="button" class="perbtn" data-periodo="#pasta"><span class="pl">Período</span><b>'+(all?'Todos os períodos':esc(PCOMP))+'</b>'+IC.cal+'</button>'+
+ perBtn('#pasta',all?'Todos os períodos':PCOMP)+
  '<div class="hero"><div class="hk"><span>'+(all?'Todos os períodos':'Competência '+esc(PCOMP))+'</span><span class="pill-w">'+L.length+(L.length===1?' arquivo':' arquivos')+'</span></div><p class="ht">'+msg+'</p></div>'+
  (cs.length?cs.map(function(cp){return '<section><div class="sec"><h2>'+esc(cp)+'</h2><span class="cnt">'+g[cp].length+'</span></div><div class="card">'+g[cp].map(function(a){return arqRow(a);}).join('')+'</div></section>';}).join(''):'')+
  '<p class="foot">Toque no + para ver o que dá para enviar ou pedir nesta pasta.</p>';}
@@ -1286,7 +1286,7 @@ function renderVarr(){if(!VCOMP)VCOMP=compPad('folha')||'all';var all=VCOMP==='a
  var cst=all?'aberto':compSt('folha',VCOMP),pz=(!all&&cst==='aberto')?prazo('folha',VCOMP):null;
  var msg=!L.length?(all?'Nenhum lançamento ainda. Toque no + para lançar as variáveis de todos de uma vez.':'Nenhum lançamento em '+cMes(VCOMP)+'. Toque no + para lançar.'):L.length+(L.length===1?' lançamento':' lançamentos')+' com variações de '+nc+(nc===1?' colaborador':' colaboradores')+(ab?' · '+ab+(ab===1?' aguardando o contador.':' aguardando o contador.'):' · tudo concluído pelo contador.');
  return hdr('Variáveis rápidas','Departamento Pessoal')+
- '<button type="button" class="perbtn" data-periodo="#var"><span class="pl">Período</span><b>'+(all?'Todos os períodos':esc(VCOMP))+'</b>'+IC.cal+'</button>'+
+ perBtn('#var',all?'Todos os períodos':VCOMP)+
  '<div class="hero"><div class="hk"><span>'+(all?'Todos os períodos':'Competência '+esc(VCOMP))+'</span><span class="pill-w">'+L.length+(L.length===1?' lançamento':' lançamentos')+'</span></div><p class="ht">'+msg+'</p>'+(pz?'<div class="hb"><span class="due">Envio encerra em '+fmtP(pz)+' · '+falta(pz)+'</span></div>':'')+'</div>'+
  (cs.length?cs.map(function(c){return '<section><div class="sec"><h2>'+esc(c)+'</h2><span class="cnt">'+g[c].length+'</span></div><div class="card">'+g[c].map(loteCard).join('')+'</div></section>';}).join(''):'')+
  '';}
