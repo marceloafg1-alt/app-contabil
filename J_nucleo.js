@@ -942,7 +942,7 @@ function funcFicha(n,d,fe){var v=function(x){return x==null||x===''?'—':esc(St
  var em=d.emerg&&(d.emerg.n||d.emerg.tel)?esc([d.emerg.n,d.emerg.rel].filter(Boolean).join(' · '))+(d.emerg.tel?'<br>'+esc(d.emerg.tel):''):'—';
  h+=acc('contato',IC.chat||IC.people,'Contato',[d.tel,d.email].filter(Boolean).join(' · ')||'—',kv('Celular',v(d.tel))+kv('E-mail',v(d.email))+kv('Emergência',em),ed('contato'));
  var e=d.end||{};h+=acc('endereco',IC.folder||IC.doc,'Endereço',e.cep?(e.cidade||'')+(e.uf?'/'+e.uf:''):'Não informado',e.cep?kv('Logradouro',esc((e.rua||'')+(e.num?', '+e.num:'')))+(e.comp?kv('Complemento',v(e.comp)):'')+kv('Bairro',v(e.bairro))+kv('Cidade',esc((e.cidade||'—')+(e.uf?'/'+e.uf:'')))+kv('CEP',v(e.cep)):'<p class="lead0" style="margin:8px 0 0">Endereço não informado.</p>',ed('endereco'));
- h+=colabPastas(colabDocs(n),function(a){return arqRow(a,catOf(a.cat)[1]+' · '+a.comp);},acc);
+ var dl=colabDocs(n);h+=acc('docs',IC.folder||IC.doc,'Documentos',colabDocsSub(dl),colabDocsBody(dl,function(a){return arqRow(a,catOf(a.cat)[1]+' · '+a.comp);}));
  var ds=d.deps||[];h+=acc('deps',IC.people,'Dependentes',ds.length?ds.length+(ds.length===1?' dependente':' dependentes'):'Nenhum',(ds.length?ds.map(function(x){return '<div class="r" style="padding-left:0;padding-right:0"><span class="rt"><span class="a">'+esc(x.nome||'—')+'</span><span class="b">'+esc((x.par==='Outros'?(x.parO||'Outros'):(x.par||''))+(x.nasc?' · '+fmtD(x.nasc):'')+(x.cpf?' · CPF '+x.cpf:''))+'</span></span></div>';}).join(''):'<p class="lead0" style="margin:8px 0 0">Nenhum dependente cadastrado.</p>'),'<button type="button" class="lnk" data-go="f-dependente" data-pre=\'{"func":"'+esc(n)+'"}\'>Incluir</button>');
  return h+'</div><p class="foot">Dados pessoais, contato e endereço você mesmo altera; o contador é avisado na hora. Cargo, salário, jornada e demais dados do contrato mudam por pedido ao contador, nos botões abaixo.</p>';}
 var FACC={};
@@ -1152,17 +1152,10 @@ function arqAdd(o,st){var l=arqList(st),ev=o.or==='ct'?(o.cat==='interno'?'Guard
 function arqGet(id,st){return arqList(st).filter(function(a){return a.id===id;})[0];}
 function arqMove(a,st,ev,extra){a.st=st;a.h=a.h||[];a.h.push([ev,typeof horaAgora==='function'?horaAgora():hoje()]);if(extra)for(var k in extra)a[k]=extra[k];}
 function arqDoPed(pid,st){return arqList(st).filter(function(a){return a.ped===pid;});}
-/* Documentos dos colaboradores: cada arquivo é um registro só (quem = colaborador). Ele aparece na pasta Documentos de funcionário (Documentos), na pasta Documentos de cada colaborador (DP) e, se for de folha, também na pasta Folha; cliente e contador leem o mesmo registro */
-function arqEhColab(a){return !!a&&a.cat!=='interno'&&(a.cat==='dp'||(a.cat==='folha'&&!!a.quem));}
-function arqNaPasta(a,k){return a.cat===k||(k==='dp'&&arqEhColab(a));}
-function colabDocs(who){return arqList().filter(function(a){return arqEhColab(a)&&(a.quem===who||(!a.quem&&a.n.indexOf(who+' · ')===0));}).sort(function(a,b){return compOrd(b.comp)-compOrd(a.comp);});}
+/* Documentos dos colaboradores: cada arquivo é um registro só (quem = colaborador). Ele aparece na pasta Documentos de cada colaborador (DP › Colaboradores), com tudo junto, e na tela Documentos: folhas, variáveis rápidas e holerites na pasta Folha; contrato, jornada, advertência, afastamento e demissão na pasta Documentos de funcionário. Cliente e contador leem o mesmo registro */
+function colabDocs(who){return arqList().filter(function(a){return a.cat!=='interno'&&(a.cat==='dp'||a.cat==='folha')&&(a.quem===who||(!a.quem&&a.n.indexOf(who+' · ')===0));}).sort(function(a,b){return compOrd(b.comp)-compOrd(a.comp);});}
 function colabDocsSub(L){return L.length?L.length+(L.length===1?' arquivo':' arquivos'):'Nenhum';}
-/* pastas da ficha do colaborador: Documentos (contrato, demissão, medidas etc.), Folhas de pagamento (folha e variáveis) e Holerite; cada arquivo vem do mesmo registro das pastas da tela Documentos */
-function colabPastas(L,row,acc){var pastas=[['docs','Documentos',IC.folder||IC.doc,function(a){return a.cat==='dp';},'Nenhum documento deste colaborador ainda. Contrato, demissão e medidas disciplinares aparecem aqui.'],
- ['folhas','Folhas de pagamento',IC.folha||IC.doc,function(a){return a.cat==='folha'&&!/^holerite/i.test(a.n);},'Nenhuma folha deste colaborador ainda. Ela aparece aqui quando o escritório a registra.'],
- ['holerite','Holerite',IC.receipt||IC.doc,function(a){return a.cat==='folha'&&/^holerite/i.test(a.n);},'Nenhum holerite ainda. Ele aparece aqui quando o contador fecha a folha.']];
- return pastas.map(function(p){var F=L.filter(p[3]);return acc(p[0],p[2],p[1],colabDocsSub(F),colabDocsBody(F,row,p[4]));}).join('');}
-function colabDocsBody(L,row,vazio){return '<style>.fdocs .r{padding-left:0;padding-right:0}</style><div class="fdocs">'+(L.length?L.map(row).join(''):'<p class="lead0" style="margin:8px 0 0">'+vazio+'</p>')+'</div>';}
+function colabDocsBody(L,row){return '<style>.fdocs .r{padding-left:0;padding-right:0}</style><div class="fdocs">'+(L.length?L.map(row).join(''):'<p class="lead0" style="margin:8px 0 0">Nenhum documento deste colaborador ainda. Contrato, folhas, variáveis rápidas, holerites, demissão e medidas aparecem aqui.</p>')+'</div>';}
 /* arquivos que cada fluxo do cliente envia */
 var FLOW_CAT={turno:'dp',admissao:'dp',demissao:'dp',afastamento:'dp',medida:'dp',variaveis:'folha',folha:'folha',colaborador:'dp',despesas:'despesas',extrato:'extratos',notas:'notas',lucros:'despesas',comprovante:'recibos',dependente:'dp',servico:'outros',outro:'outros',solicitado:'outros',enviar:'outros'};
 var ENV_CAT={'Contrato':'soc','Nota fiscal':'notas','Comprovante':'despesas','Documento pessoal':'dp','Outro':'outros'};CATS.forEach(function(c){ENV_CAT[c[1]]=c[0];});
@@ -1218,7 +1211,7 @@ function arqCofre(st,pid){st=st||ST;var cf=st.cofre||{};Object.keys(cf).forEach(
 function cofreStOf(st,c){var cf=(st.cofre||{})[c];if(cf&&cf.st==='encerrado')return 'encerrado';var s=compSt('notas',c);return s==='encerrado'?'auto':s;}
 function arqCofreAll(){var mudou=false;MULTI.emps.forEach(function(e){var d=MULTI.data[e.id];if(!d)return;var n=(d.arq||[]).length;arqCofre(d);if((d.arq||[]).length!==n)mudou=true;});return mudou;}
 /* ===== app do cliente: Documentos lê do arquivo ===== */
-function arqVis(cat){return arqList().filter(function(a){return a.cat!=='interno'&&(!cat||arqNaPasta(a,cat));});}
+function arqVis(cat){return arqList().filter(function(a){return a.cat!=='interno'&&(!cat||a.cat===cat);});}
 function arqRow(a,sub){var s=arqSt(a),de=a.or==='ct'?'Do contador':'Enviado por você';
  return '<div class="r arqr" data-f="'+(a.or==='ct'?'ct':'eu')+'" data-n="'+esc((a.n+' '+(a.arq||'')).toLowerCase())+'"><button type="button" class="arqo" data-go="arq-'+a.id+'"><span class="ri">'+(IC[catOf(a.cat)[2]]||IC.doc)+'</span><span class="rt"><span class="a">'+esc(a.n)+'</span><span class="b">'+esc(sub||(de+' · '+a.data))+'</span></span>'+(a.or==='cli'||a.st==='disp'||a.st==='dev'?'<span class="pill '+s[1]+'">'+(a.st==='disp'?'Novo':s[0])+'</span>':'')+'</button><button type="button" class="dl sm" data-dlarq="'+a.id+'" aria-label="Baixar '+esc(a.n)+'" title="Baixar">'+IC.down16+'</button></div>';}
 function renderPasta(n){var c=catOf(n),k=c[0],L=arqVis(k),g={};L.forEach(function(a){(g[a.comp]=g[a.comp]||[]).push(a);});
