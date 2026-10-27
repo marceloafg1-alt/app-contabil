@@ -3,7 +3,7 @@
   "short_name": "Contador",
   "description": "App do contador, versão de teste de comunicação.",
   "lang": "pt-BR",
-  "id": "./",
+  "id": "/app-contabil/teste-comunicacao-v2/contador/",
   "start_url": "./contador.html#__pg=contador.html",
   "scope": "./",
   "display": "standalone",
