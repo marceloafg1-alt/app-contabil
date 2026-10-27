@@ -245,21 +245,9 @@ function impPend(k){return impItens().some(function(x){return x.k===k;});}
 function impSeqProx(){return IMPSEQ?impVis().filter(function(x){return !IMPSEQ.feitos[x.k];})[0]||null:null;}
 function impSeqTela(){var x=impSeqProx(),lib=IMPSEQ&&IMPSEQ.lib;
  return '<div class="okv"><span class="okc">'+IC.check32+'</span><h2>'+(lib?'Pedido de liberação enviado':'Pendência resolvida')+'</h2><p>'+(x?'A seguir: '+esc(x.t)+'.':'Não há mais pendências para resolver agora.')+'</p></div><div class="fbar col">'+(x?'<button type="button" class="cta" data-impprox>Próximo</button>':'')+(x&&lib?'':'<button type="button" class="cta ghost" data-impvolta>Voltar</button>')+'</div>';}
-function impItens(){var r=[],n=dOnly(NOW()),voce={};
- docsPed().forEach(function(x){if(!pedFeito(x))r.push({k:'dped:'+x.id,t:pedNome(x),go:x.go||'f-solicitado',pz:pedLim(x)});});
- ST.ped.forEach(function(p){if(p.st!=='voce')return;voce[p.id]=1;var q=p.quem?' · '+p.quem:'';
-  r.push({k:'voce:'+p.id+':'+(p.rsn||0),t:p.f==='ferias'?'Assinar o aviso de férias'+q:p.f==='admissao'?'Assinar o contrato de admissão'+q:p.f==='demissao'?'Assinar os documentos de rescisão'+q:p.tipo+q,go:'ped-'+p.id});});
- arqList().forEach(function(a){if(a.or!=='ct'||a.st!=='disp'||(a.ped&&voce[a.ped]))return;if(/contrato|rescis|aviso de f[ée]rias|aviso pr[ée]vio/i.test(a.n))r.push({k:'arq:'+a.id,t:'Assinar '+a.n,go:'arq-'+a.id});});
- pendencias().forEach(function(x){var T={cofre:'Cofre de notas de ',extrato:'Extrato bancário de ',folha:'Folhas de pagamento de '}[x.k];
-  /* folhas só no período de envio: do dia 1 do mês do prazo até o dia útil definido pelo contador */
-  if(T&&!(x.k==='folha'&&n<new Date(x.pz.getFullYear(),x.pz.getMonth(),1)))r.push({k:x.k+':'+x.c,t:T+cMes(x.c),go:x.go,c:x.c,pz:x.pz});});
- /* folha lançada e não finalizada: a qualquer momento até o fim do período; finalizada e não enviada: do dia 1 do mês do prazo até o prazo */
- folhasOf().forEach(function(f){var c=fComp(f),pz=prazo('folha',c);if(compSt('folha',c)==='encerrado')return;
-  if(f.st==='rascunho')r.push({k:'frasc:'+f.id,t:'Finalizar a folha de '+f.func+' · '+cMes(c),go:'folha-'+f.id,pz:pz});
-  else if(f.st==='finalizada'&&n>=new Date(pz.getFullYear(),pz.getMonth(),1))r.push({k:'ffin:'+f.id,t:'Enviar a folha finalizada de '+f.func+' · '+cMes(c),go:'folha-'+f.id,pz:pz});});
- ferAlertas().forEach(function(x){r.push({k:'fer:'+x.nm+':'+fmtA(x.pz),t:'Férias de '+x.nm,go:'f-ferias',pre:{func:x.nm},pz:x.pz,adiar:x.adiar});});
- GU.forEach(function(g,i){var pz=guiaDt(g);if(ST.pagas[i])return;if(pz.getFullYear()*12+pz.getMonth()>n.getFullYear()*12+n.getMonth())return;r.push({k:'guia:'+g.n+':'+g.c,t:'Pagar '+g.n.split(' · ')[0]+' · '+g.c,go:'guia-'+i,pz:pz});});
- return r;}
+/* uma lista só: as mesmas pendências da tela Rotinas, na mesma ordem (vencidas, para enviar agora, folhas, demais por prazo); lembretes e o que já está feito ficam de fora */
+function impItens(){return rotItens().filter(function(x){return !x.done&&x.st!=='lembrete';}).map(function(x){
+ return {k:rotKey(x),t:x.t,go:x.go,c:x.c,pre:x.pre,atr:x.atr,pz:x.pz,g:x.g,adiar:x.fer&&x.fer.adiar};});}
 /* exemplo (24/10/2026): o card fica com 10 pendências no prazo e Rotinas ganha também algumas vencidas; roda uma vez por empresa e troca o exemplo anterior */
 function impDemo(){if(ST.impDemo2)return;ST.impDemo2=1;ST.docsPed=docsPed().filter(function(x){return x.done||!/^ex\d/.test(x.id);});
  var n=dOnly(NOW()),iso=function(k){var d=new Date(n.getFullYear(),n.getMonth(),n.getDate()+k);return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);},
@@ -270,13 +258,12 @@ function impDemo(){if(ST.impDemo2)return;ST.impDemo2=1;ST.docsPed=docsPed().filt
  save();}
 /* o card mostra só o que ainda está no prazo; o que venceu fica só em Rotinas */
 function impNoPrazo(x){return !x.pz||dOnly(x.pz)>=dOnly(NOW());}
-/* o card segue só os prazos definidos pelo contador: o que ainda está no prazo aparece, o mais recente em cima; o que venceu fica em Rotinas. Resolvido sai na hora. */
-function impVis(){impDemo();var L=impItens().filter(impNoPrazo),V=ST.impV=ST.impV||{},t=NOW().getTime(),ks={};
- L.forEach(function(x,i){x.i=i;ks[x.k]=1;if(!V[x.k])V[x.k]=t;x.em=V[x.k];});
- Object.keys(V).forEach(function(k){if(!ks[k])delete V[k];});
- L.sort(function(a,b){return b.em-a.em||a.i-b.i;});
- return L;}
-function impRow(x){return '<div class="impr"><button type="button" class="impb" data-go="'+x.go+'"'+(x.c?' data-setcomp="'+x.c+'"':'')+(x.pre?' data-pre=\''+JSON.stringify(x.pre).replace(/'/g,'&#39;')+'\'':'')+'><span class="impt">'+esc(x.t)+'</span><i>›</i></button>'+(x.adiar?'<button type="button" class="impad" data-adiar="'+esc(x.adiar)+'">Adiar</button>':'')+'</div>';}
+/* o card mostra a lista da tela Rotinas, na mesma ordem. Resolvido sai na hora. */
+function impVis(){impDemo();var L=impItens(),gs=[];
+ L.forEach(function(x){var g=gs.filter(function(y){return y[0]===x.g;})[0];if(!g){g=[x.g,[]];gs.push(g);}g[1].push(x);});
+ gs.sort(function(a,b){var ia=ROT_ORD.indexOf(a[0]),ib=ROT_ORD.indexOf(b[0]);return (ia<0?9:ia)-(ib<0?9:ib);});
+ return gs.reduce(function(r,g){return r.concat(g[1].sort(function(a,b){return a.pz-b.pz;}));},[]);}
+function impRow(x){return '<div class="impr"><button type="button" class="impb" data-go="'+x.go+'"'+(x.c?' data-setcomp="'+x.c+'"':'')+(x.pre?' data-pre=\''+JSON.stringify(x.pre).replace(/'/g,'&#39;')+'\'':'')+(x.atr?' data-askatr="'+x.atr+'"':'')+'><span class="impt">'+esc(x.t)+'</span><i>›</i></button>'+(x.adiar?'<button type="button" class="impad" data-adiar="'+esc(x.adiar)+'">Adiar</button>':'')+'</div>';}
 /* título do card: Rotinas. Tocar nele abre todas as rotinas do mês (vencidas, no prazo e lembretes) */
 function impTit(){return '<button type="button" class="imph" data-go="rotinas" aria-label="Abrir todas as rotinas">Rotinas<i>›</i></button>';}
 function impHero(){impCss();var L=impVis(),n=L.length,ex=IMPX&&n>IMPMAX;
@@ -989,7 +976,7 @@ var FAQ=[
 /* Primeiros passos */
 ['Como troco de empresa ou adiciono outra?','1. Na tela Início, toque no nome da empresa no topo.<br>2. Escolha a empresa na lista e confirme a troca.<br>3. Para cadastrar outra, toque em Adicionar empresa, informe o CNPJ e escolha a cor do app para ela.','empresas','Minhas empresas','Primeiros passos'],
 ['Para que serve o botão + no meio do menu?','1. Toque no + em qualquer tela.<br>2. Aparecem só as ações daquela tela. Na pasta Notas fiscais, por exemplo, aparecem Carregar notas, Abrir cofre e Nota avulsa.<br>3. Toque na ação: a tela abre já com o tipo de documento escolhido.','inicio','Ir para o Início','Primeiros passos'],
-['O que aparece no card Rotinas?','1. No topo da tela Início, o card Rotinas mostra, em uma linha cada, o que o contador pediu: documentos, assinaturas (contrato de admissão, aviso de férias, rescisão), guias de impostos, férias vencendo e os envios do mês (as folhas de pagamento só do dia 1 até o dia útil do prazo; a folha lançada e não finalizada aparece a qualquer momento até o fim do prazo). Só aparece o que ainda está no prazo; o que venceu fica em Rotinas.<br>2. Aparecem até 5 linhas, sempre as mais recentes em cima. Quando há mais, o topo do card mostra Mostrar (número) pendências: toque para abrir a lista inteira, e em Mostrar últimas pendências para voltar às 5 mais recentes.<br>3. O card segue só os prazos definidos pelo contador. O que já venceu sai do card e fica em Rotinas.<br>4. O que você resolve sai do card na hora. Em férias vencendo, o botão Adiar passa as férias para o próximo período aquisitivo.<br>5. Sem nada pendente, o card mostra uma mensagem de parabéns.<br>6. Resolver agora abre as pendências em sequência, de cima para baixo. Ao concluir cada uma, toque em Próximo para seguir para a seguinte ou em Voltar para retornar ao Início. Se a pendência pedir a liberação do mês, depois de pedir aparece só Próximo.','inicio','Ir para o Início','Primeiros passos'],
+['O que aparece no card Rotinas?','1. No topo da tela Início, o card Rotinas mostra, em uma linha cada, o que o contador pediu: documentos, assinaturas (contrato de admissão, aviso de férias, rescisão), guias de impostos, férias vencendo e os envios do mês (as folhas de pagamento só do dia 1 até o dia útil do prazo; a folha lançada e não finalizada aparece a qualquer momento até o fim do prazo). Entram também os envios vencidos, na mesma ordem da tela Rotinas, que abre ao tocar no título do card.<br>2. Aparecem até 5 linhas, as primeiras da lista. Quando há mais, o topo do card mostra Mostrar (número) pendências: toque para abrir a lista inteira, e em Mostrar últimas pendências para voltar às 5 primeiras.<br>3. Rotinas é uma lista só: não há separação entre o que é importante e o que é rotina, e a ordem é a mesma do card e da tela Rotinas.<br>4. O que você resolve sai do card na hora. Em férias vencendo, o botão Adiar passa as férias para o próximo período aquisitivo.<br>5. Só quando não há nenhuma pendência o card mostra a mensagem de parabéns.<br>6. Resolver agora abre as pendências em sequência, de cima para baixo. Ao concluir cada uma, toque em Próximo para seguir para a seguinte ou em Voltar para retornar ao Início. Se a pendência pedir a liberação do mês, depois de pedir aparece só Próximo.','inicio','Ir para o Início','Primeiros passos'],
 ['Como vejo o que falta enviar no mês?','1. Na tela Início, toque no título Rotinas, no topo do card.<br>2. Aparece só o que ainda falta fazer: o que está dentro do prazo e o que já venceu sem envio.<br>3. Toque num aviso vencido: abre direto o pedido ao contador para liberar o mês.<br>4. Para apagar um aviso vencido, deslize para a esquerda ou toque no X. Ele vai para Avisos apagados, no fim da tela, e o envio continua vencido.<br>5. Depois do prazo, o que você lançou vai sozinho ao contador.','rotinas','Ver rotinas','Primeiros passos'],
 ['Onde vejo os avisos do contador?','1. Toque no sino, no topo da tela Início.<br>2. Toque num aviso para abrir o pedido, a guia ou o documento.<br>3. Contratos, holerites, guias e documentos de férias enviados pelo contador aparecem também em Rotinas.<br>4. Para escolher o que recebe, vá em Configurações › Notificações.','notif','Ver notificações','Primeiros passos'],
 /* Departamento Pessoal */
