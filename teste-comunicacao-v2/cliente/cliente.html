@@ -6,7 +6,7 @@
 (function(){
  /* a página vai por três caminhos (variável, sessão e endereço): alguns visualizadores não guardam o # do endereço nem a sessão */
  window.__PG='index.html';try{sessionStorage.setItem('__pg','index.html');}catch(e){}try{location.hash='__pg=index.html';}catch(e){}
- fetch('app.html?t='+Date.now()).then(function(r){return r.text();}).then(function(t){document.open();document.write(t);document.close();}).catch(function(){document.body.textContent='Não foi possível abrir o app. Volte à página inicial e tente de novo.';});
+ fetch('../app.html?t='+Date.now()).then(function(r){return r.text();}).then(function(t){document.open();document.write(t);document.close();}).catch(function(){document.body.textContent='Não foi possível abrir o app. Volte à página inicial e tente de novo.';});
 })();
 </script>
 </body></html>
