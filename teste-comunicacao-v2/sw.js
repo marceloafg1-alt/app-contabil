@@ -1,6 +1,6 @@
 // LivTask teste v2: rede primeiro (as atualizações chegam), cópia guardada só quando está sem internet.
-const CACHE = 'contabills-teste-v2-15';
-const ARQS = ['./app.html', './cliente.html', './contador.html', './index.html', './painel.html', './manifest.webmanifest', './manifest-contador.webmanifest', './manifest-painel.webmanifest', './manifest-escuro.webmanifest', './manifest-contador-escuro.webmanifest', './manifest-painel-escuro.webmanifest', '../icon-192.png', '../icon-512.png', '../icon-maskable-512.png', '../apple-touch-icon.png'];
+const CACHE = 'contabills-teste-v2-16';
+const ARQS = ['./app.html', './cliente.html', './contador.html', './index.html', './painel.html', './manifest.webmanifest', './manifest-contador.webmanifest', './manifest-painel.webmanifest', './manifest-escuro.webmanifest', './manifest-contador-escuro.webmanifest', './manifest-painel-escuro.webmanifest', '../icon-192.png', '../icon-512.png', '../icon-maskable-512.png', '../icon-contador-192.png', '../icon-contador-512.png', '../icon-contador-maskable-512.png', '../apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ARQS)).then(() => self.skipWaiting()));
