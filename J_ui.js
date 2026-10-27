@@ -36,7 +36,7 @@ function home(){hist=[];show('inicio',true);}
 function impSeqAbre(){var x=impSeqProx();if(!x){IMPSEQ=null;home();return;}IMPSEQ.atual=x.k;IMPSEQ.go=x.go;IMPSEQ.feitos[x.k]=1;
  var d=document.createElement('div');d.innerHTML=impRow(x);var b=d.querySelector('.impb');b.hidden=true;p.appendChild(b);b.click();b.remove();hist=['inicio'];}
 /* a pendência aberta pelo Resolver agora foi resolvida fora de um formulário (assinar, encerrar, pagar): mostra Próximo e Voltar */
-/* Rotinas: a tarefa tocada mudou ou saiu da lista; volta para Rotinas, já atualizado */
+/* Verificar rotinas: a tarefa tocada mudou ou saiu da lista; volta para Verificar rotinas, já atualizado */
 window.__rotVolta=function(m){if(!ROTV)return;ROTV=null;hist=['inicio'];if(cur==='rotinas')show('rotinas',false,true);else show('rotinas',true);if(m)say(m);};
 window.__rotVCheck=function(){if(!ROTV||cur==='rotinas'||head(cur)==='f'||rotSig(ROTV.k)===ROTV.sig)return;setTimeout(function(){if(ROTV&&cur!=='rotinas'&&head(cur)!=='f')__rotVolta();},0);};
 window.__impSeqCheck=function(){if(!IMPSEQ||!IMPSEQ.atual||cur==='inicio'||cur==='impseq'||head(cur)==='f'||impPend(IMPSEQ.atual))return;setTimeout(function(){if(IMPSEQ&&cur!=='impseq'&&head(cur)!=='f'){hist=['inicio'];show('impseq');}},0);};
@@ -158,7 +158,7 @@ if(t.hasAttribute('data-cyr')){CAL.y=+t.dataset.cyr;CAL.view=CAL.per?null:'m';re
  if(t.hasAttribute('data-voceok')){ST.ped.forEach(function(x){if(x.id===t.dataset.voceok){x.st='analise';x.cli='Resolvido pelo cliente em '+hoje()+'.';x.cr=1;ST.act.unshift(['Respondido ao contador · '+x.tipo,'Agora',1]);}});save();renderLists();show(cur,false,true);say('Contador avisado');return;}
  if(t.hasAttribute('data-sign')){ST.ped.forEach(function(x){if(x.id===t.dataset.sign){x.st='analise';x.cli='Aviso assinado em '+hoje()+'.';x.cr=1;ST.act.unshift(['Aviso de férias de '+x.quem+' assinado','Agora',1]);}});save();renderLists();show(cur,false,true);say('Aviso assinado e enviado ao contador');return;}
  if(t.hasAttribute('data-go')){var g=t.dataset.go;
-  if(t.dataset.rk&&cur==='rotinas'){IMPSEQ=null;ROTV={k:t.dataset.rk,sig:rotSig(t.dataset.rk)};} /* tarefa de Rotinas: ao resolver, volta para lá */
+  if(t.dataset.rk&&cur==='rotinas'){IMPSEQ=null;ROTV={k:t.dataset.rk,sig:rotSig(t.dataset.rk)};} /* tarefa de Verificar rotinas: ao resolver, volta para lá */
   if(g==='docs'&&cur!=='docs'&&head(cur)!=='pasta'&&DCOMP){DCOMP='';renderLists();} /* Documentos abre no mês do sistema */
   if(/^pasta-/.test(g)&&cur==='docs')PCOMP=docComp(); /* a pasta abre na competência escolhida em Documentos */
   if(t.dataset.askatr){var aq=t.dataset.askatr.split('|');if(!compOk(aq[0]==='notas'?'cofre':aq[0],aq[1])){openAtr(aq[0],aq[1]);return;}}
@@ -330,7 +330,7 @@ function solNovaPick(){var opts=[],pre=[];
  SV_TOP.forEach(function(x){opts.push(['t'+opts.length,x[2]]);pre.push({r:'f-'+x[0]});});
  Object.keys(SERVS).forEach(function(cn){SERVS[cn].forEach(function(n){opts.push(['t'+opts.length,n]);pre.push({r:'f-servico',p:{serv:n,_dp:cn==='Departamento Pessoal'?1:0}});});});
  openPick('Tipo de solicitação',opts,null,function(v){var x=pre[+v.slice(1)];if(x.p)PRE=x.p;go(x.r);});}
-/* envio vencido (Rotinas e avisos): abre direto o seletor de competência, com o mês vencido em destaque; tocar nele pede a liberação */
+/* envio vencido (Verificar rotinas e avisos): abre direto o seletor de competência, com o mês vencido em destaque; tocar nele pede a liberação */
 function openAtr(g,c){fabClose();var q=cParse(c);CAL={per:1,mesk:'#atr',grp:g==='notas'?'cofre':g,atr:{g:g,c:c},y:q.y,m:q.m,py:q.y,pm:q.m,pall:false,sel:'x',view:'m'};document.getElementById('cs-t').textContent='Competência';renderCal();cs.hidden=false;ov3.hidden=false;}
 function renderCal(){var t=NOW(),hoje=iso(t.getFullYear(),t.getMonth(),t.getDate()),h='';
  if(CAL.view==='y'){var y0=t.getFullYear(),ys=CAL.per?y0-15:y0-100,ye=y0+(CAL.per?2:10),yl='';for(var yy=ye;yy>=ys;yy--)yl+='<button type="button" class="'+(yy===CAL.y?'on':'')+(yy===y0&&yy!==CAL.y?' now':'')+'" data-cyr="'+yy+'"'+(yy===CAL.y?' id="cyr-sel"':'')+'>'+yy+'</button>';
@@ -437,7 +437,7 @@ function cepFetch(cd,cb){var SV=[['https://viacep.com.br/ws/'+cd+'/json/',functi
 function podeLib(c){if(!CAL||!CAL.grp||CAL.grp==='view'||CAL.grp==='docs')return false;var g=CAL.grp==='cofre'?'notas':CAL.grp;return !!LIBN[g]&&compSt(g,c)!=='futuro'&&!compOk(CAL.grp,c);}
 function askPedLib(g,c,depois){if(pedLibAberto(g,c)){say('Você já pediu a liberação de '+cMes(c)+'. Aguarde o contador.');return;}
  askGen({soft:1,ic:IC.lock12||IC.lock||IC.x,t:cap(cMes(c))+' já foi encerrado',d:'Para enviar '+LIBN[g]+' deste mês, peça ao contador que libere o envio. Se ele liberar, você envia normalmente até a data combinada.',ok:'Pedir liberação',cb:function(){pedirLib(g,c);save();renderLists();closeSheets();if(IMPSEQ&&IMPSEQ.atual){IMPSEQ.lib=1;hist=['inicio'];show('impseq');say('Pedido de liberação de '+cMes(c)+' enviado ao contador');return;}if(ROTV){__rotVolta('Pedido de liberação de '+cMes(c)+' enviado ao contador');return;}if(FS&&head(cur)==='f')refreshFlow();say('Pedido de liberação de '+cMes(c)+' enviado ao contador');if(depois)depois();}});}
-/* gestos: deslizar para a esquerda volta, para a direita avança; em Rotinas, deslizar um aviso vencido para a esquerda apaga */
+/* gestos: deslizar para a esquerda volta, para a direita avança; em Verificar rotinas, deslizar um aviso vencido para a esquerda apaga */
 (function(){var sx=0,sy=0,st0=0,on=false,row=null,lock=null;
  function aberto(){return !ps.hidden||!cs.hidden||!ov3.hidden||!ov4.hidden||p.classList.contains('fab-on')||!!document.querySelector('.psheet.hsheet:not([hidden]),.psheet.jsheet:not([hidden])');}
  function rolaX(el){while(el&&el!==p){if(el.scrollWidth>el.clientWidth+4){var o=getComputedStyle(el).overflowX;if(o==='auto'||o==='scroll')return true;}el=el.parentElement;}return false;}
