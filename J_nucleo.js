@@ -237,6 +237,7 @@ function solRender(){SOL_AREAS.forEach(function(x){var el=document.getElementByI
  el.innerHTML='<div class="sec"><h2>Solicitações</h2>'+(L.length>5?(x[0]==='docs'?'<button type="button" class="lnk" data-solnova>Ver todos</button>':'<button type="button" class="lnk" data-go="pedidos-'+x[0]+'">Ver todos</button>'):'')+'</div><div class="card">'+(L.slice(0,5).map(pedRow).join('')||'<p class="empty">Nenhuma solicitação por aqui.</p>')+'</div>';});}
 
 /* ===== card Importante (Início): o que o contador pediu, em uma linha cada ===== */
+var IMPMAX=5; /* pendências mostradas no card fechado */
 var IMPX=0; /* 1 = card aberto mostrando todas as pendências */
 /* Resolver agora: abre as pendências do card em sequência, de cima para baixo. feitos = já abertas; atual/go = a aberta agora; lib = acabou de pedir liberação */
 var IMPSEQ=null;
@@ -276,18 +277,18 @@ function impVis(){impDemo();var L=impItens().filter(impNoPrazo),V=ST.impV=ST.imp
  L.sort(function(a,b){return b.em-a.em||a.i-b.i;});
  return L;}
 function impRow(x){return '<div class="impr"><button type="button" class="impb" data-go="'+x.go+'"'+(x.c?' data-setcomp="'+x.c+'"':'')+(x.pre?' data-pre=\''+JSON.stringify(x.pre).replace(/'/g,'&#39;')+'\'':'')+'><span class="impt">'+esc(x.t)+'</span><i>›</i></button>'+(x.adiar?'<button type="button" class="impad" data-adiar="'+esc(x.adiar)+'">Adiar</button>':'')+'</div>';}
-function impHero(){impCss();var L=impVis(),n=L.length,ex=IMPX&&n>2;
+function impHero(){impCss();var L=impVis(),n=L.length,ex=IMPX&&n>IMPMAX;
  if(!n)return '<div class="hk"><span>Importante</span><span class="pill-w">Tudo em dia</span></div><div class="impok"><span class="impoki">'+IC.check16+'</span><span><b>Parabéns, você está em dia!</b><span>Tudo o que o contador pediu já foi feito. Quando surgir algo novo, aparece aqui.</span></span></div><div class="hb"><span class="due">Os próximos prazos estão em Verificar rotinas</span></div>';
  var pr=L.filter(function(x){return x.pz;}).sort(function(a,b){return a.pz-b.pz;})[0];
- return '<div class="hk"><span>Importante</span>'+(n>2?'<button type="button" class="pill-w impn" data-impx aria-expanded="'+(ex?'true':'false')+'">'+(ex?'Mostrar últimas pendências':'Mostrar '+n+' pendências')+'</button>':'<span class="pill-w">'+n+(n>1?' pendências':' pendência')+'</span>')+'</div>'+
-  '<div class="impl">'+(ex?L:L.slice(0,2)).map(impRow).join('')+'</div>'+
+ return '<div class="hk"><span>Importante</span>'+(n>IMPMAX?'<button type="button" class="pill-w impn" data-impx aria-expanded="'+(ex?'true':'false')+'">'+(ex?'Mostrar últimas pendências':'Mostrar '+n+' pendências')+'</button>':'<span class="pill-w">'+n+(n>1?' pendências':' pendência')+'</span>')+'</div>'+
+  '<div class="impl">'+(ex?L:L.slice(0,IMPMAX)).map(impRow).join('')+'</div>'+
   (pr?'<div class="hb"><span class="due">'+(diasAte(pr.pz)<0?'Atrasado desde ':'Próximo prazo: ')+fmtP(pr.pz)+(pr.pz.getFullYear()!==NOW().getFullYear()?'/'+pr.pz.getFullYear():'')+'</span><button type="button" class="send" data-impseq>Resolver agora</button></div>':'');}
 function impCss(){if(document.getElementById('imp-css'))return;var st=document.createElement('style');st.id='imp-css';st.textContent=
- '.hero.himp{min-height:0;gap:10px}#cont-hero{min-height:308px;gap:12px}.hero.himp .hb{margin-top:auto}.hero.himp .send{width:auto;padding:0 18px;white-space:nowrap;background:rgba(255,255,255,.14);color:inherit}.phone[data-solido="1"][data-escuro="0"] .hero.himp .send{background:var(--tint);color:var(--accent)}'+
- '.impl{display:flex;flex-direction:column;gap:6px}.impr{display:flex;align-items:center;gap:6px}'+
- '.impb{flex:1;min-width:0;display:flex;align-items:center;gap:8px;height:36px;padding:0 10px 0 12px;border:0;border-radius:11px;background:rgba(255,255,255,.14);color:inherit;font:inherit;font-size:13.5px;font-weight:600;text-align:left}'+
+ '.hero.himp,#cont-hero{min-height:300px}.hero.himp{padding:18px;gap:9px}#cont-hero{padding:18px;gap:10px}.hero.himp .hb{margin-top:auto}.hero.himp .send{width:auto;padding:0 18px;white-space:nowrap;background:rgba(255,255,255,.14);color:inherit}.phone[data-solido="1"][data-escuro="0"] .hero.himp .send{background:var(--tint);color:var(--accent)}'+
+ '.impl{display:flex;flex-direction:column;gap:5px}.impr{display:flex;align-items:center;gap:6px}'+
+ '.impb{flex:1;min-width:0;display:flex;align-items:center;gap:8px;height:32px;padding:0 10px 0 12px;border:0;border-radius:10px;background:rgba(255,255,255,.14);color:inherit;font:inherit;font-size:13.5px;font-weight:600;text-align:left}'+
  '.impt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.impb i{font-style:normal;opacity:.8;font-size:18px;line-height:1}'+
- '.impad{flex:none;height:36px;padding:0 12px;border:0;border-radius:11px;background:rgba(255,255,255,.14);color:inherit;font:inherit;font-size:12.5px;font-weight:700}.phone[data-solido="1"][data-escuro="0"] .hero .impad{background:var(--tint);color:var(--accent)}'+
+ '.impad{flex:none;height:32px;padding:0 12px;border:0;border-radius:11px;background:rgba(255,255,255,.14);color:inherit;font:inherit;font-size:12.5px;font-weight:700}.phone[data-solido="1"][data-escuro="0"] .hero .impad{background:var(--tint);color:var(--accent)}'+
  '.impn{border:0;font:inherit;font-size:12px;font-weight:700;color:inherit;cursor:pointer;white-space:nowrap}'+
  '.impok{display:flex;gap:12px;align-items:flex-start;flex:1}.impoki{flex:none;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center}.impoki svg{width:20px;height:20px}'+
  '.impok b{display:block;font-size:16px;margin:2px 0 4px}.impok>span:last-child>span{display:block;font-size:13px;font-weight:500;opacity:.88;line-height:1.35}'+
