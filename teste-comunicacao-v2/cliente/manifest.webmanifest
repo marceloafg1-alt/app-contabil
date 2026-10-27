@@ -3,7 +3,7 @@
   "short_name": "LivTask",
   "description": "App do cliente, versão de teste de comunicação.",
   "lang": "pt-BR",
-  "id": "./",
+  "id": "/app-contabil/teste-comunicacao-v2/cliente/",
   "start_url": "./cliente.html#__pg=index.html",
   "scope": "./",
   "display": "standalone",

@@ -3,7 +3,7 @@
   "short_name": "Gestão",
   "description": "Painel de gestão, versão de teste de comunicação.",
   "lang": "pt-BR",
-  "id": "./",
+  "id": "/app-contabil/teste-comunicacao-v2/painel/",
   "start_url": "./painel.html",
   "scope": "./",
   "display": "standalone",
