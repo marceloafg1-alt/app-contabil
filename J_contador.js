@@ -1461,6 +1461,12 @@ addEventListener('change',function(e){var t=e.target;if(t&&t.id==='lt-f'&&t.file
 });
 /* aparência e encaixe na tela */
 function applyLook(){P.setAttribute('data-tema',TEMAS.some(function(t){return t[0]===UI.tema;})?UI.tema:'azul-escuro');P.setAttribute('data-escuro',UI.escuro?'1':'0');P.setAttribute('data-solido',UI.solido?'1':'0');}
+/* barra de status do celular: a meta theme-color segue a cor do tema (começo do degradê; na cor sólida, a cor do fundo), no claro e no escuro */
+var tcMeta=document.querySelector('meta[name="theme-color"]'),tcCv=document.createElement('canvas');tcCv.width=tcCv.height=1;
+function tcCor(){var cs=getComputedStyle(P),v=(P.getAttribute('data-solido')==='1'&&P.getAttribute('data-escuro')==='0'?cs.getPropertyValue('--ground'):cs.getPropertyValue('--g1')).trim();if(!v)return '';
+ try{var x=tcCv.getContext('2d',{willReadFrequently:true});x.clearRect(0,0,1,1);x.fillStyle='#000';x.fillStyle=v;x.fillRect(0,0,1,1);var d=x.getImageData(0,0,1,1).data;return '#'+[d[0],d[1],d[2]].map(function(n){return ('0'+n.toString(16)).slice(-2);}).join('');}catch(e){return v;}}
+function tcSync(){var c=tcCor();if(!c)return;if(!tcMeta){tcMeta=document.createElement('meta');tcMeta.name='theme-color';document.head.appendChild(tcMeta);}if(tcMeta.getAttribute('content')!==c)tcMeta.setAttribute('content',c);}
+new MutationObserver(tcSync).observe(P,{attributes:true,attributeFilter:['data-tema','data-escuro','data-solido']});tcSync();setTimeout(tcSync,800);
 function fit(){if(DESK&&innerWidth>=900){P.style.setProperty('--z','1');return;}var cw=document.documentElement.clientWidth,ch=innerHeight;if(cw<=520){P.style.setProperty('--z','1');return;}P.style.setProperty('--z',Math.min(1,(cw-32)/390,(ch-24)/844).toFixed(3));}
 addEventListener('resize',fit);
 /* sincronização */
