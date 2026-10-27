@@ -78,7 +78,7 @@ function rerender(){var y=SCR.scrollTop,vals={},ae=document.activeElement,aid=ae
  for(var k in vals){var x=$(k);if(x&&x.type!=='file'&&!x.dataset.fresh)x.value=vals[k];}
  SCR.scrollTop=y;if(aid&&$(aid))try{$(aid).focus();}catch(e){}
  if(isChat())SCR.scrollTop=SCR.scrollHeight;}
-function route(r){var h=head(r),a=r.slice(h.length+1);var R={recnovo:vRecNovo,rec:vRec,chk:vChk,lote:vLote,fecha:vFecha,dp:vDP,desp:vDesp,inicio:vInicio,pedidos:vPedidos,ped:vPed,receb:vReceb,arquivo:vArquivo,pasta:vPasta,doc:vDoc,folha:vFolha,msg:vMsg,chat:vChat,ajuda:vAjuda,novodoc:vNovoDoc,novoguia:vNovoGuia,guias:vGuias,colab:vColab,ctr:vContrato,socio:vSocio,cguia:vGuiaC,novoped:vNovoPed,ajustes:vAjustes,perfil:vPerfilC,ajnotif:vAjNotif,ajprazos:vAjPrazos,ajacomp:vAjAcomp,ajadm:vAjAdm,ajequipe:vAjEquipe,ajclientes:vAjClientes,cli:vCli,gestao:vGestao,notif:vNotif}[h];return R?R(a):null;}
+function route(r){escGarante();var h=head(r),a=r.slice(h.length+1);var R={recnovo:vRecNovo,rec:vRec,chk:vChk,lote:vLote,fecha:vFecha,dp:vDP,desp:vDesp,inicio:vInicio,pedidos:vPedidos,ped:vPed,receb:vReceb,arquivo:vArquivo,pasta:vPasta,doc:vDoc,folha:vFolha,msg:vMsg,chat:vChat,ajuda:vAjuda,novodoc:vNovoDoc,novoguia:vNovoGuia,guias:vGuias,colab:vColab,ctr:vContrato,socio:vSocio,cguia:vGuiaC,novoped:vNovoPed,ajustes:vAjustes,perfil:vPerfilC,ajnotif:vAjNotif,ajprazos:vAjPrazos,ajacomp:vAjAcomp,ajadm:vAjAdm,ajequipe:vAjEquipe,ajclientes:vAjClientes,cli:vCli,gestao:vGestao,notif:vNotif}[h];return R?R(a):null;}
 /* ===== início ===== */
 function vInicio(){var s=stats('all'),tot=s.nv+s.doc+s.fo+s.msg,partes=[];
  if(s.nv)partes.push(s.nv+(s.nv===1?' pedido novo':' pedidos novos'));if(s.doc)partes.push(s.doc+(s.doc===1?' documento para conferir':' documentos para conferir'));if(s.fo)partes.push(s.fo+(s.fo===1?' folha para fechar':' folhas para fechar'));if(s.msg)partes.push(s.msg+(s.msg===1?' mensagem':' mensagens'));
@@ -380,8 +380,16 @@ function vRecNovo(a){var q=String(a||'').split('|'),e=eById(q[0]);if(!e)return n
   '<div class="fld"><label class="fl" for="rc-n">Número de parcelas <i>(opcional)</i></label><input id="rc-n" inputmode="numeric" placeholder="Deixe vazio se não tiver fim" autocomplete="off"></div>')+
   txt('rc-d','Observação',t0.indexOf('Convênio médico')===0?'Ex.: titular + 1 dependente':/Empréstimo/.test(t0)?'Ex.: banco e contrato':'Ex.: combinado com o cliente','',1)+'<span class="fe" id="rc-err" hidden></span></div><div class="fbar"><button type="button" class="cta" data-recsave="'+e.id+'|'+T+'">Salvar recorrência</button></div>';}
 /* ===== equipe do escritório ===== */
-function eqNome(id){var u=(MULTI.equipe||[]).filter(function(x){return x.id===id;})[0];return u?u.n:'';}
-function EU(){return (MULTI.equipe||[]).filter(function(x){return x.id===MULTI.eu;})[0]||null;}
+/* ===== dados do escritório e equipe (ficam em MULTI.cfg, para sincronizar com o app) ===== */
+function escDefault(){return {razao:'Horizonte Serviços Contábeis Ltda',fant:'Contabilidade Horizonte',cnpj:'00.000.000/0001-00',crc:'CRC-SP 1SP000000/O-0',end:'Rua das Acácias, 120 · Centro · Sorocaba/SP',tel:'(11) 4000-0000',email:'atendimento@horizonte.exemplo',atend:'Seg a sex, 9h às 18h',resp:'Paula Mendes'};}
+function escAdm(d){return {id:'adm',n:d.resp,area:'todas',papel:'admin'};}
+/* criar a conta de um escritório: o perfil principal entra na equipe como administrador */
+function escNovo(d){var c=MULTI.cfg=MULTI.cfg||{};c.esc=d;c.equipe=[escAdm(d)];if(window.save)save();return c;}
+/* garante os dados do escritório e o administrador da equipe (sem apagar quem já foi incluído) */
+function escGarante(){var c=MULTI.cfg=MULTI.cfg||{};if(!c.esc){escNovo(escDefault());return;}if(!c.equipe){c.equipe=[escAdm(c.esc)];if(window.save)save();}}
+function escKv(d){return kv('Razão social',esc(d.razao))+kv('Nome fantasia',esc(d.fant))+kv('CNPJ',esc(d.cnpj))+kv('Registro (CRC)',esc(d.crc))+kv('Endereço',esc(d.end))+kv('Telefone','<span class="sel-t">'+esc(d.tel)+'</span>')+kv('E-mail','<span class="sel-t">'+esc(d.email)+'</span>')+kv('Atendimento',esc(d.atend))+kv('Responsável',esc(d.resp));}
+function eqNome(id){var u=(MULTI.cfg.equipe||[]).filter(function(x){return x.id===id;})[0];return u?u.n:'';}
+function EU(){return (MULTI.cfg.equipe||[]).filter(function(x){return x.id===MULTI.eu;})[0]||null;}
 function EV(){var u=EU();if(!u)return MULTI.emps;var L=MULTI.emps.filter(function(e){return e.resp===u.id;});return L.length?L:MULTI.emps;}
 /* ===== lançado no sistema e checklist do mês ===== */
 function lancOk(g,c){return !!((ST&&ST.lanc)||{})[g+'|'+c];}
@@ -405,14 +413,16 @@ function alertasExtra(){var G=[],V=[];emps('all').forEach(function(e){B(e.id);va
 function ajFer(){var c=MULTI.cfg;
  var h='<section>'+sec('Feriados da cidade')+'<div class="card pad form">'+txt('fer-cid','Cidade do escritório','Ex.: Sorocaba/SP',c.ferCid||'',1)+'<div class="fld"><label class="fl" for="fer-in">Feriados municipais (dd/mm)</label><input id="fer-in" placeholder="Ex.: 15/08, 20/01" value="'+esc((c.ferMun||[]).map(function(x){var q=x.split('-');return q[1]+'/'+q[0];}).join(', '))+'"></div><button type="button" class="wb" data-fersave>Salvar feriados</button><p class="fh">Entram na contagem de dias úteis da folha e das admissões, junto com os feriados nacionais.</p></div></section>';
  return h;}
-function ajEquipe(){var eq=MULTI.equipe||[];
+function eqLinhas(){return (MULTI.cfg.equipe||[]).map(function(u){var nc=MULTI.emps.filter(function(e){return e.resp===u.id;}).length,adm=u.papel==='admin';
+ return '<div class="r"><span class="av2">'+esc(u.n.split(' ').map(function(x){return x[0];}).join('').slice(0,2))+'</span><span class="rt"><span class="a">'+esc(u.n)+(MULTI.eu===u.id?' · você':'')+'</span><span class="b">'+(adm?'Administrador(a)':'Membro')+' · '+({todas:'Todas as áreas',dp:'Departamento Pessoal',contabil:'Contábil e fiscal'}[u.area]||'Todas as áreas')+' · '+nc+(nc===1?' cliente':' clientes')+'</span></span>'+(adm?'':'<button type="button" class="vx" data-eqdel="'+u.id+'" aria-label="Remover">'+IC.x+'</button>')+'</div>';}).join('');}
+function ajEquipe(){var eq=MULTI.cfg.equipe||[];
  var h='';
- h+='<section>'+sec('Equipe do escritório')+'<div class="card">'+(eq.length?eq.map(function(u){var nc=MULTI.emps.filter(function(e){return e.resp===u.id;}).length;return '<div class="r"><span class="av2">'+esc(u.n.split(' ').map(function(x){return x[0];}).join('').slice(0,2))+'</span><span class="rt"><span class="a">'+esc(u.n)+(MULTI.eu===u.id?' · você':'')+'</span><span class="b">'+({todas:'Todas as áreas',dp:'Departamento Pessoal',contabil:'Contábil e fiscal'}[u.area]||'Todas as áreas')+' · '+nc+(nc===1?' cliente':' clientes')+'</span></span><button type="button" class="vx" data-eqdel="'+u.id+'" aria-label="Remover">'+IC.x+'</button></div>';}).join(''):'<p class="empty">Só você no escritório por enquanto.</p>')+'</div>'+
+ h+='<section>'+sec('Equipe do escritório')+'<div class="card">'+(eq.length?eqLinhas():'<p class="empty">Só você no escritório por enquanto.</p>')+'</div>'+
   '<div class="card pad form" style="margin-top:10px">'+txt('eq-n','Nome','Ex.: Bruna (DP)','',0)+pickF('eq-a','Área',[['todas','Todas as áreas'],['dp','Departamento Pessoal'],['contabil','Contábil e fiscal']],'todas')+'<button type="button" class="wb" data-eqadd>Adicionar à equipe</button></div>'+
   (eq.length?'<div class="card pad form" style="margin-top:10px">'+pickF('eq-eu','Você está como',[['','Escritório todo']].concat(eq.map(function(u){return [u.id,u.n];})),MULTI.eu||'')+'<p class="fh">Cada pessoa vê só os clientes em que é responsável (defina na ficha do cliente). Sem clientes definidos, vê todos.</p></div>':'')+'</section>';
  return h;}
 /* ===== extras na ficha do cliente: prazo, responsável, validades e histórico ===== */
-function cliExtra(e){B(e.id);var vs=validades().slice().sort(function(a,b){return a.ate<b.ate?-1:1;}),eq=MULTI.equipe||[];
+function cliExtra(e){B(e.id);var vs=validades().slice().sort(function(a,b){return a.ate<b.ate?-1:1;}),eq=MULTI.cfg.equipe||[];
  var h='<section>'+sec('Prazos deste cliente')+'<div class="card pad form">'+pickF('cl-pz','Dias a mais em todos os prazos',[0,1,2,3,5,7,10].map(function(d){return [String(d),d?'+'+d+(d===1?' dia':' dias'):'Prazos normais do escritório'];}),String(e.pzExtra||0))+'<p class="fh">Para clientes com mais volume ou rotina diferente. Vale para folha, notas, extratos e despesas.</p></div></section>';
  if(eq.length)h+='<section>'+sec('Responsável no escritório')+'<div class="card pad form">'+pickF('cl-resp','Responsável',[['','Ninguém']].concat(eq.map(function(u){return [u.id,u.n];})),e.resp||'')+'</div></section>';
  h+='<section>'+sec('Documentos com validade')+'<div class="card">'+(vs.map(function(v){var dd=valDias(v);return '<div class="r"><span class="ri">'+(IC.lock12||'')+'</span><span class="rt"><span class="a">'+esc(v.desc||v.tipo)+'</span><span class="b">Validade '+fmtD(v.ate)+'</span></span>'+pill(dd<0?'bad':dd<=30?'warn':'ok',dd<0?'Vencido':dd<=30?'Faltam '+dd+' dias':'Em dia')+'<button type="button" class="vx" data-vldel="'+v.id+'" aria-label="Tirar">'+IC.x+'</button></div>';}).join('')||'<p class="empty">Nenhum documento com validade cadastrado.</p>')+'</div>'+
@@ -1182,15 +1192,14 @@ function envio(k){if(k==='doc'&&V('nd-c')==='guias'){var gv=$('nd-v').value,gd=V
 /* ===== ajustes, clientes e aparência ===== */
 /* Configurações: mesmo jeito do app do cliente, com cada grupo de ajustes na própria tela */
 function ajRow(ic,a,b,go){return '<button type="button" class="r" data-go="'+go+'"><span class="ri">'+ic+'</span><span class="rt"><span class="a">'+a+'</span>'+(b?'<span class="b">'+esc(b)+'</span>':'')+'</span><span class="cv">'+IC.chev18+'</span></button>';}
-/* Perfil do contador: a mesma ideia do Perfil do cliente, mas com a conta, o escritório e os atalhos do contador */
-function vPerfilC(){var n=MULTI.emps.length,eq=(MULTI.equipe||[]).length,c=MULTI.cfg,pd=pedAll('all').length;
+/* Perfil do contador: a conta, os dados do escritório e a equipe */
+function vPerfilC(){var c=MULTI.cfg;
  var h='<div class="phd"><span class="pav">PM</span><div><h1>Paula Mendes</h1><div class="s">Contadora · Contabilidade Horizonte</div></div></div>';
  h+='<section>'+sec('Minha conta')+'<div class="card pad">'+kv('Nome','Paula Mendes')+kv('E-mail','<span class="sel-t">paula@horizonte.exemplo</span>')+kv('Celular','(11) 97000-0000')+'</div></section>';
- h+='<section>'+sec('Meu escritório')+'<div class="card">'+ajRow(IC.people,'Clientes',n+(n===1?' cliente':' clientes'),'ajclientes')+ajRow(IC.people,'Equipe do escritório',eq+(eq===1?' pessoa':' pessoas'),'ajequipe')+ajRow(IC.cal||IC.clock,'Prazos de envio','Folha: '+c.folhaDU+'º dia útil · demais: dia '+c.docsDia,'ajprazos')+'</div></section>';
- h+='<section>'+sec('Com os clientes')+'<div class="card">'+ajRow(IC.sol,'Pedidos recebidos',pd+(pd===1?' pedido':' pedidos'),'pedidos')+ajRow(IC.chat,'Chat','Conversas com os clientes','msg')+'</div></section>';
- h+='<section>'+sec('Atalhos')+'<div class="card">'+ajRow(IC.bell,'Notificações push','Tipos de aviso e teste','ajnotif')+ajRow(CH_GEAR,'Configurações','Aparência, escritório e testes','ajustes')+ajRow(IC.duv||IC.chat,'Ajuda','Perguntas frequentes','ajuda')+'</div></section>';
+ h+='<section>'+sec('Meu escritório')+'<div class="card pad">'+escKv(c.esc)+'</div></section>';
+ h+='<section>'+sec('Equipe do escritório')+'<div class="card">'+eqLinhas()+ajRow(IC.people,'Gerenciar equipe','Incluir pessoas e definir quem administra','ajequipe')+'</div></section>';
  return h+'<p class="foot">Dados de exemplo.</p>';}
-function vAjustes(){var c=MULTI.cfg,n=NOW(),on=window.syncStatus==='online',eq=MULTI.equipe||[],na=['notas','extratos','folha'].filter(function(k){return acompOn(k);}).length,ad=admDias();
+function vAjustes(){var c=MULTI.cfg,n=NOW(),on=window.syncStatus==='online',eq=MULTI.cfg.equipe||[],na=['notas','extratos','folha'].filter(function(k){return acompOn(k);}).length,ad=admDias();
  var h=hdr('Configurações','Ajustes do app');
  var tt=TEMAS.filter(function(x){return x[0]===UI.tema;})[0]||TEMAS[0];
  h+='<section>'+sec('Aparência')+'<div class="card"><button type="button" class="r" data-tema-go><span class="ri">'+IC.palette+'</span><span class="rt"><span class="a">Tema do app</span><span class="b">'+tt[1]+(UI.solido?' sólida':' em degradê')+' · escuro '+(UI.escuro?'ligado':'desligado')+'</span></span><span class="cfg-sw" style="background:linear-gradient(135deg,'+tt[2]+','+tt[3]+')"></span>'+IC.chev18+'</button></div></section>';
@@ -1406,8 +1415,8 @@ document.addEventListener('click',function(ev){var t=ev.target.closest('[data-dl
  if(d.lanc){var lq=d.lanc.split('|');B(lq[0]);ST.lanc=ST.lanc||{};var lk=lq[1]+'|'+lq[2];if(ST.lanc[lk])delete ST.lanc[lk];else ST.lanc[lk]=hoje();done();commit(ST&&0||'Checklist atualizado');return;}
  if(d.motivo){var pm=$('pd-msg');if(pm){pm.value=(pm.value?pm.value.trim()+' ':'')+d.motivo+': ';pm.focus();}return;}
  if(d.fersave!==undefined&&t.hasAttribute('data-fersave')){var fv0=($('fer-in')||{}).value||'',L=[],bad=[];fv0.split(/[,;\s]+/).filter(Boolean).forEach(function(x){var m=/^(\d{1,2})\/(\d{1,2})$/.exec(x);if(m&&+m[2]>=1&&+m[2]<=12&&+m[1]>=1&&+m[1]<=31)L.push(('0'+m[2]).slice(-2)+'-'+('0'+m[1]).slice(-2));else bad.push(x);});if(bad.length){toast('Data inválida: '+bad[0]+' (use dd/mm)');return;}MULTI.cfg.ferMun=L;MULTI.cfg.ferCid=(($('fer-cid')||{}).value||'').trim();commit(L.length?L.length+(L.length>1?' feriados salvos':' feriado salvo'):'Sem feriados municipais');return;}
- if(t.hasAttribute('data-eqadd')){var en=(($('eq-n')||{}).value||'').trim(),ea=V('eq-a')||'todas';if(!en){toast('Digite o nome');return;}MULTI.equipe=MULTI.equipe||[];MULTI.equipe.push({id:'u'+Date.now().toString(36),n:en,area:ea});FV['eq-a']='todas';commit(en+' entrou na equipe');return;}
- if(d.eqdel){var ei=d.eqdel,eu0=(MULTI.equipe||[]).filter(function(x){return x.id===ei;})[0];askGen({t:'Remover '+(eu0?eu0.n:'')+' da equipe?',d:'Os clientes dessa pessoa ficam sem responsável.',ok:'Remover',cb:function(){MULTI.equipe=(MULTI.equipe||[]).filter(function(x){return x.id!==ei;});MULTI.emps.forEach(function(e){if(e.resp===ei)e.resp='';});if(MULTI.eu===ei)MULTI.eu='';commit('Removido da equipe');}});return;}
+ if(t.hasAttribute('data-eqadd')){var en=(($('eq-n')||{}).value||'').trim(),ea=V('eq-a')||'todas';if(!en){toast('Digite o nome');return;}MULTI.cfg.equipe=MULTI.cfg.equipe||[];MULTI.cfg.equipe.push({id:'u'+Date.now().toString(36),n:en,area:ea});FV['eq-a']='todas';commit(en+' entrou na equipe');return;}
+ if(d.eqdel){var ei=d.eqdel,eu0=(MULTI.cfg.equipe||[]).filter(function(x){return x.id===ei;})[0];askGen({t:'Remover '+(eu0?eu0.n:'')+' da equipe?',d:'Os clientes dessa pessoa ficam sem responsável.',ok:'Remover',cb:function(){MULTI.cfg.equipe=(MULTI.cfg.equipe||[]).filter(function(x){return x.id!==ei;});MULTI.emps.forEach(function(e){if(e.resp===ei)e.resp='';});if(MULTI.eu===ei)MULTI.eu='';commit('Removido da equipe');}});return;}
  if(t.hasAttribute('data-vladd')){var vt=V('vl-t'),vd=V('vl-d'),vx=(($('vl-x')||{}).value||'').trim();if(!vt||!vd){toast('Escolha o documento e a validade');return;}B(ED.id);ST.validades=ST.validades||[];ST.validades.push({id:'v'+Date.now().toString(36),tipo:vt,desc:vt==='Outro'?(vx||'Documento'):vt,ate:vd});done();FV['vl-d']='';commit('Validade cadastrada');return;}
  if(d.vldel){var vi=d.vldel;askGen({t:'Tirar esta validade?',d:'O documento deixa de ser acompanhado.',ok:'Tirar',cb:function(){B(ED.id);ST.validades=(ST.validades||[]).filter(function(x){return x.id!==vi;});done();commit('Validade removida');}});return;}
  if(t.hasAttribute('data-ltsend')){loteEnviar();return;}
