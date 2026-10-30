@@ -27,6 +27,7 @@ function show(id,back,keep){if(id==='inicio')IMPSEQ=null;if(id==='inicio'||id===
  ixs.forEach(function(b){if(b.dataset.go===id)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
  buildFab();var d1=typeof FAB1!=='undefined'&&FAB1[h];fab.setAttribute('aria-label',d1?d1[2]:'Abrir ações');fab.title=d1?d1[2]:'';if(h==='chat')setTimeout(scrollChat,30);ntVer();if(/^[a-z0-9-]+$/i.test(id)){try{history.replaceState(null,'','#'+id);}catch(e){}}}
 window.curScreen=function(){return cur;};
+window.prevScreen=function(){return hist[hist.length-1]||'';};
 window.onState=function(){if(MAIN.indexOf(cur)<0&&head(cur)!=='f'&&head(cur)!=='chat')show(cur,false,true);};
 function go(id){if(id===cur&&id.indexOf('f-')!==0)return;if(!window.__fwdNav)FWD=[];hist.push(cur);show(id,false);}
 var FWD=[];
