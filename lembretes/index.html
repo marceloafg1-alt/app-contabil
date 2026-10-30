@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lembretes do mês</title>
+<meta name="theme-color" content="#1f6f5c">
+<style>
+:root{--bg:#f4f6f5;--card:#fff;--tx:#17211e;--mut:#6b7a75;--bd:#dfe6e3;--ac:#1f6f5c;--ok:#2e8b57;--late:#c0392b;--today:#d98200;--soon:#2f6fb3}
+@media (prefers-color-scheme:dark){:root{--bg:#121816;--card:#1b2421;--tx:#e8efec;--mut:#94a59f;--bd:#2a3733;--ac:#4cb89c;--ok:#4cc486;--late:#ee7466;--today:#f0a93b;--soon:#6fa8e6}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:0 16px calc(24px + env(safe-area-inset-bottom))}
+main{max-width:640px;margin:0 auto}
+header{position:sticky;top:0;background:var(--bg);padding:14px 0 10px;z-index:2}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.nav h1{font-size:1.2rem;margin:0;text-align:center;flex:1}
+button{font:inherit;color:inherit;cursor:pointer}
+.ib{border:1px solid var(--bd);background:var(--card);border-radius:10px;width:44px;height:44px;font-size:1.2rem}
+.bar{height:8px;border-radius:99px;background:var(--bd);margin:12px 0 4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok);width:0;transition:width .25s}
+.sum{font-size:.9rem;color:var(--mut);display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px}
+.sum b{color:var(--late)}
+.tabs{display:flex;gap:8px;margin-top:10px}
+.tabs button{flex:1;border:1px solid var(--bd);background:var(--card);border-radius:99px;padding:8px 6px;font-size:.9rem}
+.tabs button.on{background:var(--ac);border-color:var(--ac);color:#fff}
+h2{font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);margin:20px 4px 8px}
+.t{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px 12px;margin-bottom:8px;min-height:56px}
+.t input{width:26px;height:26px;accent-color:var(--ok);flex:none}
+.t .n{flex:1;min-width:0}
+.t .n span{display:block;overflow-wrap:anywhere}
+.t small{color:var(--mut)}
+.t.done .n span{text-decoration:line-through;color:var(--mut)}
+.tag{font-size:.75rem;font-weight:600;border-radius:99px;padding:3px 9px;white-space:nowrap;border:1px solid currentColor}
+.late{color:var(--late)}.today{color:var(--today)}.soon{color:var(--soon)}.ok{color:var(--ok)}.pend{color:var(--mut)}
+.ed{border:0;background:none;color:var(--mut);font-size:1.1rem;width:36px;height:40px;flex:none}
+.empty{text-align:center;color:var(--mut);padding:28px 8px}
+.add{width:100%;margin-top:18px;padding:14px;border-radius:12px;border:1px dashed var(--ac);background:none;color:var(--ac);font-weight:600}
+.foot{margin-top:22px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.foot button{border:0;background:none;color:var(--mut);text-decoration:underline;font-size:.85rem;padding:8px}
+dialog{border:1px solid var(--bd);border-radius:16px;background:var(--card);color:var(--tx);width:min(92vw,420px);padding:20px}
+dialog::backdrop{background:#0008}
+label{display:block;font-size:.85rem;color:var(--mut);margin:12px 0 4px}
+input[type=text],input[type=number],select{width:100%;font:inherit;padding:11px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--tx)}
+.row{display:flex;gap:8px;margin-top:18px}
+.row button{flex:1;padding:12px;border-radius:10px;border:1px solid var(--bd);background:var(--card)}
+.row .pri{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:600}
+.row .del{color:var(--late)}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div class="nav">
+    <button class="ib" id="prev" aria-label="Mês anterior">‹</button>
+    <h1 id="mes"></h1>
+    <button class="ib" id="next" aria-label="Próximo mês">›</button>
+  </div>
+  <div class="bar"><i id="prog"></i></div>
+  <div class="sum"><span id="cont"></span><span id="atr"></span></div>
+  <div class="tabs">
+    <button data-f="falta" class="on">Falta fazer</button>
+    <button data-f="feito">Feito</button>
+    <button data-f="tudo">Tudo</button>
+  </div>
+</header>
+<div id="lista"></div>
+<button class="add" id="novo">+ Nova tarefa</button>
+<div class="foot">
+  <button id="hoje">Ir para o mês atual</button>
+  <button id="exp">Salvar backup</button>
+  <button id="imp">Restaurar backup</button>
+</div>
+<input type="file" id="arq" accept="application/json" hidden>
+</main>
+
+<dialog id="dlg">
+  <form method="dialog" id="frm">
+    <h3 id="dt" style="margin:0">Tarefa</h3>
+    <label for="fn">Nome</label>
+    <input type="text" id="fn" required maxlength="80">
+    <label for="fg">Grupo</label>
+    <select id="fg"></select>
+    <label for="fd">Dia do mês em que vence</label>
+    <input type="number" id="fd" min="1" max="31" required inputmode="numeric">
+    <div class="row">
+      <button type="button" class="del" id="fdel">Excluir</button>
+      <button type="button" id="fcan">Cancelar</button>
+      <button type="submit" class="pri">Salvar</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+const GRUPOS=["Contas a pagar","Pagamentos recebidos","Enviar ao contador"];
+const PADRAO=[
+ ["Aluguel",0,5],["Água",0,10],["Luz",0,10],["Internet",0,10],["Telefone",0,10],["Contador (CNA)",0,10],["Game Space",0,10],
+ ["Lançar pagamentos dos alunos do CNA",1,10],
+ ["Enviar extrato bancário",2,5],["Enviar variáveis da folha de pagamento",2,20],["Enviar despesas",2,25],["Enviar notas fiscais",2,28]
+];
+const KEY="lembretes-v1";
+let S=load(), view=new Date(), filtro="falta", editId=null;
+view=new Date(view.getFullYear(),view.getMonth(),1);
+
+function load(){
+  try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.tarefas)return s}catch(e){}
+  return {tarefas:PADRAO.map((t,i)=>({id:"t"+i,nome:t[0],grupo:t[1],dia:t[2]})),feitos:{},seq:PADRAO.length};
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const mk=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
+const $=id=>document.getElementById(id);
+
+function venc(t,d){const u=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();return Math.min(t.dia,u)}
+function estado(t,d,hoje){
+  if((S.feitos[mk(d)]||{})[t.id])return {k:"ok",txt:"Feito",o:5};
+  const v=new Date(d.getFullYear(),d.getMonth(),venc(t,d));
+  const dif=Math.round((v-hoje)/864e5);
+  if(dif<0)return {k:"late",txt:"Atrasada "+(-dif)+"d",o:0};
+  if(dif===0)return {k:"today",txt:"Hoje",o:1};
+  if(dif<=3)return {k:"soon",txt:"Em "+dif+"d",o:2};
+  return {k:"pend",txt:"Dia "+venc(t,d),o:3};
+}
+
+function render(){
+  const n=new Date(),hoje=new Date(n.getFullYear(),n.getMonth(),n.getDate());
+  const mt=view.toLocaleDateString("pt-BR",{month:"long",year:"numeric"});$("mes").textContent=mt[0].toUpperCase()+mt.slice(1);
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("on",b.dataset.f===filtro));
+  const L=S.tarefas.map(t=>({t,e:estado(t,view,hoje)}));
+  const feitas=L.filter(x=>x.e.k==="ok").length, atr=L.filter(x=>x.e.k==="late").length;
+  $("prog").style.width=(L.length?feitas/L.length*100:0)+"%";
+  $("cont").textContent=feitas+" de "+L.length+" feitas";
+  $("atr").innerHTML=atr?"<b>"+atr+" atrasada"+(atr>1?"s":"")+"</b>":(feitas===L.length&&L.length?"Tudo em dia ✓":"");
+  const box=$("lista");box.textContent="";
+  const vis=L.filter(x=>filtro==="tudo"||(filtro==="feito")===(x.e.k==="ok"));
+  if(!vis.length){const d=document.createElement("div");d.className="empty";d.textContent=filtro==="falta"?"Nada pendente neste mês 🎉":"Nada marcado como feito ainda.";box.append(d)}
+  GRUPOS.forEach((g,gi)=>{
+    const itens=vis.filter(x=>x.t.grupo===gi).sort((a,b)=>a.e.o-b.e.o||venc(a.t,view)-venc(b.t,view));
+    if(!itens.length)return;
+    const h=document.createElement("h2");h.textContent=g;box.append(h);
+    itens.forEach(({t,e})=>{
+      const r=document.createElement("div");r.className="t"+(e.k==="ok"?" done":"");
+      const c=document.createElement("input");c.type="checkbox";c.checked=e.k==="ok";c.setAttribute("aria-label","Feito: "+t.nome);
+      c.onchange=()=>{const m=mk(view);(S.feitos[m]=S.feitos[m]||{})[t.id]=c.checked;if(!c.checked)delete S.feitos[m][t.id];save();render()};
+      const nm=document.createElement("div");nm.className="n";
+      const s=document.createElement("span");s.textContent=t.nome;
+      const sm=document.createElement("small");sm.textContent="Vence dia "+venc(t,view);
+      nm.append(s,sm);
+      const tg=document.createElement("span");tg.className="tag "+e.k;tg.textContent=e.txt;
+      const b=document.createElement("button");b.className="ed";b.textContent="✎";b.setAttribute("aria-label","Editar "+t.nome);b.onclick=()=>abrir(t.id);
+      r.append(c,nm,tg,b);box.append(r);
+    });
+  });
+}
+
+function abrir(id){
+  editId=id;const t=S.tarefas.find(x=>x.id===id);
+  $("dt").textContent=t?"Editar tarefa":"Nova tarefa";
+  $("fn").value=t?t.nome:"";$("fg").value=t?t.grupo:0;$("fd").value=t?t.dia:10;
+  $("fdel").style.display=t?"":"none";$("dlg").showModal();
+}
+$("fg").innerHTML=GRUPOS.map((g,i)=>`<option value="${i}">${g}</option>`).join("");
+$("novo").onclick=()=>abrir(null);
+$("fcan").onclick=()=>$("dlg").close();
+$("frm").onsubmit=()=>{
+  const nome=$("fn").value.trim(),grupo=+$("fg").value,dia=Math.min(31,Math.max(1,+$("fd").value||1));
+  if(!nome)return;
+  if(editId){Object.assign(S.tarefas.find(x=>x.id===editId),{nome,grupo,dia})}
+  else S.tarefas.push({id:"t"+(++S.seq)+Date.now().toString(36),nome,grupo,dia});
+  save();render();
+};
+$("fdel").onclick=()=>{
+  if(!confirm("Excluir esta tarefa de todos os meses?"))return;
+  S.tarefas=S.tarefas.filter(x=>x.id!==editId);save();$("dlg").close();render();
+};
+const mover=n=>{view=new Date(view.getFullYear(),view.getMonth()+n,1);render()};
+$("prev").onclick=()=>mover(-1);$("next").onclick=()=>mover(1);
+$("hoje").onclick=()=>{const n=new Date();view=new Date(n.getFullYear(),n.getMonth(),1);render()};
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{filtro=b.dataset.f;render()});
+$("exp").onclick=()=>{
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:"application/json"}));
+  a.download="lembretes-"+new Date().toISOString().slice(0,10)+".json";a.click();
+};
+$("imp").onclick=()=>$("arq").click();
+$("arq").onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{const d=JSON.parse(await f.text());if(!Array.isArray(d.tarefas)||typeof d.feitos!=="object")throw 0;
+    if(!confirm("Substituir os dados deste aparelho pelo backup?"))return;
+    S={tarefas:d.tarefas,feitos:d.feitos,seq:d.seq||d.tarefas.length};save();render();
+  }catch(x){alert("Arquivo de backup inválido.")}
+  e.target.value="";
+};
+render();
+</script>
+</body>
+</html>
