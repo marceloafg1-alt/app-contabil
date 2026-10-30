@@ -30,7 +30,7 @@ var PST={enviado:['Novo','warn'],analise:['Em análise','info'],voce:['Com o cli
 function pst(p){if(pedDireto(p)&&p.st!=='voce')return [p.f==='despesas'?'Lançada':'Recebido','ok'];if(p.st==='enviado'&&p.vis)return ['Em análise','info'];if(p.gEnv&&p.st!=='ok')return ['Guia enviada','info'];return p.st==='analise'&&p.cr?['Cliente respondeu','warn']:PST[p.st]||PST.enviado;}
 function dirA0(a){return arqDireto(a);}
 /* aberto direto pela Gestão contábil: mostra os dados e o download, sem linha do tempo */
-function viaGest(){return /^gestao(-|$)/.test(hist[hist.length-1]||'');}
+function viaGest(){return /^(gestao|gcnotas)(-|$)/.test(hist[hist.length-1]||'');}
 function aConferir(st){return arqList(st).filter(function(a){return a.or==='cli'&&(a.st==='enviado'||a.st==='analise')&&!arqDireto(a);});}
 function folhasFechar(){return folhasOf().filter(function(f){var x=fst(f);return x==='enviada'||x==='auto';});}
 function stats(f){var s={nv:0,ab:0,doc:0,fo:0,msg:0};emps(f).forEach(function(e){B(e.id);arqCofre(ST);
@@ -80,7 +80,7 @@ function rerender(){var y=SCR.scrollTop,vals={},ae=document.activeElement,aid=ae
  for(var k in vals){var x=$(k);if(x&&x.type!=='file'&&!x.dataset.fresh)x.value=vals[k];}
  SCR.scrollTop=y;if(aid&&$(aid))try{$(aid).focus();}catch(e){}
  if(isChat())SCR.scrollTop=SCR.scrollHeight;}
-function route(r){escGarante();var h=head(r),a=r.slice(h.length+1);var R={recnovo:vRecNovo,rec:vRec,chk:vChk,lote:vLote,fecha:vFecha,dp:vDP,desp:vDesp,inicio:vInicio,pedidos:vPedidos,ped:vPed,receb:vReceb,arquivo:vArquivo,pasta:vPasta,doc:vDoc,folha:vFolha,msg:vMsg,chat:vChat,ajuda:vAjuda,novodoc:vNovoDoc,novoguia:vNovoGuia,guias:vGuias,colab:vColab,ctr:vContrato,socio:vSocio,cguia:vGuiaC,novoped:vNovoPed,ajustes:vAjustes,perfil:vPerfilC,ajnotif:vAjNotif,ajprazos:vAjPrazos,ajacomp:vAjAcomp,ajadm:vAjAdm,ajequipe:vAjEquipe,ajclientes:vAjClientes,cli:vCli,gestao:vGestao,notif:vNotif}[h];return R?R(a):null;}
+function route(r){escGarante();var h=head(r),a=r.slice(h.length+1);var R={recnovo:vRecNovo,rec:vRec,chk:vChk,lote:vLote,fecha:vFecha,dp:vDP,desp:vDesp,inicio:vInicio,pedidos:vPedidos,ped:vPed,receb:vReceb,arquivo:vArquivo,pasta:vPasta,doc:vDoc,folha:vFolha,msg:vMsg,chat:vChat,ajuda:vAjuda,novodoc:vNovoDoc,novoguia:vNovoGuia,guias:vGuias,colab:vColab,ctr:vContrato,socio:vSocio,cguia:vGuiaC,novoped:vNovoPed,ajustes:vAjustes,perfil:vPerfilC,ajnotif:vAjNotif,ajprazos:vAjPrazos,ajacomp:vAjAcomp,ajadm:vAjAdm,ajequipe:vAjEquipe,ajclientes:vAjClientes,cli:vCli,gestao:vGestao,gcnotas:vGcNotas,notif:vNotif}[h];return R?R(a):null;}
 /* ===== início ===== */
 function vInicio(){var s=stats('all'),tot=s.nv+s.doc+s.fo+s.msg,partes=[];
  if(s.nv)partes.push(s.nv+(s.nv===1?' pedido novo':' pedidos novos'));if(s.doc)partes.push(s.doc+(s.doc===1?' documento para conferir':' documentos para conferir'));if(s.fo)partes.push(s.fo+(s.fo===1?' folha para fechar':' folhas para fechar'));if(s.msg)partes.push(s.msg+(s.msg===1?' mensagem':' mensagens'));
@@ -505,10 +505,54 @@ function gcDesp(e,p){var v=despDv(p,/^valor/i),o=despDv(p,/^origem/i),ve=despDv(
 /* notas, extratos e despesas da Gestão contábil expandem e recolhem como as listas do DP (mesmo botão e a mesma escolha guardada em UI.dpx); recolhidas, mostram contagem e total */
 function gcAb(k){return !!(UI.dpx||{})[k];}
 function gcBtn(k,ic,t,res){var ab=gcAb(k);return '<button type="button" class="r solo dpxc" data-dpx="'+k+'" aria-expanded="'+ab+'" aria-controls="dpx-'+k+'"><span class="ri">'+(ic||'')+'</span><span class="rt"><span class="a">'+esc(t)+'</span><span class="b">'+esc(res)+'</span></span><span class="cv">'+IC.chev18+'</span></button>';}
+/* lançamentos abertos dentro de notas, extratos e despesas: recuados, com filete e cartões só contornados, para não parecerem os cartões das categorias */
+var GC_CSS='<style>.gcin{margin:8px 0 0 18px;padding-left:12px;border-left:3px solid var(--tint)}.gcin .card{background:transparent;box-shadow:none;border:1px solid var(--line)}.gcin .r .ri{width:30px;height:30px;border-radius:50%}.gcin .r .ri svg{width:16px;height:16px}.gcin .r .a{font-size:13.5px}.gcin .sec.gcs{margin-top:12px}.gcin .gcres{background:var(--card);border:0}.gcin .gcres .rv span:last-child{text-align:right}.gcin .nfc{padding:12px 14px}.gcxb{display:flex;gap:8px;flex:none}.gcxb button{height:34px;padding:0 12px;border-radius:17px;border:1px solid var(--line);background:var(--card);color:var(--accent);font:inherit;font-weight:600;font-size:12.5px;display:flex;align-items:center;gap:5px;cursor:pointer}.gcxb button[disabled]{opacity:.45;cursor:default}.gcx .r{flex-wrap:wrap;row-gap:8px}.gcx .rt{min-width:150px}.gcpv{display:block;width:100%;height:min(70vh,560px);border:1px solid var(--line);border-radius:12px;margin-top:10px;background:#fff}.gcxml{margin:10px 0 0;padding:10px 12px;max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:12px;font:12px/1.45 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere}.pedx .cv svg{transition:transform .2s}.pedx[aria-expanded="true"] .cv svg{transform:rotate(90deg)}.pedxl{margin-top:8px}</style>';
+var GC_EYE='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+/* resumo no alto de notas e extratos, como o de despesas: quanto foi lançado e até quando o cliente pode enviar */
+function gcEnvTxt(g,c,o){var s=g==='notas'?cofreStOf(ST,c):encSt(g,c),la=libAte(g,c);o=o||{};
+ if(s==='encerrado')return 'Encerrado pelo cliente'+(o.em?' em '+o.em:'');if(s==='auto')return 'Encerrado no prazo, em '+fmtP(prazo(g,c));if(s==='futuro')return 'Ainda não abriu';
+ return 'Aberto até '+fmtP(la&&la>prazo(g,c)?la:prazo(g,c))+' · o cliente ainda pode '+(g==='notas'?'carregar notas':'enviar e editar');}
+function gcRes(L){return '<div class="card pad gcres">'+L.map(function(x){return kv(esc(x[0]),esc(x[1]));}).join('')+'</div>';}
+/* ===== exportar notas, extratos e despesas: planilha (CSV para o Excel) e arquivos (ZIP com a planilha junto) ===== */
+var CRC_T=null;function crc32c(u){if(!CRC_T){CRC_T=[];for(var n=0;n<256;n++){var c=n;for(var k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;CRC_T[n]=c>>>0;}}var x=0xFFFFFFFF;for(var i=0;i<u.length;i++)x=CRC_T[(x^u[i])&255]^(x>>>8);return (x^0xFFFFFFFF)>>>0;}
+/* ZIP sem compressão com vários arquivos: F=[{n:nome,u:Uint8Array}] */
+function zipVarios(F){var enc=new TextEncoder(),L=[],C=[],off=0,tc=0;F.forEach(function(f){var nb=enc.encode(f.n),cr=crc32c(f.u),lh=new Uint8Array(30+nb.length),dv=new DataView(lh.buffer);
+  dv.setUint32(0,0x04034b50,true);dv.setUint16(4,20,true);dv.setUint16(6,0x0800,true);dv.setUint16(10,0,true);dv.setUint16(12,0x21,true);dv.setUint32(14,cr,true);dv.setUint32(18,f.u.length,true);dv.setUint32(22,f.u.length,true);dv.setUint16(26,nb.length,true);lh.set(nb,30);
+  var ch=new Uint8Array(46+nb.length),dc=new DataView(ch.buffer);dc.setUint32(0,0x02014b50,true);dc.setUint16(4,20,true);dc.setUint16(6,20,true);dc.setUint16(8,0x0800,true);dc.setUint16(14,0x21,true);dc.setUint32(16,cr,true);dc.setUint32(20,f.u.length,true);dc.setUint32(24,f.u.length,true);dc.setUint16(28,nb.length,true);dc.setUint32(42,off,true);ch.set(nb,46);
+  L.push(lh,f.u);C.push(ch);off+=lh.length+f.u.length;tc+=ch.length;});
+ var end=new Uint8Array(22),de=new DataView(end.buffer);de.setUint32(0,0x06054b50,true);de.setUint16(8,F.length,true);de.setUint16(10,F.length,true);de.setUint32(12,tc,true);de.setUint32(16,off,true);
+ return new Blob(L.concat(C,[end]),{type:'application/zip'});}
+function salvaBlob(nome,data){var go=function(dl){if(dl){dl.save({filename:nome,data:data}).then(function(){toast(nome+' salvo');}).catch(function(e){if(e&&e.code==='declined')return;toast('Não foi possível baixar '+nome);});return;}
+  var u=URL.createObjectURL(data),l=document.createElement('a');l.href=u;l.download=nome;document.body.appendChild(l);l.click();l.remove();setTimeout(function(){URL.revokeObjectURL(u);},4000);toast('Baixando '+nome);};
+ if(window.claude&&claude.use)claude.use('downloads').then(go).catch(function(){go(null);});else go(null);}
+function csvTxt(R){return '﻿'+R.map(function(r){return r.map(function(v){v=String(v==null?'':v);return /[;"\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}).join(';');}).join('\r\n')+'\r\n';}
+function gcSlug(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
+/* o que entra em cada exportação: linhas da planilha e arquivos guardados ({n,a}) */
+function gcExpDados(g,e,c){B(e.id);arqCofre(ST);var R=[],A=[],fv=function(v){return v==null?'':Number(v).toFixed(2).replace('.',',');};
+ if(g==='extratos'){R.push(['Extrato','Arquivo','Competência','Enviado em','Situação','Pedido']);
+  arqList().filter(function(x){return x.cat==='extratos'&&x.comp===c&&x.or==='cli';}).forEach(function(a){var p=a.ped&&ST.ped.filter(function(x){return x.id===a.ped;})[0];R.push([a.n,a.arq||'',a.comp,a.data,arqDireto(a)?'Recebido':arqSt(a)[0],p?'#'+(p.prot||''):'']);if(temArq(a))A.push({n:a.arq||a.n,a:a});});}
+ else if(g==='despesas'){R.push(['Descrição','Categoria','Valor','Vencimento','Situação','Lançada em','Origem','Comprovante']);var ids={};
+  despOf(c).filter(function(p){return !/^Envio de/.test(p.tipo||'');}).forEach(function(p){ids[p.id]=1;var cp=arqList().filter(function(x){return x.cat==='despesas'&&x.or==='cli'&&x.ped===p.id;});
+   R.push([p.quem||despDv(p,/^descri/i)||'Despesa',despDv(p,/^categoria/i),despDv(p,/^valor/i),despDv(p,/^vencimento/i),despDv(p,/^situa/i),p.data||'',despDv(p,/^origem/i)?'Planilha':'Manual',cp.map(function(x){return x.arq||x.n;}).join(', ')]);
+   cp.forEach(function(a){if(temArq(a))A.push({n:'comprovantes/'+(a.arq||a.n),a:a});});});}
+ else{R.push(['Tipo','Modelo','Número','Data','Emitente','CNPJ/CPF do emitente','Tomador','CNPJ/CPF do tomador','Valor','ISS','Descrição','Arquivos']);
+  var fe=['encerrado','auto'].indexOf(cofreStOf(ST,c))>-1,ns=fe?(((ST.cofre||{})[c]||{}).notas||[]):[];
+  ns.forEach(function(n,i){var nf=n.nf||{},fP=gcNfArq(n,'pdf'),fX=gcNfArq(n,'xml');R.push([/Emitidas/.test(n.tipo)?'Emitida (venda)':'Recebida (compra)',nf.mod||'',nf.num||'',nf.dt||'',nf.emitN||nf.emitF||'',nf.emitDoc||'',nf.destN||'',nf.destDoc||'',fv(nf.val),fv(nf.iss),nf.desc||'',[fP&&fP.n,fX&&fX.n].filter(Boolean).join(', ')]);
+   [fP,fX].forEach(function(x){if(x&&temArq(x))A.push({n:(/Emitidas/.test(n.tipo)?'emitidas/':'recebidas/')+x.n,a:x});});});
+  arqList().filter(function(x){return (x.cat==='notas'||x.cat==='notasexp')&&x.or==='cli'&&x.comp===c&&x.ped;}).forEach(function(a){R.push(['Avulsa','','',a.data,'','','','','','',a.n,a.arq||'']);if(temArq(a))A.push({n:'avulsas/'+(a.arq||a.n),a:a});});}
+ done();return {R:R,A:A};}
+function gcExport(g,k){var e=gcEmp(),c=GC.c,D=gcExpDados(g,e,c),nm={notas:'notas',extratos:'extratos',despesas:'despesas'}[g]+'-'+gcSlug(e.fant||e.nome)+'-'+gcSlug(c);
+ if(D.R.length<2){toast('Nada lançado em '+cMes(c)+' para exportar');return;}
+ var csv=new TextEncoder().encode(csvTxt(D.R));if(k==='csv'){salvaBlob(nm+'.csv',new Blob([csv],{type:'text/csv;charset=utf-8'}));return;}
+ var usados={},F=[{n:nm+'.csv',u:csv}],falta=0;toast('Juntando os arquivos…');
+ Promise.all(D.A.map(function(x){var u=arqUrl(x.a);if(!u){falta++;return null;}return fetch(u).then(function(r){if(!r.ok)throw 0;return r.arrayBuffer();}).then(function(b){return {n:x.n,u:new Uint8Array(b)};}).catch(function(){falta++;return null;});}))
+  .then(function(L){L.forEach(function(x){if(!x)return;var n=x.n,i=1;while(usados[n]){n=x.n.replace(/(\.[^.\/]+)?$/,' ('+(++i)+')$1');}usados[n]=1;F.push({n:n,u:x.u});});
+   salvaBlob(nm+'.zip',zipVarios(F));if(falta)setTimeout(function(){toast(falta+(falta>1?' arquivos não estavam guardados e ficaram':' arquivo não estava guardado e ficou')+' só na planilha');},1600);});}
+function gcExpRow(g,ic,t,n,nA){return '<div class="r">'+'<span class="ri">'+(ic||'')+'</span><span class="rt"><span class="a">'+esc(t)+'</span><span class="b">'+(n?n+(n===1?' lançamento':' lançamentos')+(nA?' · '+nA+(nA===1?' arquivo':' arquivos'):''):'Nada lançado neste mês')+'</span></span><span class="gcxb"><button type="button" data-gcx="'+g+':csv"'+(n?'':' disabled')+'>'+(IC.down16||'')+' Planilha</button><button type="button" data-gcx="'+g+':zip"'+(n?'':' disabled')+'>'+(IC.down16||'')+' Arquivos</button></span></div>';}
 function vGestao(a){var q=String(a||'').split('|'),ops=gcComps();if(q[0]&&eById(q[0]))GC.e=q[0];if(q[1]&&gcOk(q[1]))GC.c=q[1];
  var e=gcEmp();B(e.id);arqCofre(ST);var c=gcOk(GC.c)?GC.c:(ops.indexOf(compPad('docs'))>-1?compPad('docs'):ops[1]);GC.c=c;
  var css='<style>.gcg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border-radius:16px;overflow:hidden;margin:0 0 6px}.gcg>div{display:flex;flex-direction:column;gap:2px;padding:10px 12px;background:var(--card);min-width:0}.gcg .gc1{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}.gcg .gc1 svg{width:15px;height:15px}.gcg .gc2{font-weight:700;font-size:13px}.gcg .gc3{font-size:12px;color:var(--muted);overflow-wrap:anywhere}.gcg .ok .gc2{color:var(--okc,#1a7f4b)}.gcg .bad .gc2{color:var(--badc,#c0392b)}.gcg .warn .gc2{color:var(--warnc,#b4541a)}@media (max-width:420px){.gcg{grid-template-columns:1fr}}.sec.gcs{margin-top:16px}.dpxc{width:100%;text-align:left}.dpxc .cv svg{transition:transform .2s}.dpxc[aria-expanded="true"] .cv svg{transform:rotate(90deg)}.dpxl{margin-top:8px}</style>';
- var h=css+NF_CSS+hdr('Gestão contábil','O que o cliente envia ao escritório');
+ var h=css+NF_CSS+GC_CSS+hdr('Gestão contábil','O que o cliente envia ao escritório');
  h+='<button type="button" class="empsw empsel" data-gcemp aria-haspopup="dialog" style="margin:0 0 12px">'+esw(e,1)+'<span>Cliente: '+esc(e.fant||e.nome)+'</span>'+IC.chevd+'</button>';
  h+=gcPerRow('gc-comp',c,'data-gcper');
  /* situação dos envios do mês */
@@ -521,25 +565,29 @@ function vGestao(a){var q=String(a||'').split('|'),ops=gcComps();if(q[0]&&eById(
  var cf=(ST.cofre||{})[c]||{notas:[]},cst=cofreStOf(ST,c),fech=cst==='encerrado'||cst==='auto',ns=fech?(cf.notas||[]):[],all=ns.map(function(n,i){return {n:n,i:i};}),em=all.filter(function(x){return /Emitidas/.test(x.n.tipo);}),rc=all.filter(function(x){return !/Emitidas/.test(x.n.tipo);});
  var tv=function(L){var t=L.reduce(function(s,x){return s+(x.n.nf&&x.n.nf.val||0);},0);return t?' · '+nfMoeda(t):'';},AV=arqList().filter(function(x){return (x.cat==='notas'||x.cat==='notasexp')&&x.or==='cli'&&x.comp===c&&x.ped;});
  var abN=gcAb('gcnf');h+='<section>'+gcBtn('gcnf',IC.nf,'Cofre de notas',[fech?ns.length+(ns.length===1?' nota':' notas')+tv(all):cst==='futuro'?'Ainda não abriu':'Aberto',AV.length?AV.length+(AV.length===1?' avulsa':' avulsas'):''].filter(Boolean).join(' · '))+libBloco(e,'notas','O cliente pediu para carregar notas no cofre de um mês encerrado.');
- if(abN){h+='<div class="dpxl" id="dpx-gcnf">';
- if(!fech)h+='<div class="card"><p class="empty">'+(cst==='futuro'?'O cofre de '+esc(cMes(c))+' ainda não abriu.':'O cofre de '+esc(cMes(c))+' está aberto. As notas chegam aqui quando o cliente encerrar ou em '+fmtP(prazo('notas',c))+'.')+'</p></div>';
- else{h+='<p class="foot" style="margin-top:0">'+(cst==='encerrado'?'Encerrado pelo cliente'+(cf.em?' em '+esc(cf.em):''):'Encerrado automaticamente em '+fmtP(prazo('notas',c)))+'. As notas também estão no arquivo, em Notas fiscais.</p>';
-  if(!ns.length)h+='<div class="card"><p class="empty">Nenhuma nota no cofre de '+esc(cMes(c))+'.</p></div>';}
+ if(abN){h+='<div class="dpxl gcin" id="dpx-gcnf">';
+ var noCf=(cf.notas||[]).length;h+=gcRes([['Notas lançadas',String(fech?ns.length:noCf)+(fech?'':noCf?' no cofre · chegam quando o cofre encerrar':'')+(AV.length?' · '+AV.length+(AV.length===1?' avulsa':' avulsas'):'')],['Cofre',gcEnvTxt('notas',c,{em:cf.em})]]);
+ if(fech&&ns.length||AV.length)h+='<div class="gap"></div><button type="button" class="r solo" data-go="gcnotas-'+e.id+'|'+c+'"><span class="ri">'+GC_EYE+'</span><span class="rt"><span class="a">Visualizar notas</span><span class="b">Ver cada nota, abrir o PDF ou o XML, baixar ou exportar</span></span><span class="cv">'+IC.chev18+'</span></button>';
+ if(!fech)h+='<div class="gap"></div><div class="card"><p class="empty">'+(cst==='futuro'?'O cofre de '+esc(cMes(c))+' ainda não abriu.':'O cofre de '+esc(cMes(c))+' está aberto. As notas chegam aqui quando o cliente encerrar ou em '+fmtP(prazo('notas',c))+'.')+'</p></div>';
+ else if(!ns.length)h+='<div class="gap"></div><div class="card"><p class="empty">Nenhuma nota no cofre de '+esc(cMes(c))+'.</p></div>';
  if(em.length)h+='<div class="sec gcs"><h2>Emitidas (vendas)</h2><span class="s">'+em.length+tv(em)+'</span></div><div class="card">'+em.map(function(x){return gcNota(x.n,x.i,cst);}).join('')+'</div>';
  if(rc.length)h+='<div class="sec gcs"><h2>Recebidas (compras)</h2><span class="s">'+rc.length+tv(rc)+'</span></div><div class="card">'+rc.map(function(x){return gcNota(x.n,x.i,cst);}).join('')+'</div>';
  if(AV.length)h+='<div class="sec gcs"><h2>Notas avulsas</h2><span class="s">'+AV.length+'</span></div><div class="card">'+AV.map(function(x){return docRow(e,x);}).join('')+'</div><p class="foot">Enviadas pelo cliente em Documentos, fora do cofre.</p>';
  h+='</div>';}h+='</section>';
  /* extratos */
  var EX=arqList().filter(function(x){return x.cat==='extratos'&&x.comp===c&&x.or==='cli';}),exC=EX.filter(function(x){return !arqDireto(x)&&(x.st==='enviado'||x.st==='analise');}).length;
- h+='<section>'+gcBtn('gcext',IC.ext,'Extratos bancários',EX.length+(EX.length===1?' extrato':' extratos')+(exC?' · '+exC+' para conferir':''))+libBloco(e,'extratos','O cliente pediu para enviar extratos de um mês encerrado.')+(gcAb('gcext')?'<div class="dpxl" id="dpx-gcext"><div class="card">'+(EX.map(function(x){return docRow(e,x);}).join('')||'<p class="empty">Nenhum extrato enviado em '+esc(cMes(c))+'.</p>')+'</div></div>':'')+'</section>';
+ h+='<section>'+gcBtn('gcext',IC.ext,'Extratos bancários',EX.length+(EX.length===1?' extrato':' extratos')+(exC?' · '+exC+' para conferir':''))+libBloco(e,'extratos','O cliente pediu para enviar extratos de um mês encerrado.')+(gcAb('gcext')?'<div class="dpxl gcin" id="dpx-gcext">'+gcRes([['Extratos lançados',String(EX.length)+(exC?' · '+exC+' para conferir':'')],['Envio',gcEnvTxt('extratos',c)]])+'<div class="gap"></div><div class="card">'+(EX.map(function(x){return docRow(e,x);}).join('')||'<p class="empty">Nenhum extrato enviado em '+esc(cMes(c))+'.</p>')+'</div></div>':'')+'</section>';
  /* despesas e planilha */
  var D=despOf(c).filter(function(p){return !/^Envio de/.test(p.tipo||'');}),tot=0,pl=0,ids={};D.forEach(function(p){tot+=dplVal(String(despDv(p,/^valor/i)).replace(/^R\$\s*/,''));if(despDv(p,/^origem/i))pl++;ids[p.id]=1;});
  var CP=arqList().filter(function(x){return x.cat==='despesas'&&x.or==='cli'&&ids[x.ped];}),encD=encSt('despesas',c);
  var abD=gcAb('gcdesp');h+='<section>'+gcBtn('gcdesp',IC.desp,'Despesas',D.length+(D.length===1?' despesa':' despesas')+(tot?' · '+nfMoeda(tot):''))+libBloco(e,'despesas','O cliente pediu para lançar despesas de um mês encerrado.');
- if(abD){h+='<div class="dpxl" id="dpx-gcdesp">'+(libPeds('despesas').length?'<div class="gap"></div>':'')+'<div class="card pad">'+kv('Lançadas',String(D.length)+(pl?' ('+pl+' pela planilha)':''))+kv('Envio',encD==='encerrado'?'Encerrado pelo cliente':encD==='auto'?'Encerrado no prazo':encD==='aberto'?'Aberto até '+fmtP(prazo('despesas',c))+' · o cliente ainda pode editar':'Ainda não abriu')+'</div>';
+ if(abD){h+='<div class="dpxl gcin" id="dpx-gcdesp">'+gcRes([['Despesas lançadas',String(D.length)+(pl?' ('+pl+' pela planilha)':'')],['Envio',gcEnvTxt('despesas',c)]]);
  h+='<div class="gap"></div><div class="card">'+(D.map(function(p){return gcDesp(e,p);}).join('')||'<p class="empty">Nenhuma despesa lançada em '+esc(cMes(c))+'.</p>')+'</div>';
  if(CP.length)h+='<div class="sec gcs"><h2>Comprovantes</h2><span class="s">'+CP.length+'</span></div><div class="card">'+CP.map(function(x){return docRow(e,x);}).join('')+'</div>';
  h+='</div>';}h+='</section>';
+ /* exportar o mês: planilha e arquivos de cada envio */
+ var XN=gcExpDados('notas',e,c),XE=gcExpDados('extratos',e,c),XD=gcExpDados('despesas',e,c);B(e.id);
+ h+='<section class="gcx">'+sec('Exportar '+cMes(c))+'<div class="card">'+gcExpRow('notas',IC.nf,'Notas fiscais',XN.R.length-1,XN.A.length)+gcExpRow('extratos',IC.ext,'Extratos bancários',XE.R.length-1,XE.A.length)+gcExpRow('despesas',IC.desp,'Despesas',XD.R.length-1,XD.A.length)+'</div><p class="foot">Planilha abre no Excel. Arquivos baixa um ZIP com a planilha e os arquivos enviados pelo cliente.</p></section>';
  /* documentos solicitados */
  var DP=(ST.docsPed||[]).slice().reverse(),SA=arqList().filter(function(x){return x.or==='cli'&&ST.ped.some(function(p){return p.f==='solicitado'&&p.id===x.ped;});});
  h+='<section>'+sec('Documentos solicitados','<button type="button" class="lnk" data-go="novoped-'+e.id+'">Pedir documento</button>')+'<div class="card">'+(DP.map(function(x){var ok=pedFeito(x),lim=pedLim(x),dd=diasAte(lim);return '<div class="r"><span class="ri">'+(IC.req||IC.doc)+'</span><span class="rt"><span class="a">'+esc(pedNome(x))+'</span><span class="b">'+(ok?'Enviado'+(x.em?' em '+esc(x.em):'')+(x.arq?' · '+esc(x.arq):''):'Prazo '+fmtP(lim))+'</span></span>'+(ok?'':pill(dd<0?'bad':dd<=3?'warn':'neutral',dd<0?'Atrasado':'Aguardando'))+'</div>';}).join('')||'<p class="empty">Nenhum documento pedido a este cliente.</p>')+'</div>';
@@ -549,6 +597,28 @@ function vGestao(a){var q=String(a||'').split('|'),ops=gcComps();if(q[0]&&eById(
  var CT=arqList().filter(function(x){return x.or==='ct'&&x.cat==='contabil';}).slice(0,6);
  h+='<section>'+sec('Enviados por você','<button type="button" class="lnk" data-go="novodoc-'+e.id+'|contabil">Enviar</button>')+'<div class="card">'+(CT.map(function(x){return docRow(e,x);}).join('')||'<p class="empty">Nenhum demonstrativo contábil enviado.</p>')+'</div></section>';
  h+='<button type="button" class="r solo" data-go="chk-'+e.id+'|'+c+'"><span class="ri">'+(IC.check16||'')+'</span><span class="rt"><span class="a">Checklist de '+esc(cMes(c))+'</span><span class="b">Marque o que já foi lançado no sistema. O cliente não vê.</span></span><span class="cv">'+IC.chev18+'</span></button>';
+ done();return h;}
+/* ===== notas do cofre: ver cada nota (dados, PDF ou XML na própria tela), baixar e exportar ===== */
+var GCV={};
+function gcNotaV(n,i){var nf=n.nf||{},fP=gcNfArq(n,'pdf'),fX=gcNfArq(n,'xml'),uP=fP&&arqUrl(fP),uX=fX&&arqUrl(fX),em=/Emitidas/.test(n.tipo),v=GCV[i],dd=function(a,b){return b?'<dt>'+esc(a)+'</dt><dd>'+esc(b)+'</dd>':'';};
+ var h='<div class="nfc"><div class="nh"><span class="ri">'+IC.nf+'</span><span class="rt"><span class="a">'+esc(n.nf?nfTitulo(n):n.arq)+'</span><span class="b">'+(em?'Emitida (venda)':'Recebida (compra)')+' · carregada em '+esc(n.data||'—')+'</span></span>'+(nf.val!=null?'<span class="nv">'+nfMoeda(nf.val)+'</span>':'')+'</div>';
+ h+=n.nf?'<dl class="nd">'+dd('Emissão',nf.dt)+dd('Emitente',[nf.emitN||nf.emitF,nf.emitDoc].filter(Boolean).join(' · '))+dd('Tomador',[nf.destN,nf.destDoc].filter(Boolean).join(' · '))+dd('Valor',nf.val!=null?nfMoeda(nf.val):'')+dd('ISS',nf.iss?nfMoeda(nf.iss):'')+dd('Código',nf.cod)+dd('Descrição',nf.desc)+'</dl>':'<p class="nl">Os dados desta nota não foram reconhecidos. Abra o arquivo para conferir.</p>';
+ if(v==='pdf'&&uP)h+='<iframe class="gcpv" src="'+esc(uP)+'" title="'+esc(fP.n)+'"></iframe>';
+ else if(v&&v!=='pdf')h+='<pre class="gcxml">'+esc(v)+'</pre>';
+ h+='<div class="nb">'+(uP||uX?'<button type="button" data-gcver="'+i+'" aria-expanded="'+(!!v)+'">'+GC_EYE+' '+(v?'Fechar':'Ver '+(uP?'PDF':'XML'))+'</button>':'')+(uP?'<button type="button" data-gcaba="'+i+'">Abrir em outra aba</button>':'')+(fP?'<button type="button" data-gcnf="'+i+':pdf">'+(IC.down16||'')+' PDF</button>':'')+(fX?'<button type="button" data-gcnf="'+i+':xml">'+(IC.down16||'')+' XML</button>':'')+(!fP&&!fX?'<button type="button" disabled>Sem arquivo</button>':'')+'</div>';
+ if((fP&&!uP)||(fX&&!uX))h+='<p class="nl">Nota de exemplo ou enviada de outro aparelho: o arquivo foi registrado só pelo nome.</p>';
+ return h+'</div>';}
+function vGcNotas(a){var q=String(a||'').split('|'),e=eById(q[0]);if(!e)return null;var c=gcOk(q[1])?q[1]:GC.c;if(GC.e!==e.id||GC.c!==c)GCV={};GC.e=e.id;GC.c=c;B(e.id);arqCofre(ST);
+ var cst=cofreStOf(ST,c),fech=cst==='encerrado'||cst==='auto',ns=fech?((((ST.cofre||{})[c]||{}).notas)||[]):[],all=ns.map(function(n,i){return {n:n,i:i};}),em=all.filter(function(x){return /Emitidas/.test(x.n.tipo);}),rc=all.filter(function(x){return !/Emitidas/.test(x.n.tipo);}),
+  AV=arqList().filter(function(x){return (x.cat==='notas'||x.cat==='notasexp')&&x.or==='cli'&&x.comp===c&&x.ped;}),tot=function(L){return nfMoeda(L.reduce(function(s0,x){return s0+(x.n.nf&&x.n.nf.val||0);},0));};
+ var h=NF_CSS+GC_CSS+hdr('Notas de '+cMes(c),e.fant||e.nome);
+ h+='<div class="card pad">'+kv('Emitidas (vendas)',esc(em.length+' · '+tot(em)))+kv('Recebidas (compras)',esc(rc.length+' · '+tot(rc)))+kv('Avulsas',String(AV.length))+kv('Cofre',esc(gcEnvTxt('notas',c,{em:((ST.cofre||{})[c]||{}).em})))+'</div>';
+ if(!fech)h+='<div class="note">O cofre de '+esc(cMes(c))+' ainda está aberto. As notas aparecem aqui quando o cliente encerrar ou no fim do prazo.</div>';
+ if(em.length)h+='<section>'+sec('Emitidas (vendas)')+'<div class="card">'+em.map(function(x){return gcNotaV(x.n,x.i);}).join('')+'</div></section>';
+ if(rc.length)h+='<section>'+sec('Recebidas (compras)')+'<div class="card">'+rc.map(function(x){return gcNotaV(x.n,x.i);}).join('')+'</div></section>';
+ if(AV.length)h+='<section>'+sec('Notas avulsas')+'<div class="card">'+AV.map(function(x){return docRow(e,x);}).join('')+'</div><p class="foot">Enviadas pelo cliente em Documentos, fora do cofre. Toque para ver ou baixar.</p></section>';
+ if(!all.length&&!AV.length)h+='<div class="card"><p class="empty">Nenhuma nota em '+esc(cMes(c))+'.</p></div>';
+ h+='<div class="fbar"><button type="button" class="cta" data-gcx="notas:zip">'+IC.down16+' Baixar todas (ZIP)</button><button type="button" class="cta ghost" data-gcx="notas:csv">'+IC.down16+' Exportar planilha</button></div>';
  done();return h;}
 /* ===== departamento pessoal de todos os clientes ===== */
 function vDP(){var A=[],C=[],F=[],P=[],X=[],S=[],SV=[],LF=[],FO=0,EA=0,tot=0;
@@ -708,7 +778,7 @@ function pedRespFim(c,msg,nm,cob,o){B(c.e);var p=ST.ped.filter(function(x){retur
  if(p.f==='recalculo'){p.rc=1;p.cobr=cob?'R$ '+cob:'';avisar(cob?'O contador cobrou R$ '+cob+' pelo recálculo':'Recálculo concluído sem cobrança',p.quem||'Guia','ped-'+p.id);ativ(cob?'Recálculo cobrado: R$ '+cob:'Recálculo concluído, sem cobrança');}
  p.cr=0;delete p.cvis;p.rsn=(p.rsn||0)+1;
  if(nm){p.st='analise';p.gEnv=agora();avisar('Nova guia enviada',lbl+' · abra a guia para concluir','ped-'+p.id);ativ('Nova guia enviada · '+lbl);} /* conclui quando o cliente abrir a guia */
- else{p.st='ok';avisar('Pedido concluído',lbl,'ped-'+p.id);ativ('Pedido concluído · '+lbl);}
+ else{p.st='ok';p.okEm=agora();avisar('Pedido concluído',lbl,'ped-'+p.id);ativ('Pedido concluído · '+lbl);}
  rspClose();commit('Resposta enviada ao cliente');}
 /* novo PDF de uma guia já lançada: atualiza os dados lidos, liga o registro ao novo arquivo e apaga o antigo do armazenamento */
 function guiaTroca(i,nm,o,p){var g=GU[i];
@@ -743,7 +813,7 @@ function pedAct(st){var c=CTX;if(!c)return;B(c.e);var p=ST.ped.filter(function(x
  var gp=pedGuia(p),msg=(($('pd-msg')||{}).value||'').trim(),doc=gp?'':(($('pd-doc')||{}).value||'').trim(),cat=catPed(p),arq=gp?'':fileName('pd-arq'),lbl=p.tipo+(p.quem?' · '+p.quem:'');
  if(!doc&&arq)doc=arq.replace(/\.[^.]+$/,'');
  if(st==='voce'&&!msg&&p.f!=='ferias'){toast('Escreva o que o cliente precisa fazer');var pm=$('pd-msg');pm&&pm.focus();return;}
- p.st=st;p.cr=0;delete p.cvis;delete p.gEnv;p.resp=p.resp||[];p.docs=p.docs||[];
+ p.st=st;if(st==='ok')p.okEm=agora();p.cr=0;delete p.cvis;delete p.gEnv;p.resp=p.resp||[];p.docs=p.docs||[];
  if(st==='voce'&&$('pd-lib')&&$('pd-lib').checked&&gOfPed(p)){var gq=gOfPed(p),dl=dOnly(NOW());dl.setDate(dl.getDate()+7);ST.lib=ST.lib||{};ST.lib[libKey(gq[0],gq[1])]=dl.getFullYear()+'-'+('0'+(dl.getMonth()+1)).slice(-2)+'-'+('0'+dl.getDate()).slice(-2);msg=(msg?msg+' ':'')+'O envio de '+cMes(gq[1])+' foi liberado até '+fmtA(dl)+' para você corrigir.';}
  if(st==='voce')p.pede=msg||('O aviso de férias de '+(p.quem||'')+' está pronto. Confira e assine para o contador seguir.');
  if(msg){p.resp.push([msg,agora()]);ST.chat.push({me:0,t:msg,h:agora(),go:'ped-'+p.id,gl:'Ver pedido'});ST.unread=(ST.unread||0)+1;}
@@ -758,17 +828,28 @@ function temArq(a){return !!(a&&(a.fileId||(window.FILES&&FILES[a.arq]&&FILES[a.
 function baixarArq(a,semMsg){var u=a&&window.arqUrl?arqUrl(a):'';if(!u){toast(semMsg||'Este arquivo foi registrado só pelo nome');return false;}var l=document.createElement('a');l.href=u;l.download=a.arq||a.n||'arquivo';document.body.appendChild(l);l.click();l.remove();toast('Baixando '+(a.arq||a.n));return true;}
 function docRow(e,a,showE){var c=catOf(a.cat);
  return '<button type="button" class="r" data-go="doc-'+e.id+'|'+a.id+'">'+(showE?esw(e,1):'<span class="ri">'+(IC[c[2]]||IC.doc)+'</span>')+'<span class="rt"><span class="a">'+esc(a.n)+'</span><span class="b">'+esc((showE?(e.fant||e.nome)+' · ':'')+(a.cat==='interno'?'Interno · ':'')+(showE?c[1]+' · ':'')+a.data)+'</span></span>'+(temArq(a)?'<span class="dlr" role="button" tabindex="0" aria-label="Baixar '+esc(a.arq||a.n)+'" data-dlrow="'+e.id+'|'+a.id+'">'+IC.down16+'</span>':'')+'</button>';}
+/* status do pedido com a data de cada etapa: o que o pedido não guardou vem do histórico dos arquivos (conferência e conferido) */
+var PEDX={};
+function pedTlDt(p){var AQ=arqDoPed(p.id),ach=function(rx){var r='';AQ.forEach(function(a){(a.h||[]).forEach(function(x){if(!r&&rx.test(x[0]))r=x[1];});});return r;},
+ conf=ach(/^Conferido/i),fim=p.okEm||conf||(p.resp&&p.resp.length?p.resp[p.resp.length-1][1]:'');
+ if(pedDireto(p)&&p.st!=='voce')return {f:[['Enviado pelo cliente',p.data],['Recebido pelo escritório',p.data+' · sem conferência, vai direto']],at:2};
+ var T=pedTl(p,'ct'),F=T.f.map(function(x){return [x[0],x[1]];}),n=F.length;
+ if(T.at>1&&!F[1][1]){var an=p.vis||ach(/confer[eê]ncia/i)||conf;if(an)F[1][1]='Em '+an;}
+ if(n===4&&T.at>2&&!F[2][1]&&fim)F[2][1]=fim;
+ if(T.at>=n&&!F[n-1][1]&&fim)F[n-1][1]=fim;
+ return {f:F,at:T.at};}
 function vDoc(x){var q=x.split('|'),e=eById(q[0]);if(!e)return null;B(e.id);var a=arqGet(q[1]);if(!a){done();return null;}
  if(a.or==='cli'&&typeof a.gi==='number'&&(a.st==='enviado'||a.st==='analise')){guiaPagaConclui(a.ped&&ST.ped.filter(function(x){return x.id===a.ped;})[0],a);setTimeout(function(){save();},0);} /* comprovante aberto: já conclui */
  var c=catOf(a.cat),s=arqSt(a);
  var fases,at,stop;
  if(a.or==='cli'){fases=[['Enviado pelo cliente',a.data],['Em conferência',''],[a.st==='dev'?'Devolvido para correção':'Conferido','']];at={enviado:1,analise:1,ok:3,dev:2}[a.st];if(a.st==='analise')at=1;}
  else{fases=[['Enviado por você',a.data],[a.cat==='interno'?'Guardado no arquivo interno':'Disponível para o cliente',''],[a.st==='paga'?'Guia paga':a.cat==='guias'?'Aberta pelo cliente · concluída':'Visto pelo cliente','']];at=a.cat==='interno'?2:a.st==='disp'?1:3;}
- var h=hdr(a.n,e.fant||e.nome)+'<div class="card pad"><div class="pt"><span class="ri">'+(IC[c[2]]||IC.doc)+'</span><span class="rt"><span class="a">'+esc(a.arq||a.n)+'</span><span class="b">'+esc(c[1])+' · '+esc(a.comp)+'</span></span></div></div>'+(window.arqPreview?arqPreview(a):'');
+ var h=GC_CSS+hdr(a.n,e.fant||e.nome)+'<div class="card pad"><div class="pt"><span class="ri">'+(IC[c[2]]||IC.doc)+'</span><span class="rt"><span class="a">'+esc(a.arq||a.n)+'</span><span class="b">'+esc(c[1])+' · '+esc(a.comp)+'</span></span></div></div>'+(window.arqPreview&&!(viaGest()&&a.cat==='extratos')?arqPreview(a):'');
  if(!dirA0(a)&&!viaGest())h+='<section>'+sec('Acompanhamento')+tline(fases,at)+'</section>';
  h+='<section>'+sec('Onde está guardado')+'<div class="rs"><div class="rv"><span>Cliente</span><span>'+esc(e.nome)+'</span></div><div class="rv"><span>Caminho</span><span>'+esc(e.cnpj)+' / '+esc(a.comp)+' / '+esc(c[1])+'</span></div><div class="rv"><span>Enviado por</span><span>'+(a.or==='ct'?'Escritório':'Cliente')+'</span></div><div class="rv"><span>Quem vê</span><span>'+(a.cat==='interno'?'Só o escritório':'Cliente e escritório')+'</span></div></div></section>';
  if(a.st==='dev')h+='<div class="note"><b>Motivo da devolução:</b> '+esc(a.mot||'')+'</div>';
- if(a.ped){var p=ST.ped.filter(function(x){return x.id===a.ped;})[0];if(p)h+='<button type="button" class="r solo" data-go="ped-'+e.id+'|'+p.id+'"><span class="ri">'+IC.sol+'</span><span class="rt"><span class="a">'+esc(p.tipo)+(p.quem?' · '+esc(p.quem):'')+'</span><span class="b">Pedido #'+esc(p.prot||'')+'</span></span><span class="cv">'+IC.chev18+'</span></button>';}
+ if(a.ped&&viaGest()){var px=ST.ped.filter(function(x){return x.id===a.ped;})[0];if(px){var ab=!!PEDX[a.id],TX=pedTlDt(px);h+='<button type="button" class="r solo pedx" data-pedx="'+a.id+'" aria-expanded="'+ab+'"><span class="ri">'+IC.sol+'</span><span class="rt"><span class="a">'+esc(px.tipo)+(px.quem?' · '+esc(px.quem):'')+'</span><span class="b">Pedido #'+esc(px.prot||'')+' · '+esc(TX.f[Math.min(TX.at,TX.f.length)-1][0])+'</span></span><span class="cv">'+IC.chev18+'</span></button>'+(ab?'<div class="pedxl gcin">'+tline(TX.f,TX.at)+'</div>':'');}}
+ else if(a.ped){var p=ST.ped.filter(function(x){return x.id===a.ped;})[0];if(p)h+='<button type="button" class="r solo" data-go="ped-'+e.id+'|'+p.id+'"><span class="ri">'+IC.sol+'</span><span class="rt"><span class="a">'+esc(p.tipo)+(p.quem?' · '+esc(p.quem):'')+'</span><span class="b">Pedido #'+esc(p.prot||'')+'</span></span><span class="cv">'+IC.chev18+'</span></button>';}
  if(a.h&&a.h.length)h+='<section>'+sec('Histórico')+'<div class="card pad">'+a.h.slice().reverse().map(function(x){return '<div class="rv"><span>'+esc(x[1])+'</span><span>'+esc(x[0])+'</span></div>';}).join('')+'</div></section>';
  var dirA=arqDireto(a),conf=!dirA&&a.or==='cli'&&(a.st==='enviado'||a.st==='analise'),gui=typeof a.gi==='number'&&a.or==='cli';
  if(conf)h+='<div class="fld" id="dv-box" hidden><label class="fl" for="dv-mot">O que precisa ser corrigido?</label><textarea id="dv-mot" rows="3" placeholder="Ex.: O extrato está sem a última semana do mês"></textarea></div>';
@@ -781,7 +862,7 @@ function vDoc(x){var q=x.split('|'),e=eById(q[0]);if(!e)return null;B(e.id);var 
 function guiaPagaConclui(p,a0){var L=p?arqDoPed(p.id).filter(function(a){return a.or==='cli'&&a.st!=='ok';}):[],bx=0;if(a0&&L.indexOf(a0)<0)L.push(a0);
  L.forEach(function(a){var gi=a.gi;arqMove(a,'ok','Conferido ao abrir');if(typeof gi==='number'){baixaGuia(gi);bx=1;}});
  if(p&&!bx){var gi=guiaIdxPed(p);if(gi>-1&&ST.pagas[gi])baixaGuia(gi);}
- if(p&&p.st!=='ok'){p.st='ok';p.vis=p.vis||agora();p.resp=p.resp||[];p.resp.push(['Pagamento conferido pelo escritório',agora()]);p.rsn=(p.rsn||0)+1;avisar('Pedido concluído',p.tipo+(p.quem?' · '+p.quem:''),'ped-'+p.id);ativ('Guia paga conferida · '+(p.quem||''));}}
+ if(p&&p.st!=='ok'){p.st='ok';p.okEm=agora();p.vis=p.vis||agora();p.resp=p.resp||[];p.resp.push(['Pagamento conferido pelo escritório',agora()]);p.rsn=(p.rsn||0)+1;avisar('Pedido concluído',p.tipo+(p.quem?' · '+p.quem:''),'ped-'+p.id);ativ('Guia paga conferida · '+(p.quem||''));}}
 function baixaGuia(i){var g=GU[i];if(!g)return;var pago=ST.pagas[i]||hoje();GU.splice(i,1);GU_PG.unshift([g.n,g.c,g.v,pago]);var np={};Object.keys(ST.pagas).forEach(function(k){var n=+k;if(n<i)np[n]=ST.pagas[k];else if(n>i)np[n-1]=ST.pagas[k];});ST.pagas=np;
  arqList().forEach(function(a){if(typeof a.gi!=='number')return;if(a.gi===i){if(a.or==='ct')arqMove(a,'paga','Guia paga');delete a.gi;}else if(a.gi>i)a.gi--;});
  avisar('Pagamento confirmado',g.n+' · R$ '+g.v,'guias');ativ('Baixa da guia '+g.n.split(' · ')[0]+' de '+g.c);}
@@ -789,7 +870,7 @@ function docAct(k){var c=CTX;if(!c||!c.a)return;var e=B(c.e),a=arqGet(c.a);if(!a
  if(k==='ana'){arqMove(a,'analise','Em conferência pelo escritório');commit('Conferência iniciada');return;}
  if(k==='conf'){var gi=a.gi;arqMove(a,'ok','Conferido pelo escritório');if(a.or==='cli'&&typeof gi==='number')baixaGuia(gi);
   var ped=a.ped&&ST.ped.filter(function(x){return x.id===a.ped;})[0];
-  if(ped&&ped.st==='enviado'){var rest=arqDoPed(ped.id).filter(function(x){return x.or==='cli'&&x.st!=='ok';});if(!rest.length&&['extrato','notas','comprovante','enviar','solicitado','despesas'].indexOf(ped.f)>-1){ped.st='ok';avisar('Pedido concluído',ped.tipo,'ped-'+ped.id);}}
+  if(ped&&ped.st==='enviado'){var rest=arqDoPed(ped.id).filter(function(x){return x.or==='cli'&&x.st!=='ok';});if(!rest.length&&['extrato','notas','comprovante','enviar','solicitado','despesas'].indexOf(ped.f)>-1){ped.st='ok';ped.okEm=agora();avisar('Pedido concluído',ped.tipo,'ped-'+ped.id);}}
   ativ(a.n+' conferido');commit(typeof gi==='number'?'Conferido e baixa registrada':'Documento conferido');return;}
  if(k==='devopen'){var bx=$('dv-box');if(bx){bx.hidden=false;var t=$('dv-mot');t&&t.focus();var bt=SCR.querySelector('[data-ddev]');if(bt){bt.textContent='Enviar devolução';bt.setAttribute('data-ddevok','');bt.removeAttribute('data-ddev');}}return;}
  if(k==='dev'){var m=(($('dv-mot')||{}).value||'').trim();if(!m){toast('Diga o que precisa ser corrigido');$('dv-mot')&&$('dv-mot').focus();return;}
@@ -1259,7 +1340,7 @@ function edSave(){var v={nome:$('ed-n').value.trim(),fant:$('ed-f').value.trim()
 /* ===== botão + em arco, lista de seleção, calendário, troca de cliente, confirmação e roda de temas
    (mesmos componentes e classes do app do cliente) ===== */
 var fab=null,fm=$('fabmenu'),fov=$('fabov'),ftt=$('fabttl');
-var FABT={inicio:'Início',pedidos:'Pedidos',ped:'Pedido',receb:'Recebidos',arquivo:'Documentos',pasta:'Pasta do cliente',doc:'Documento',folha:'Folha',dp:'Departamento Pessoal',colab:'Colaborador',socio:'Sócio',guias:'Guias de impostos',cguia:'Guia',gestao:'Gestão contábil',fecha:'Fechamento do mês',rec:'Recorrência',recnovo:'Recorrência',lote:'Enviar em lote',desp:'Despesas',chk:'Checklist',novodoc:'Enviar documento',novoguia:'Lançar guia',novoped:'Pedir documento',ajustes:'Ajustes',cli:'Cliente',ajuda:'Ajuda'};
+var FABT={inicio:'Início',pedidos:'Pedidos',ped:'Pedido',receb:'Recebidos',arquivo:'Documentos',pasta:'Pasta do cliente',doc:'Documento',folha:'Folha',dp:'Departamento Pessoal',colab:'Colaborador',socio:'Sócio',guias:'Guias de impostos',cguia:'Guia',gestao:'Gestão contábil',gcnotas:'Notas do cofre',fecha:'Fechamento do mês',rec:'Recorrência',recnovo:'Recorrência',lote:'Enviar em lote',desp:'Despesas',chk:'Checklist',novodoc:'Enviar documento',novoguia:'Lançar guia',novoped:'Pedir documento',ajustes:'Ajustes',cli:'Cliente',ajuda:'Ajuda'};
 /* ações do + conforme a tela aberta (até 6, como no app do cliente) */
 function fabItems(){var h=head(cur),a=cur.slice(h.length+1),eid=eById(a.split('|')[0])?a.split('|')[0]:'',
  U=['novodoc','Enviar documento','up'],R=['novoped','Pedir documento','req'],G=['novoguia','Lançar guia','tax'],CH=['msg','Chat','chat'],AJ=['ajuda','Ajuda','duv'],GS=['guias','Guias','tax'],LT=['lote','Enviar em lote','up'],NC=['cli-novo','Novo cliente','plus'],
@@ -1275,7 +1356,7 @@ function fabItems(){var h=head(cur),a=cur.slice(h.length+1),eid=eById(a.split('|
   case 'colab':case 'socio':return [ce,['novoped-'+eid,'Pedir documento','req'],['novodoc-'+eid,'Enviar documento','up'],AJ];
   case 'guias':return [G,LT,CH,AJ];
   case 'cguia':return eid?[['novoguia-'+eid,'Lançar guia','tax'],ce,GS,AJ]:[G,GS,CH,AJ];
-  case 'gestao':return [['fecha','Fechamento','cal'],U,R,CH,AJ];
+  case 'gestao':case 'gcnotas':return [['fecha','Fechamento','cal'],U,R,CH,AJ];
   case 'fecha':return [LT,R,CH,AJ];
   case 'ajustes':return [['#tema','Tema','palette'],NC,CH,AJ];
   case 'cli':return eid?[ce,AJ]:[CH,AJ];
@@ -1403,6 +1484,12 @@ document.addEventListener('click',function(ev){var t=ev.target.closest('[data-dl
  if(t.hasAttribute('data-permv')){permStepC(t.dataset.pk,t.dataset.base,+t.dataset.permv);return;}
  if(t.hasAttribute('data-arqper')){FV['arq-comp']=arqComp();PLT['arq-comp']='Competência';openPer('arq-comp');return;}
  if(t.hasAttribute('data-gcper')){FV['gc-comp']=GC.c;PLT['gc-comp']='Competência';openPer('gc-comp');return;}
+ if(d.pedx){PEDX[d.pedx]=!PEDX[d.pedx];rerender();return;}
+ if(d.gcx){var xq=d.gcx.split(':');gcExport(xq[0],xq[1]);return;}
+ if(d.gcver!=null||d.gcaba!=null){var vi=+(d.gcver!=null?d.gcver:d.gcaba);B(GC.e);var vn=['encerrado','auto'].indexOf(cofreStOf(ST,GC.c))>-1?(((ST.cofre||{})[GC.c]||{}).notas||[])[vi]:null,vP=vn&&gcNfArq(vn,'pdf'),vX=vn&&gcNfArq(vn,'xml'),uP=vP&&arqUrl(vP),uX=vX&&arqUrl(vX);done();
+  if(d.gcaba!=null){if(!(vP&&window.abrirArquivo&&abrirArquivo(vP)))toast('Não foi possível abrir o PDF');return;}
+  if(GCV[vi]){delete GCV[vi];rerender();return;}if(uP){GCV[vi]='pdf';rerender();return;}
+  if(uX)fetch(uX).then(function(r){if(!r.ok)throw 0;return r.text();}).then(function(tx){GCV[vi]=tx.replace(/>\s*</g,'>\n<');rerender();}).catch(function(){toast('Não foi possível abrir o XML');});return;}
  if(d.gcnf){var gq=d.gcnf.split(':');B(GC.e);var gn=['encerrado','auto'].indexOf(cofreStOf(ST,GC.c))>-1?(((ST.cofre||{})[GC.c]||{}).notas||[])[+gq[0]]:null,gf=gn&&gcNfArq(gn,gq[1]);done();if(!gf){toast('Esta nota não tem '+String(gq[1]).toUpperCase());return;}baixarArq(gf,'Nota de exemplo: o arquivo '+String(gq[1]).toUpperCase()+' não foi guardado');return;}
  if(d.go==='arquivo'&&cur!=='arquivo'&&!/^pasta-/.test(cur))ARQC=''; /* Documentos abre no mês do sistema */
  if(d.ctnt){NLIDAS[d.ctnt]=1;nlSave();go(d.ntgo);return;}
