@@ -934,9 +934,11 @@ function cfgTeste(){var n=NOW(),v=n.getFullYear()+'-'+('0'+(n.getMonth()+1)).sli
 var APAGA_SEC=[['socios','Sócios'],['colab','Colaboradores'],['afast','Afastamentos'],['ferias','Férias'],['medida','Medida disciplinar'],['folha','Folha de pagamento'],['vari','Variáveis rápidas'],['desp','Despesas'],['extr','Extratos bancários'],['notas','Notas'],['docs','Documentos solicitados']];
 /* janela de teste (sem CSS de arquivo): fundo escuro e caixa no tema do app */
 function apModal(tit,nota,corpo,okTxt,okFn){
+ /* cores fixas: a janela fica fora do contêiner do tema e as variáveis do app não chegam nela */
  var ov=document.createElement('div');ov.id='ov-ap';ov.setAttribute('role','dialog');ov.setAttribute('aria-label',tit);
- ov.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px';
- ov.innerHTML='<div style="background:var(--card,#fff);color:var(--fg,#17181B);border:1px solid var(--line,#D6DED9);border-radius:18px;width:100%;max-width:380px;max-height:86vh;overflow:auto;padding:18px"><h3 style="margin:0 0 4px;font-size:16px">'+tit+'</h3><p style="margin:0 0 12px;font-size:12.5px;color:var(--sub,#5F6670)">'+nota+'</p>'+corpo+'<div style="display:flex;gap:8px;margin-top:14px"><button type="button" class="wb" style="flex:1" id="ap-no">Cancelar</button><button type="button" class="wb red" style="flex:1" id="ap-ok">'+okTxt+'</button></div></div>';
+ ov.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:16px;color-scheme:light';
+ var bt='flex:1;height:44px;border-radius:14px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer';
+ ov.innerHTML='<div style="background:#fff;color:#17181B;border:1px solid #D6DED9;border-radius:18px;width:100%;max-width:380px;max-height:88vh;max-height:88dvh;display:flex;flex-direction:column;overflow:hidden"><div style="padding:18px 18px 8px"><h3 style="margin:0 0 4px;font-size:17px;color:#17181B">'+tit+'</h3><p style="margin:0;font-size:12.5px;color:#5F6670">'+nota+'</p></div><div style="flex:1;overflow:auto;padding:0 18px;-webkit-overflow-scrolling:touch">'+corpo+'</div><div style="display:flex;gap:8px;padding:12px 18px 16px;border-top:1px solid #D6DED9;background:#fff"><button type="button" id="ap-no" style="'+bt+';background:#fff;border:1px solid #B8C4BD;color:#17181B">Cancelar</button><button type="button" id="ap-ok" style="'+bt+';background:#C2410C;border:1px solid #C2410C;color:#fff">'+okTxt+'</button></div></div>';
  document.body.appendChild(ov);
  ov.onclick=function(ev){if(ev.target===ov)ov.remove();};
  document.getElementById('ap-no').onclick=function(){ov.remove();};
@@ -944,14 +946,14 @@ function apModal(tit,nota,corpo,okTxt,okFn){
 }
 function apDepois(){if(window.save)save();if(window.__refresh)window.__refresh();else location.reload();}
 function apagaSelOpen(){
- var corpo=APAGA_SEC.map(function(s){return '<label style="display:flex;align-items:center;gap:10px;padding:9px 2px;font-size:14px;border-top:1px solid var(--line,#D6DED9)"><input type="checkbox" value="'+s[0]+'" style="width:18px;height:18px"> '+s[1]+'</label>';}).join('');
+ var corpo=APAGA_SEC.map(function(s){return '<label style="display:flex;align-items:center;gap:12px;padding:11px 2px;font-size:15px;color:#17181B;border-top:1px solid #E3E9E5"><input type="checkbox" value="'+s[0]+'" style="width:20px;height:20px;accent-color:#C2410C;flex:none"> '+s[1]+'</label>';}).join('');
  apModal('Apagar o que for marcado','Só sai o que estiver marcado, em todas as empresas. Não dá para desfazer.',corpo,'Apagar marcados',function(ov){
   var ks=[].slice.call(ov.querySelectorAll('input:checked')).map(function(i){return i.value;});
   if(!ks.length)return false;apagaSel(ks);apDepois();});
 }
 /* Criar exemplos: quantidade por seção, na empresa aberta e no mês da data do sistema */
 function exemplosOpen(){
- var corpo=APAGA_SEC.map(function(s){return '<label style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 2px;font-size:14px;border-top:1px solid var(--line,#D6DED9)"><span>'+s[1]+'</span><input type="number" min="0" max="20" value="0" data-ex="'+s[0]+'" inputmode="numeric" style="width:64px;height:36px;text-align:center;border:1px solid var(--line,#D6DED9);border-radius:10px;background:transparent;color:inherit;font-size:14px"></label>';}).join('');
+ var corpo=APAGA_SEC.map(function(s){return '<label style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 2px;font-size:15px;color:#17181B;border-top:1px solid #E3E9E5"><span>'+s[1]+'</span><input type="number" min="0" max="20" value="0" data-ex="'+s[0]+'" inputmode="numeric" style="width:68px;height:38px;text-align:center;border:1px solid #B8C4BD;border-radius:10px;background:#fff;color:#17181B;font-size:15px"></label>';}).join('');
  apModal('Criar exemplos','Quantos exemplos criar em cada seção (0 a 20). Entram na empresa aberta, no mês da data do sistema.',corpo,'Criar exemplos',function(ov){
   var q={},t=0;[].slice.call(ov.querySelectorAll('input[data-ex]')).forEach(function(i){var v=Math.max(0,Math.min(20,parseInt(i.value,10)||0));if(v){q[i.dataset.ex]=v;t+=v;}});
   if(!t)return false;criaExemplos(q);apDepois();});
