@@ -944,6 +944,7 @@ function apModal(tit,nota,corpo,okTxt,okFn){
  document.getElementById('ap-no').onclick=function(){ov.remove();};
  document.getElementById('ap-ok').onclick=function(){if(okFn(ov)!==false)ov.remove();};
 }
+function apFim(){var o=document.getElementById('ov-ap');if(o)o.remove();apDepois();}
 function apDepois(){if(window.save)save();if(window.__refresh)window.__refresh();else location.reload();}
 function apagaSelOpen(){
  var corpo=APAGA_SEC.map(function(s){return '<label style="display:flex;align-items:center;gap:12px;padding:11px 2px;font-size:15px;color:#17181B;border-top:1px solid #E3E9E5"><input type="checkbox" value="'+s[0]+'" style="width:20px;height:20px;accent-color:#C2410C;flex:none"> '+s[1]+'</label>';}).join('');
@@ -956,27 +957,107 @@ function exemplosOpen(){
  var corpo=APAGA_SEC.map(function(s){return '<label style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 2px;font-size:15px;color:#17181B;border-top:1px solid #E3E9E5"><span>'+s[1]+'</span><input type="number" min="0" max="20" value="0" data-ex="'+s[0]+'" inputmode="numeric" style="width:68px;height:38px;text-align:center;border:1px solid #B8C4BD;border-radius:10px;background:#fff;color:#17181B;font-size:15px"></label>';}).join('');
  apModal('Criar exemplos','Quantos exemplos criar em cada seção (0 a 20). Entram na empresa aberta, no mês da data do sistema.',corpo,'Criar exemplos',function(ov){
   var q={},t=0;[].slice.call(ov.querySelectorAll('input[data-ex]')).forEach(function(i){var v=Math.max(0,Math.min(20,parseInt(i.value,10)||0));if(v){q[i.dataset.ex]=v;t+=v;}});
-  if(!t)return false;criaExemplos(q);apDepois();});
+  if(!t)return false;var bt=document.getElementById('ap-ok');if(bt){bt.disabled=true;bt.textContent='Criando…';}Promise.resolve(criaExemplos(q)).then(apFim,function(er){try{console.error(er);}catch(x){}apFim();});return false;});
 }
+/* ===== Criar exemplos completos: cada registro sai com todos os campos e, quando existe, com o arquivo ===== */
+function exCpf(s){var n=String((s*7919+123456789)%1000000000);while(n.length<9)n='0'+n;var b=n.split('').map(Number),t=0,i;if(b.every(function(x){return x===b[0];}))b[8]=(b[8]+1)%10;for(i=0;i<9;i++)t+=b[i]*(10-i);var d1=(t*10)%11%10;t=0;for(i=0;i<9;i++)t+=b[i]*(11-i);t+=d1*2;var d2=(t*10)%11%10,x=b.join('')+d1+d2;return x.slice(0,3)+'.'+x.slice(3,6)+'.'+x.slice(6,9)+'-'+x.slice(9);}
+function exCnpj(s){var n=String((s*104729+12345678)%100000000);while(n.length<8)n='0'+n;var d=(n+'0001').split('').map(Number),w1=[5,4,3,2,9,8,7,6,5,4,3,2],w2=[6,5,4,3,2,9,8,7,6,5,4,3,2],t=0,i,r;for(i=0;i<12;i++)t+=d[i]*w1[i];r=t%11;d.push(r<2?0:11-r);t=0;for(i=0;i<13;i++)t+=d[i]*w2[i];r=t%11;d.push(r<2?0:11-r);var x=d.join('');return x.slice(0,2)+'.'+x.slice(2,5)+'.'+x.slice(5,8)+'/'+x.slice(8,12)+'-'+x.slice(12);}
+/* PDF simples de uma página (texto em Latin-1), para os arquivos de exemplo abrirem de verdade */
+function exPdf(tit,linhas){function es(t){return String(t).replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');}
+ var c='BT /F1 16 Tf 50 790 Td ('+es(tit)+') Tj /F1 11 Tf 0 -26 Td 16 TL ';linhas.forEach(function(l){c+='('+es(l)+') Tj T* ';});c+='ET';
+ var o=['<</Type/Catalog/Pages 2 0 R>>','<</Type/Pages/Kids[3 0 R]/Count 1>>','<</Type/Page/Parent 2 0 R/MediaBox[0 0 595 842]/Contents 4 0 R/Resources<</Font<</F1 5 0 R>>>>>>','<</Length '+c.length+'>>\nstream\n'+c+'\nendstream','<</Type/Font/Subtype/Type1/BaseFont/Helvetica/Encoding/WinAnsiEncoding>>'],s='%PDF-1.4\n',off=[];
+ o.forEach(function(x,i){off.push(s.length);s+=(i+1)+' 0 obj\n'+x+'\nendobj\n';});var xr=s.length;
+ s+='xref\n0 6\n0000000000 65535 f \n'+off.map(function(p){return ('0000000000'+p).slice(-10)+' 00000 n \n';}).join('')+'trailer\n<</Size 6/Root 1 0 R>>\nstartxref\n'+xr+'\n%%EOF';
+ var u=new Uint8Array(s.length);for(var i=0;i<s.length;i++)u[i]=s.charCodeAt(i)&255;return u;}
 function criaExemplos(q){
- var e=EMP(),n0=NOW(),c=cName(n0.getFullYear(),n0.getMonth()),h=hoje(),mm=('0'+(n0.getMonth()+1)).slice(-2),k=0;
- var L=new Date(n0.getTime()+10*864e5),lim=L.getFullYear()+'-'+('0'+(L.getMonth()+1)).slice(-2)+'-'+('0'+L.getDate()).slice(-2);
- var NM=['Paula Mendes','Diego Ramos','Larissa Costa','Tiago Nunes','Camila Rocha','Bruno Alves','Fernanda Lima','Rafael Dias'];
- function nome(lista,i){var b=NM[i%NM.length],n=b+(i>=NM.length?' '+(Math.floor(i/NM.length)+1):'');return n;}
- function pd(f,tipo,quem,dados){ST.n++;ST.ped.unshift({id:'p'+ST.n,f:f,tipo:tipo,quem:quem,data:'Pedido em '+h,st:'enviado',prot:'2026-'+ST.n,dados:dados,em:h});}
- function pessoa(i){var l=funcAtivos();return l.length?l[i%l.length]:'Colaborador exemplo';}
- var i;
- if(q.socios){e.socios=e.socios||{};for(i=0,k=0;i<q.socios;k++){var sn='Sócio exemplo '+(k+1);if(e.socios[sn])continue;e.socios[sn]={cpf:'000.000.000-00',nasc:'1980-01-01',gen:'Feminino',mae:'—',pai:'—',ecivil:'Solteiro(a)',tel:'(11) 90000-0000',email:'exemplo@exemplo.com',end:'—'};i++;}}
- if(q.colab){e.func=e.func||{};for(i=0,k=0;i<q.colab;k++){var cn=nome(null,k);if(e.func[cn])continue;e.func[cn]={c:'Auxiliar administrativo',adm:'01/'+mm+'/'+n0.getFullYear(),sal:'2.000,00',jor:'44h semanais'};i++;}FUNCD=e.func;FUNC=funcAtivos();}
- for(i=0;i<(q.afast||0);i++)pd('afastamento','Afastamento',pessoa(i),[['Funcionário',pessoa(i)],['Motivo','Doença'],['Quantidade de dias','3']]);
- for(i=0;i<(q.ferias||0);i++)pd('ferias','Férias',pessoa(i),[['Funcionário',pessoa(i)],['Dias de férias','30']]);
- for(i=0;i<(q.medida||0);i++)pd('medida','Medida disciplinar',pessoa(i),[['Funcionário',pessoa(i)],['Tipo de medida','Advertência verbal']]);
- for(i=0;i<(q.vari||0);i++)pd('variaveis','Variáveis rápidas · '+c,'Todos os colaboradores',[['Mês da folha',c]]);
- for(i=0;i<(q.desp||0);i++){ST.desp=ST.desp||{};ST.desp[c]=1;pd('despesas','Despesa · '+c,'Despesa exemplo '+(i+1),[['Competência',c],['Categoria','Energia elétrica']]);}
- if(q.folha){ST.folhas=ST.folhas||[];for(i=0;i<q.folha;i++){ST.n++;ST.folhas.push({id:'fx'+ST.n,comp:c,func:pessoa(i),tipo:'Mensal',st:'fechada',vars:{},obs:'',data:h});}}
- if(q.extr){ST.extr=ST.extr||{};var xl=ST.extr[c]=ST.extr[c]||[];for(i=0;i<q.extr;i++){ST.n++;xl.push({banco:['Itaú','Bradesco','Nubank','Inter'][i%4],arq:'extrato-exemplo-'+ST.n+'.pdf',data:h});}}
- if(q.notas){ST.cofre=ST.cofre||{};var cf=ST.cofre[c]=ST.cofre[c]||{notas:[],st:''};cf.notas=cf.notas||[];for(i=0;i<q.notas;i++){ST.n++;cf.notas.push({arq:'NF-exemplo-'+ST.n+'.xml',tipo:i%2?'Recebidas (compras)':'Emitidas (vendas)',data:h});}}
- if(q.docs){for(i=0;i<q.docs;i++){ST.n++;docsPed().push({id:'dx'+ST.n,t:'Enviar documento de exemplo '+(i+1),lim:lim,go:'f-solicitado'});}}
+ var e=EMP(),n0=NOW(),c=cName(n0.getFullYear(),n0.getMonth()),h=hoje(),FL=[],i,k;
+ function d2(n){return ('0'+n).slice(-2);}
+ function dmy(dt){return d2(dt.getDate())+'/'+d2(dt.getMonth()+1)+'/'+dt.getFullYear();}
+ function iso(dt){return dt.getFullYear()+'-'+d2(dt.getMonth()+1)+'-'+d2(dt.getDate());}
+ function mais(n){return new Date(n0.getFullYear(),n0.getMonth(),n0.getDate()+n);}
+ function dnoMes(d){return d2(d)+'/'+d2(n0.getMonth()+1)+'/'+n0.getFullYear();}
+ function brl(v){return 'R$ '+fmt(v);}
+ function slug(t){return String(t).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
+ function arqF(nome,cont,tipo){FL.push(new File([cont],nome,{type:tipo}));return nome;}
+ function pdf(nome,tit,linhas){return arqF(nome,exPdf(tit,linhas),'application/pdf');}
+ function pd(f,tipo,quem,dados,st){ST.n++;var id='p'+ST.n;ST.ped.unshift({id:id,f:f,tipo:tipo,quem:quem,data:'Pedido em '+h,st:st||'enviado',prot:'2026-'+ST.n,dados:dados,em:h});return id;}
+ function doc(o){return arqAdd(o);}
+ var PN=['Paula','Diego','Larissa','Tiago','Camila','Rafael','Fernanda','Gustavo','Beatriz','Henrique'],PS=['Mendes Rocha','Ramos Lima','Costa Nunes','Alves Dias','Barbosa Pires','Teixeira Souza','Carvalho Melo','Freitas Moura'];
+ var END=[['04538-132','Avenida Brigadeiro Faria Lima','3477','Apto 81','Itaim Bibi','São Paulo','SP'],['01310-100','Avenida Paulista','1578','Sala 12','Bela Vista','São Paulo','SP'],['03178-200','Rua da Mooca','990','Casa 2','Mooca','São Paulo','SP'],['05422-030','Rua dos Pinheiros','720','Apto 12','Pinheiros','São Paulo','SP'],['09015-000','Rua Senador Flaquer','210','','Centro','Santo André','SP'],['13015-904','Rua Barão de Jaguara','1481','Apto 45','Centro','Campinas','SP']];
+ var CARG=[['Auxiliar administrativo','2.200,00'],['Analista de design','3.800,00'],['Atendente','2.050,00'],['Assistente financeiro','2.900,00'],['Designer júnior','3.100,00']];
+ var ECIV=['Solteiro(a)','Casado(a)','União estável','Divorciado(a)'],ESC=['Médio completo','Superior incompleto','Superior completo','Pós-graduação'],RACA=['Branca','Parda','Preta','Amarela'];
+ function nomeK(j){return PN[j%PN.length]+' '+PS[(j*3+1)%PS.length];}
+ function tel(j){return '(11) 9'+(7000+j*137)%10000+'-'+('0000'+(1000+j*911)%10000).slice(-4);}
+ function endStr(a){return a[1]+', '+a[2]+(a[3]?' · '+a[3]:'')+' · '+a[4]+' · '+a[5]+'/'+a[6]+' · '+a[0];}
+ /* sócios */
+ if(q.socios){e.socios=e.socios||{};for(i=0,k=0;i<q.socios;k++){var sn=nomeK(k+4);if(e.socios[sn])continue;var sa=END[(k+2)%END.length],sf=slug(sn).replace(/-/g,'.');
+  e.socios[sn]={cpf:exCpf(ST.n+k+501),nasc:(1975+k%15)+'-'+d2(1+(k*5)%12)+'-'+d2(2+(k*7)%26),gen:k%2?'Masculino':'Feminino',mae:'Helena '+sn.split(' ').slice(-1)[0],pai:'Carlos '+sn.split(' ').slice(-1)[0],ecivil:ECIV[k%4],tel:tel(k+20),email:sf+'@empresa.exemplo',end:endStr(sa)};
+  if(typeof SOCD!=='undefined')SOCD[sn]={p:'10%',pl:'1.500,00'};i++;}}
+ /* colaboradores: cadastro completo, com RG e carteira de trabalho em arquivo */
+ if(q.colab){e.func=e.func||{};for(i=0,k=0;i<q.colab;k++){var nm=nomeK(k);if(e.func[nm])continue;var cg=CARG[k%CARG.length],ad=new Date(n0.getFullYear()-1,n0.getMonth(),1+k%20),cpf=exCpf(ST.n+k+1),cd=cpf.replace(/\D/g,''),a=END[k%END.length],pn=nm.split(' ')[0],ul=nm.split(' ').slice(-1)[0];
+  e.func[nm]={c:cg[0],adm:dmy(ad),sal:cg[1],jor:'44h semanais',cpf:cpf,nasc:(1985+k%12)+'-'+d2(1+(k*5)%12)+'-'+d2(3+(k*7)%25),gen:k%2?'Masculino':'Feminino',nac:'Brasileira',mae:'Maria '+ul,pai:'José '+ul,ecivil:ECIV[k%4],esc:ESC[k%4],raca:RACA[k%4],pcd:false,tel:tel(k),email:slug(nm).replace(/-/g,'.')+'@email.com',end:{cep:a[0],rua:a[1],num:a[2],comp:a[3],bairro:a[4],cidade:a[5],uf:a[6]},emerg:{n:'Contato de '+pn,rel:'mãe',tel:tel(k+50)},deps:k%3===0?[{nome:'Filho de '+pn,par:'Filho(a)',cpf:exCpf(ST.n+k+301),nasc:'2018-05-1'+(k%9)}]:[],tipo:'Celetista',ctpsN:cd.slice(0,7),ctpsS:cd.slice(7),rg:(10+k*7)+'.'+(300+k*13)+'.'+(100+k*9)+'-'+(k%9+1)+' SSP/SP',pis:(function(){var p=('1'+('0000000000'+(23456789+k*9113)).slice(-10));return p.slice(0,3)+'.'+p.slice(3,8)+'.'+p.slice(8,10)+'-'+p.slice(10);})(),jornada:jorPadrao(),fv:'Em dia'};
+  var rgn=pdf('rg-'+slug(nm)+'.pdf','RG - '+nm,['Nome: '+nm,'CPF: '+cpf,'RG: '+e.func[nm].rg,'Nascimento: '+e.func[nm].nasc,'Documento de exemplo para teste.']);
+  var ctn=pdf('ctps-'+slug(nm)+'.pdf','Carteira de trabalho digital - '+nm,['Nome: '+nm,'CTPS: '+e.func[nm].ctpsN+' série '+e.func[nm].ctpsS,'Admissão: '+e.func[nm].adm,'Cargo: '+cg[0],'Documento de exemplo para teste.']);
+  doc({n:'RG',arq:rgn,cat:'dp',quem:nm,comp:c,or:'cli',st:'enviado'});doc({n:'Carteira de trabalho',arq:ctn,cat:'dp',quem:nm,comp:c,or:'cli',st:'enviado'});i++;}
+  FUNCD=e.func;FUNC=funcAtivos();}
+ var PS_=funcAtivos();function pessoa(j){return PS_.length?PS_[j%PS_.length]:'Colaborador exemplo';}
+ /* afastamentos */
+ var MOT=['Doença','Doença (15 dias ou mais)','Acidente de trabalho','Licença-paternidade'];
+ for(i=0;i<(q.afast||0);i++){var pa=pessoa(i),ini=mais(-(i+2)*4),dias=[3,16,5,5][i%4],ret=new Date(ini.getFullYear(),ini.getMonth(),ini.getDate()+dias);
+  var lf=pdf('atestado-'+slug(pa)+'-'+(ST.n+1)+'.pdf','Atestado médico',['Paciente: '+pa,'Afastamento: '+dias+' dias a partir de '+dmy(ini),'CID: J06','Médico: Dra. Marina Teles, CRM 123456/SP','Documento de exemplo para teste.']);
+  var pid=pd('afastamento','Afastamento',pa,[['Funcionário',pa],['Motivo',MOT[i%4]],['Afastar por','Dias'],['Primeiro dia de afastamento',dmy(ini)],['Quantidade de dias',String(dias)],['Previsão de retorno',dmy(ret)],['Atestado, laudo ou certidão',lf],['Observações','Exemplo completo gerado para teste']]);
+  doc({n:'Atestado médico',arq:lf,cat:'dp',quem:pa,comp:c,or:'cli',ped:pid});}
+ /* férias */
+ for(i=0;i<(q.ferias||0);i++){var pf=pessoa(i),fi=mais(30+i*45);
+  pd('ferias','Férias',pf,[['Funcionário',pf],['Início das férias',dmy(fi)],['Dias de férias','30'],['Vender 1/3 das férias (abono)?',i%2?'Sim':'Não'],['Adiantar 1ª parcela do 13º?',i%2?'Não':'Sim']]);try{ferMarca(pf);}catch(x){}}
+ /* medida disciplinar */
+ var TM=['Advertência verbal','Advertência escrita','Suspensão'];
+ for(i=0;i<(q.medida||0);i++){var pm=pessoa(i),tm=TM[i%3],dm=mais(-(i+1)*3),df=[['Funcionário',pm],['Tipo de medida',tm]];if(tm==='Suspensão')df.push(['Dias de suspensão','2']);
+  var af=pdf('ocorrencia-'+slug(pm)+'-'+(ST.n+1)+'.pdf','Registro de ocorrência',['Funcionário: '+pm,'Data: '+dmy(dm),'Medida: '+tm,'Atraso reiterado sem justificativa nas últimas semanas.','Documento de exemplo para teste.']);
+  df.push(['Data da ocorrência',dmy(dm)],['O que aconteceu','Atraso reiterado sem justificativa nas últimas semanas'],['Anexos',af]);
+  var pm2=pd('medida','Medida disciplinar',pm,df);doc({n:'Registro de ocorrência',arq:af,cat:'dp',quem:pm,comp:c,or:'cli',ped:pm2});}
+ /* variáveis rápidas: um lote com todos os colaboradores e um arquivo por colaborador */
+ for(i=0;i<(q.vari||0);i++){var grid={},nl=Math.min(5,PS_.length);ST.lotes=ST.lotes||[];
+  for(k=0;k<nl;k++){grid[PS_[k]]={h50:String(2+k+i),fd:k%2?'1':'',adi:k%2?'':'400,00',com:'250,00'};}
+  var pv=pd('variaveis','Variáveis rápidas · '+c,nl+(nl===1?' colaborador':' colaboradores'),[['Mês da folha',c],['Funcionários',nl+(nl===1?' colaborador':' colaboradores')]]);
+  ST.lotes.push({id:'lx'+pv,comp:c,grid:grid,txt:nl+(nl===1?' colaborador':' colaboradores'),ped:pv,data:h,h:''});
+  Object.keys(grid).forEach(function(nn){var g=grid[nn],ls=['Colaborador: '+nn,'Competência: '+c];VQ.forEach(function(v){if(g[v[0]])ls.push(v[1]+': '+(v[2]==='R$'?'R$ '+g[v[0]]:g[v[0]]+' '+v[2]));});
+   doc({n:'Variáveis · '+nn,arq:pdf('variaveis-'+slug(nn)+'-'+pv+'.pdf','Variáveis rápidas',ls.concat(['Documento de exemplo para teste.'])),cat:'folha',quem:nn,comp:c,or:'cli',ped:pv});});}
+ /* despesas */
+ var DV=[['Energia elétrica','Conta de energia do escritório',412.37,'Variável','Paga'],['Aluguel','Aluguel da sala comercial',3200,'Fixa','A pagar'],['Internet e telefone','Plano de internet fibra',189.9,'Fixa','Paga'],['Software e assinaturas','Assinatura de software de design',249,'Fixa','A pagar'],['Material de escritório','Papel, toner e canetas',356.8,'Variável','Paga']];
+ for(i=0;i<(q.desp||0);i++){var dv=DV[i%DV.length],dd=dnoMes(2+(i*3)%24),dvc=dnoMes(Math.min(28,5+(i*3)%22)),cp=pdf('comprovante-despesa-'+(ST.n+1)+'.pdf','Comprovante de despesa',['Categoria: '+dv[0],'Descrição: '+dv[1],'Valor: '+brl(dv[2]),'Emissão: '+dd,'Vencimento: '+dvc,'Documento de exemplo para teste.']);
+  ST.desp=ST.desp||{};ST.desp[c]=1;var pdp=pd('despesas','Cadastrar despesa',dv[1],[['Competência',c],['Categoria',dv[0]],['Descrição',dv[1]],['Valor',brl(dv[2])],['Emissão',dd],['Vencimento',dvc],['Tipo',dv[3]],['Situação',dv[4]],['Lançamento','Única'],['Comprovante',cp],['Observações','Exemplo completo gerado para teste']]);
+  doc({n:'Comprovante · '+dv[1],arq:cp,cat:'despesas',comp:c,or:'cli',ped:pdp});}
+ /* folhas fechadas, com o pedido e o holerite */
+ for(i=0;i<(q.folha||0);i++){var pg=pessoa(i),sal=(FUNCD[pg]&&FUNCD[pg].sal)||'2.200,00';ST.folhas=ST.folhas||[];ST.n++;var fid='fx'+ST.n;
+  ST.folhas.push({id:fid,comp:c,func:pg,tipo:'Mensal',st:'fechada',vars:{he:{p:'50',h:String(4+i)},com:'250,00'},obs:'Exemplo completo gerado para teste',criada:h,data:h});
+  var pfo=pd('folha','Folha de '+c.split('/')[0]+' · '+pg,pg,[['Competência',c],['Colaborador',pg],['Tipo de folha','Mensal'],['Observações','Exemplo completo gerado para teste']],'ok');
+  doc({n:'Holerite · '+pg,arq:pdf('holerite-'+slug(pg)+'-'+fid+'.pdf','Holerite - '+c,['Colaborador: '+pg,'Salário base: R$ '+sal,'Hora extra 50%: '+(4+i)+' h','Comissão: R$ 250,00','Documento de exemplo para teste.']),cat:'folha',quem:pg,comp:c,or:'ct',st:'disp',ped:pfo});}
+ /* extratos bancários, com o arquivo OFX */
+ var BK=[['Itaú','341'],['Bradesco','237'],['Nubank','260'],['Inter','077']];
+ for(i=0;i<(q.extr||0);i++){var bk=BK[i%BK.length];ST.n++;var xn='extrato-'+slug(bk[0])+'-'+ST.n+'.ofx',tx='',sd=0;
+  for(k=0;k<8;k++){var vl=(k%3===0?1:-1)*(180+k*97.5);sd+=vl;tx+='<STMTTRN><TRNTYPE>'+(vl>0?'CREDIT':'DEBIT')+'</TRNTYPE><DTPOSTED>'+n0.getFullYear()+d2(n0.getMonth()+1)+d2(2+k*3)+'</DTPOSTED><TRNAMT>'+vl.toFixed(2)+'</TRNAMT><FITID>'+ST.n+k+'</FITID><MEMO>'+(vl>0?'Recebimento cliente ':'Pagamento fornecedor ')+(k+1)+'</MEMO></STMTTRN>\n';}
+  arqF(xn,'OFXHEADER:100\nDATA:OFXSGML\nVERSION:102\n\n<OFX><BANKMSGSRSV1><STMTTRNRS><STMTRS><CURDEF>BRL</CURDEF><BANKACCTFROM><BANKID>'+bk[1]+'</BANKID><ACCTID>12345-'+i+'</ACCTID><ACCTTYPE>CHECKING</ACCTTYPE></BANKACCTFROM><BANKTRANLIST>\n'+tx+'</BANKTRANLIST><LEDGERBAL><BALAMT>'+sd.toFixed(2)+'</BALAMT></LEDGERBAL></STMTRS></STMTTRNRS></BANKMSGSRSV1></OFX>\n','text/plain');
+  ST.extr=ST.extr||{};(ST.extr[c]=ST.extr[c]||[]).push({banco:bk[0],arq:xn,data:h});
+  var px=pd('extrato','Extrato bancário',c,[['Descrição','Conta corrente PJ · '+bk[0]],['Competência',c],['Arquivo do extrato',xn]]);
+  doc({n:'Extrato · '+bk[0],arq:xn,cat:'extratos',comp:c,or:'cli',ped:px});}
+ /* notas fiscais: XML e PDF, com todos os dados da nota */
+ var CL=[['Estúdio Pomar Comunicação Ltda.','Identidade visual completa: logotipo, manual de marca e papelaria.',4800],['Casa Ipê Arquitetura Eireli','Design de embalagens para linha de cosméticos (3 peças).',2350],['Verde Vale Alimentos S.A.','Redesenho de rótulos e materiais de ponto de venda.',6200],['Clínica Sorriso Pleno Ltda.','Criação de site institucional: layout e protótipo navegável.',1750]];
+ var FO=[['Papelaria Central Comércio Ltda.','Papel couché 300 g A3',418.9],['Gráfica Rápida Ltda.','Impressão de material institucional',1280],['Tech Suprimentos Ltda.','Cartuchos e toner para impressora',642.5]];
+ if(q.notas){ST.cofre=ST.cofre||{};var cf=ST.cofre[c]=ST.cofre[c]||{notas:[],st:''};cf.notas=cf.notas||[];
+  for(i=0;i<q.notas;i++){ST.n++;var em=i%2===0,num=String(1100+ST.n),dtn=dnoMes(3+(i*4)%24),ce=exCnpj(ST.n+i),cn=em?CL[(i>>1)%CL.length]:FO[(i>>1)%FO.length],vn=cn[2],emitN=em?e.nome:cn[0],emitDoc=em?e.cnpj:ce,destN=em?cn[0]:e.nome,destDoc=em?ce:e.cnpj;
+   var nf=em?{mod:'NFS-e',num:num,dt:dtn,emitN:emitN,emitDoc:emitDoc,destN:destN,destDoc:destDoc,val:vn,iss:Math.round(vn*3)/100,desc:cn[1],cod:'AB'+num+'X7',mun:'São Paulo/SP',fonte:'xml'}:{mod:'NF-e',num:num,serie:'1',dt:dtn,emitN:emitN,emitDoc:emitDoc,destN:destN,destDoc:destDoc,val:vn,icms:Math.round(vn*18)/100,desc:cn[1],itens:3,nat:'Venda de mercadoria',chave:('35'+n0.getFullYear()%100+d2(n0.getMonth()+1)+exCnpj(ST.n).replace(/\D/g,'')+'55001'+('000000000'+num).slice(-9)+'1'+('00000000'+ST.n).slice(-8)+'0').slice(0,44),fonte:'xml'};
+   var xnm='NF-'+num+'.xml',pnm='NF-'+num+'.pdf';
+   arqF(xnm,'<?xml version="1.0" encoding="UTF-8"?>\n<'+(em?'CompNfse':'nfeProc')+'><Numero>'+num+'</Numero><DataEmissao>'+iso(new Date(n0.getFullYear(),n0.getMonth(),+dtn.slice(0,2)))+'</DataEmissao><Emitente><Nome>'+emitN+'</Nome><Documento>'+emitDoc+'</Documento></Emitente><Tomador><Nome>'+destN+'</Nome><Documento>'+destDoc+'</Documento></Tomador><Discriminacao>'+cn[1]+'</Discriminacao><ValorTotal>'+vn.toFixed(2)+'</ValorTotal></'+(em?'CompNfse':'nfeProc')+'>\n','text/plain');
+   pdf(pnm,(em?'NFS-e nº ':'NF-e nº ')+num,['Emitente: '+emitN,'CNPJ: '+emitDoc,'Destinatário: '+destN,'CNPJ: '+destDoc,'Emissão: '+dtn,'Descrição: '+cn[1],'Valor total: '+brl(vn),'Documento de exemplo para teste.']);
+   cf.notas.push({arq:xnm,tipo:em?'Emitidas (vendas)':'Recebidas (compras)',data:h,b:'bx'+ST.n,files:[{n:xnm,e:'xml'},{n:pnm,e:'pdf'}],nf:nf,pend:[]});}}
+ /* documentos solicitados: já enviados, com arquivo */
+ var DS=['Contrato social atualizado','Alvará de funcionamento','Certidão negativa de débitos','Comprovante de endereço da empresa'];
+ for(i=0;i<(q.docs||0);i++){ST.n++;var dt2=DS[i%DS.length]+(i>=DS.length?' ('+(Math.floor(i/DS.length)+1)+')':''),dn=pdf(slug(dt2)+'-'+ST.n+'.pdf',dt2,['Empresa: '+e.nome,'CNPJ: '+e.cnpj,'Documento: '+dt2,'Documento de exemplo para teste.']);
+  docsPed().push({id:'dx'+ST.n,t:'Enviar '+dt2.charAt(0).toLowerCase()+dt2.slice(1),lim:iso(mais(10)),go:'f-solicitado',done:1,arq:dn,em:h});
+  var pds=pd('solicitado','Documento solicitado',dt2,[['Documento',dt2],['Arquivo',dn]]);doc({n:dt2,arq:dn,cat:'documentos',comp:c,or:'cli',ped:pds});}
+ var pr=[];if(FL.length&&window.upFiles){upFiles(FL);FL.forEach(function(f){var fi=window.FILES&&FILES[f.name];if(fi&&fi.pend)pr.push(fi.pend);});}
+ return Promise.all(pr);
 }
 function apagaSel(ks){
  function has(k){return ks.indexOf(k)>-1;}
