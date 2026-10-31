@@ -80,7 +80,7 @@ function rerender(){var y=SCR.scrollTop,vals={},ae=document.activeElement,aid=ae
  for(var k in vals){var x=$(k);if(x&&x.type!=='file'&&!x.dataset.fresh)x.value=vals[k];}
  SCR.scrollTop=y;if(aid&&$(aid))try{$(aid).focus();}catch(e){}
  if(isChat())SCR.scrollTop=SCR.scrollHeight;}
-function route(r){escGarante();var h=head(r),a=r.slice(h.length+1);var R={recnovo:vRecNovo,rec:vRec,chk:vChk,lote:vLote,fecha:vFecha,dp:vDP,desp:vDesp,inicio:vInicio,pedidos:vPedidos,ped:vPed,receb:vReceb,arquivo:vArquivo,pasta:vPasta,doc:vDoc,folha:vFolha,msg:vMsg,chat:vChat,ajuda:vAjuda,novodoc:vNovoDoc,novoguia:vNovoGuia,guias:vGuias,colab:vColab,ctr:vContrato,socio:vSocio,cguia:vGuiaC,novoped:vNovoPed,ajustes:vAjustes,perfil:vPerfilC,ajnotif:vAjNotif,ajprazos:vAjPrazos,ajacomp:vAjAcomp,ajadm:vAjAdm,ajequipe:vAjEquipe,ajclientes:vAjClientes,clientes:vClientes,cli:vCli,gestao:vGestao,gcnotas:vGcNotas,notif:vNotif}[h];return R?R(a):null;}
+function route(r){escGarante();var h=head(r),a=r.slice(h.length+1);var R={recnovo:vRecNovo,rec:vRec,chk:vChk,lote:vLote,fecha:vFecha,dp:vDP,dpcol:vDpCol,desp:vDesp,inicio:vInicio,pedidos:vPedidos,ped:vPed,receb:vReceb,arquivo:vArquivo,pasta:vPasta,doc:vDoc,folha:vFolha,msg:vMsg,chat:vChat,ajuda:vAjuda,novodoc:vNovoDoc,novoguia:vNovoGuia,guias:vGuias,colab:vColab,ctr:vContrato,socio:vSocio,cguia:vGuiaC,novoped:vNovoPed,ajustes:vAjustes,perfil:vPerfilC,ajnotif:vAjNotif,ajprazos:vAjPrazos,ajacomp:vAjAcomp,ajadm:vAjAdm,ajequipe:vAjEquipe,ajclientes:vAjClientes,clientes:vClientes,cli:vCli,gestao:vGestao,gcnotas:vGcNotas,notif:vNotif}[h];return R?R(a):null;}
 /* ===== início ===== */
 function vInicio(){var s=stats('all'),tot=s.nv+s.doc+s.fo+s.msg,partes=[];
  if(s.nv)partes.push(s.nv+(s.nv===1?' pedido novo':' pedidos novos'));if(s.doc)partes.push(s.doc+(s.doc===1?' documento para conferir':' documentos para conferir'));if(s.fo)partes.push(s.fo+(s.fo===1?' folha para fechar':' folhas para fechar'));if(s.msg)partes.push(s.msg+(s.msg===1?' mensagem':' mensagens'));
@@ -659,7 +659,13 @@ function vDP(){var A=[],C=[],F=[],P=[],X=[],S=[],SV=[],LF=[],FO=0,EA=0,tot=0;
  h+='<button type="button" class="r solo" data-go="receb"><span class="ri">'+(IC.folha||IC.down)+'</span><span class="rt"><span class="a">Folhas para fechar</span><span class="b">Folhas e variáveis enviadas pelos clientes</span></span>'+(FO?pill('warn',String(FO)):'<span class="cv">'+IC.chev18+'</span>')+'</button>';
  return h;}
 /* lista do DP que expande e recolhe (colaboradores e sócios); recolhida, mostra um resumo. A escolha fica guardada */
-function dpBloco(k,t,L,row,vazio,foot,res){var ab=!!(UI.dpx||{})[k],n=L.length,ic=k==='col'?IC.people:(IC.pie||IC.pro||IC.people),
+/* colaboradores de todos os clientes, em tela própria (abre do cartão do DP) */
+function vDpCol(){var CL=[];emps().forEach(function(e){B(e.id);Object.keys(FUNCD||{}).forEach(function(nm){CL.push({e:e,nm:nm,d:FUNCD[nm]});});});done();
+ var ord=function(x){return x.d.dem?2:x.d.adm==='Em admissão'?0:1;};CL.sort(function(a,b){return ord(a)-ord(b)||a.nm.localeCompare(b.nm);});
+ var h=hdr('Colaboradores dos clientes','Ficha completa e histórico de solicitações')+empChips('femp',UI.fEmp,1);
+ h+='<section>'+sec('Colaboradores','<span class="s">'+CL.length+'</span>')+'<div class="card">'+(CL.map(colabRow).join('')||'<p class="empty">Nenhum colaborador cadastrado.</p>')+'</div><p class="foot">Toque num colaborador para ver a ficha completa e o histórico de solicitações.</p></section>';
+ return h;}
+function dpBloco(k,t,L,row,vazio,foot,res){if(k==='col'){var nc=L.length;return '<button type="button" class="r solo" data-go="dpcol"><span class="ri">'+IC.people+'</span><span class="rt"><span class="a">'+esc(t)+'</span><span class="b">'+esc(nc+(nc===1?' colaborador':' colaboradores')+(nc?' · '+res:''))+'</span></span><span class="cv">'+IC.chev18+'</span></button>';}var ab=!!(UI.dpx||{})[k],n=L.length,ic=k==='col'?IC.people:(IC.pie||IC.pro||IC.people),
  css=k==='col'?'<style>.dpxc{width:100%;text-align:left}.dpxc .cv svg{transition:transform .2s}.dpxc[aria-expanded="true"] .cv svg{transform:rotate(90deg)}.dpxl{margin-top:8px}</style>':'';
  return css+'<button type="button" class="r solo dpxc" data-dpx="'+k+'" aria-expanded="'+ab+'" aria-controls="dpx-'+k+'"><span class="ri">'+ic+'</span><span class="rt"><span class="a">'+esc(t)+'</span><span class="b">'+esc(n+(k==='col'?(n===1?' colaborador':' colaboradores'):(n===1?' sócio':' sócios'))+(n?' · '+res:''))+'</span></span><span class="cv">'+IC.chev18+'</span></button>'+
   (ab?'<div class="dpxl" id="dpx-'+k+'"><div class="card">'+(L.map(row).join('')||'<p class="empty">'+vazio+'</p>')+'</div><p class="foot">'+foot+'</p></div>':'');}
