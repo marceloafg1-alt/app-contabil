@@ -215,13 +215,13 @@ function viaGestao(){var s=window.prevScreen?prevScreen():'';return /^(envio|cof
 function renderLists(){
  folhaAuto();
  solRender();
- var al=document.getElementById('act-list');if(al)al.innerHTML=ST.act.slice(0,4).map(function(a){return '<div class="ar"><span class="d'+(a[2]?' on':'')+'"></span><div class="rt"><span class="a">'+esc(a[0])+'</span><span class="b">'+esc(a[1])+'</span></div></div>';}).join('');
+ var al=document.getElementById('act-list');if(al)al.innerHTML=ST.act.filter(actRec).slice(0,4).map(function(a){return '<div class="ar"><span class="d'+(a[2]?' on':'')+'"></span><div class="rt"><span class="a">'+esc(a[0])+'</span><span class="b">'+esc(actQuando(a))+'</span></div></div>';}).join('')||'<p class="empty">Nada nos últimos 15 dias.</p>';
  var hi=document.getElementById('hero-imp');if(hi)hi.innerHTML=impHero();
  var chh=document.getElementById('cont-hero');if(chh)chh.innerHTML=contHero();
  var pzi=document.getElementById('prazos-ini');if(pzi)pzi.innerHTML=prazoRows();
  var ask=document.getElementById('ask'),pa=pedAberto();if(ask){ask.classList.toggle('feito',!pa);if(pa){var ab=ask.querySelector('.rt .b');if(ab)ab.textContent=pedNome(pa)+' · até '+fmtP(pedLim(pa));}}
- var dct=document.getElementById('docs-ct');if(dct)dct.innerHTML=arqVis().slice(0,12).map(function(a){return arqRow(a);}).join('');var dpc=document.getElementById('docs-per'),dcp=docComp();if(dpc)dpc.innerHTML=perBtn('#docs',dcp);
- var dps=document.getElementById('docs-pastas');if(dps)dps.innerHTML=CATS.filter(function(c){return c[0]!=='interno';}).map(function(c){var l=arqVis(c[0]).filter(function(a){return a.comp===dcp||(a.or==='ct'&&a.st==='disp');}),n=l.length,nv=l.filter(function(a){return a.st==='disp';}).length,nd=l.filter(function(a){return a.st==='dev';}).length;return '<button type="button" class="t fo" data-go="pasta-'+c[0]+'"><span class="foh"><span class="ib">'+(IC[c[2]]||IC.folder)+'</span><span class="foi"><span class="tc">'+n+(n===1?' item':' itens')+'</span>'+(nd?'<span class="pfo">'+nd+' a corrigir</span>':nv?'<span class="pfo info">'+nv+(nv===1?' novo':' novos')+'</span>':'')+'</span></span><span class="tl">'+c[1]+'</span></button>';}).join('');if(0)dct.innerHTML=(ST.ctdocs||[]).map(function(d){return '<button type="button" class="r" data-f="ct" data-n="'+esc(d[0].toLowerCase())+'" data-toast="'+esc(d[0])+' baixado"><span class="ri">'+IC.doc+'</span><span class="rt"><span class="a">'+esc(d[0])+'</span><span class="b">Do contador · '+esc(d[1])+' · '+esc(d[2])+'</span></span><span class="dl sm">'+IC.down16+'</span></button>';}).join('');
+ var dct=document.getElementById('docs-ct');if(dct)dct.innerHTML=arqVis().filter(function(a){return rec15(arqQuando(a));}).slice(0,12).map(function(a){return arqRow(a);}).join('');var dpc=document.getElementById('docs-per'),dcp=docComp();if(dpc)dpc.innerHTML=perBtn('#docs',dcp);
+ var dps=document.getElementById('docs-pastas');if(dps)dps.innerHTML=CATS.filter(function(c){return c[0]!=='interno';}).map(function(c){var l=arqVis(c[0]).filter(function(a){return a.comp===dcp;}),n=l.length,nv=l.filter(function(a){return a.st==='disp';}).length,nd=l.filter(function(a){return a.st==='dev';}).length;return '<button type="button" class="t fo" data-go="pasta-'+c[0]+'"><span class="foh"><span class="ib">'+(IC[c[2]]||IC.folder)+'</span><span class="foi"><span class="tc">'+n+(n===1?' item':' itens')+'</span>'+(nd?'<span class="pfo">'+nd+' a corrigir</span>':nv?'<span class="pfo info">'+nv+(nv===1?' novo':' novos')+'</span>':'')+'</span></span><span class="tl">'+c[1]+'</span></button>';}).join('');if(0)dct.innerHTML=(ST.ctdocs||[]).map(function(d){return '<button type="button" class="r" data-f="ct" data-n="'+esc(d[0].toLowerCase())+'" data-toast="'+esc(d[0])+' baixado"><span class="ri">'+IC.doc+'</span><span class="rt"><span class="a">'+esc(d[0])+'</span><span class="b">Do contador · '+esc(d[1])+' · '+esc(d[2])+'</span></span><span class="dl sm">'+IC.down16+'</span></button>';}).join('');
  var dsv=document.getElementById('dp-semvar');if(dsv){var nsv=NOW(),csv=[cName(nsv.getFullYear(),nsv.getMonth()-1),cName(nsv.getFullYear(),nsv.getMonth())].filter(folhaEnc);dsv.hidden=!csv.length;dsv.innerHTML=csv.map(function(c){var fe=folhaEnc(c);return '<div class="dpsv"><span class="ri">'+IC.check16+'</span><span class="rt"><span class="a">Folha de '+cMes(c)+' encerrada sem variáveis</span><span class="b">Você encerrou em '+esc(fe.em)+'. O contador foi avisado e vai fechar a folha.</span></span></div>';}).join('');}
  var dpf=document.getElementById('dp-fer');if(dpf){var fa=feriasAvisos();dpf.hidden=!fa.length;dpf.innerHTML=fa.length?'<div class="sec"><h2>Férias vencendo</h2><span class="cnt">'+fa.length+'</span></div><div class="card">'+fa.map(ferRow).join('')+'</div>':'';}
  var mr=document.getElementById('docs-meus');if(mr)mr.innerHTML='';if(0)mr.innerHTML=ST.meus.map(function(d){return '<button type="button" class="r" data-f="eu" data-n="'+esc(d[0].toLowerCase())+'" data-toast="'+esc(d[0])+' baixado"><span class="ri">'+IC.doc+'</span><span class="rt"><span class="a">'+esc(d[0])+'</span><span class="b">Enviado por você · '+esc(d[1])+'</span></span><span class="dl sm">'+IC.down16+'</span></button>';}).join('');
@@ -232,6 +232,8 @@ function renderLists(){
 }
 
 /* seletor de competência padrão: o botão abre ano e mês em janela; as setas ao lado trocam o mês direto (perStep, em ui.js) */
+/* meses que dá para consultar (telas de ver, como Documentos e Cofre): até 10 anos para trás e 12 meses para frente; as setas não travam no mês atual */
+function compVer(c){var q=cParse(c),n=NOW();if(!q||q.m<0||!q.y)return false;var k=q.y*12+q.m,h=n.getFullYear()*12+n.getMonth();return k<=h+12&&k>h-120;}
 function perBtn(k,c){return '<div class="perrow"><button type="button" class="pern" data-permv="-1" data-pk="'+k+'" aria-label="Mês anterior">'+IC.tri+'</button><button type="button" class="perbtn" data-periodo="'+k+'" aria-haspopup="dialog"><span class="pl">Competência</span><b>'+esc(c)+'</b>'+IC.cal+'</button><button type="button" class="pern nx" data-permv="1" data-pk="'+k+'" aria-label="Próximo mês">'+IC.tri+'</button></div>';}
 
 /* Solicitações de cada área (DP, Gestão contábil, Guias de impostos e Documentos): até 5, com Ver todos quando passar */
@@ -413,7 +415,7 @@ function renderEnvFolhas(){if(!FCOMP)FCOMP=compPad('folha');if(ENVOK){var n=ENVO
 function envAll(lista){var ok=lista||pendEnvio().filter(prontaEnvio);if(!ok.length)return 0;ST.n++;var id='p'+ST.n;
  ok.forEach(function(f){f.st='enviada';f.data=hoje();if(f.comp==='Outubro/2026')ST.vari=1;});
  ST.ped.unshift({id:id,f:'folha',tipo:'Folhas de pagamento',quem:ok.length+(ok.length>1?' colaboradores':' colaborador'),data:'Pedido em '+hoje(),st:'enviado',prot:'2026-'+ST.n});
- ST.act.unshift([ok.length+(ok.length>1?' folhas de pagamento enviadas':' folha de pagamento enviada'),'Agora',1]);save();renderLists();
+ ST.act.unshift([ok.length+(ok.length>1?' folhas de pagamento enviadas':' folha de pagamento enviada'),'Agora',1,NOW().getTime()]);save();renderLists();
  return ok.length;}
 function renderFolha(id){var f=getFolha(id);if(!f)return '';var es=fst(f),s=fstLbl(es),e=estimar(f.func,f.vars),vt=varsTxt(f.vars);
  var at={rascunho:1,finalizada:1,enviada:2,auto:2,fechada:4}[es],fs=[['Folha criada',f.criada||f.data],[es==='auto'?'Enviada automaticamente':'Variáveis enviadas',es==='auto'?fmtP(prazo('folha',f.comp)):es!=='rascunho'&&es!=='finalizada'?f.data:''],['Contador fechando a folha',''],['Holerite disponível','']];if(!acompOn('folha')&&(es==='enviada'||es==='auto')){fs=[fs[0],fs[1],['Recebida pelo contador','']];at=3;}
@@ -441,7 +443,7 @@ function varsField(f){var vs=FS.v.vars=normVars(FS.v.vars||{}),on=VARS.map(funct
 function folhaCreate(){var v=FS.v,ls=folhasOf();
  var dup=ls.filter(function(f){return f.func===v.func&&f.comp===v.comp&&f.tipo===v.tipo&&f.id!==FS.fid;})[0];
  if(dup){FS.err.func='Já existe a folha '+v.tipo.toLowerCase()+' de '+v.func+' em '+v.comp+'. Abra ela em Folhas de pagamento.';return false;}
- if(!FS.fid){ST.n++;var f={id:'fl'+ST.n,comp:v.comp,func:v.func,tipo:v.tipo,st:'rascunho',vars:{},obs:'',criada:hoje(),data:hoje()};ls.unshift(f);FS.fid=f.id;ST.act.unshift(['Folha de '+v.func+' criada · '+v.comp,'Agora',1]);say('Folha criada como rascunho');}
+ if(!FS.fid){ST.n++;var f={id:'fl'+ST.n,comp:v.comp,func:v.func,tipo:v.tipo,st:'rascunho',vars:{},obs:'',criada:hoje(),data:hoje()};ls.unshift(f);FS.fid=f.id;ST.act.unshift(['Folha de '+v.func+' criada · '+v.comp,'Agora',1,NOW().getTime()]);say('Folha criada como rascunho');}
  else{var g=getFolha(FS.fid);g.comp=v.comp;g.func=v.func;g.tipo=v.tipo;}
  save();return true;}
 function folhaSave(){if(!FS||FS.id!=='folha'||!FS.fid)return;var g=getFolha(FS.fid);if(!g)return;g.vars=JSON.parse(JSON.stringify(FS.v.vars||{}));g.sem=!!FS.v.sem;g.obs=FS.v.obs||'';save();}
@@ -491,7 +493,7 @@ function folhaAuto(){if(!ST||!FUNC.length)return;var n=dOnly(NOW()),mud=0,ab=fun
   sem.forEach(function(nm,i){ls.push({id:'sa'+Date.now().toString(36)+(-k)+i,comp:c,func:nm,tipo:'Mensal',st:'enviada',vars:{},sem:true,auto:1,obs:'',criada:pz,data:pz});});
   if(!dm.some(function(f){return f.st==='rascunho';})){ST.enc_folha=ST.enc_folha||{};ST.enc_folha[c]={em:pz,n:FUNC.length,auto:1};}
   ST.n++;ST.ped.unshift({id:'p'+ST.n,f:'folha',tipo:'Folha de '+cMes(c)+' · sem variáveis',quem:sem.length+(sem.length===1?' colaborador':' colaboradores'),data:'Encerrada em '+pz,st:'enviado',autoC:c,prot:'2026-'+ST.n,dados:[['Competência',c],['Variáveis','Nenhuma folha lançada até o fim do prazo'],['Encerrado automaticamente em',pz]],em:pz});
-  ST.act.unshift(['Folha de '+cMes(c)+' encerrada automaticamente sem variáveis','Agora',1]);mud=1;});
+  ST.act.unshift(['Folha de '+cMes(c)+' encerrada automaticamente sem variáveis','Agora',1,NOW().getTime()]);mud=1;});
  if(mud)save();}
 FST.auto=['Enviada automaticamente','info'];
 FCOMP=compPad('folha');
@@ -668,8 +670,8 @@ function validate(){var F=FLOWS[FS.id],s=F.steps[FS.step];FS.err={};
 function submit(){var F=FLOWS[FS.id];
  if(FS.id==='empresa'){var nid=addEmp(FS.v);FS.res=FS.v.cnpj;FS.ped=null;save();if(window.switchEmp)switchEmp(nid,true);return;}
  if(FS.id==='senha'){ST.pwdAt='agora';FS.res='';FS.ped=null;save();return;}
- if(FS.id==='convite'){USR().push({n:FS.v.nome,e:FS.v.email,r:FS.v.perfil,pend:1});FS.res='';FS.ped=null;ST.act.unshift(['Convite enviado · '+FS.v.nome,'Agora',1]);save();renderLists();return;}
- if(F.cofre){var cc=FS.v.comp,cf=cofreOf(cc),k=nfCofreAdd(cf,(FS.v.arqX||[]).concat(FS.v.arqP||[],FS.v.arq||[]),FS.v.tipo);FS.nfK=k;FS.res='';FS.ped=null;ST.act.unshift([k+(k>1?' notas carregadas':' nota carregada')+' no cofre de '+cMes(cc),'Agora',1]);save();renderLists();return;}ST.n++;var prot='2026-'+ST.n;FS.res=prot;var who=F.who?FS.v[F.who]:'';
+ if(FS.id==='convite'){USR().push({n:FS.v.nome,e:FS.v.email,r:FS.v.perfil,pend:1});FS.res='';FS.ped=null;ST.act.unshift(['Convite enviado · '+FS.v.nome,'Agora',1,NOW().getTime()]);save();renderLists();return;}
+ if(F.cofre){var cc=FS.v.comp,cf=cofreOf(cc),k=nfCofreAdd(cf,(FS.v.arqX||[]).concat(FS.v.arqP||[],FS.v.arq||[]),FS.v.tipo);FS.nfK=k;FS.res='';FS.ped=null;ST.act.unshift([k+(k>1?' notas carregadas':' nota carregada')+' no cofre de '+cMes(cc),'Agora',1,NOW().getTime()]);save();renderLists();return;}ST.n++;var prot='2026-'+ST.n;FS.res=prot;var who=F.who?FS.v[F.who]:'';
  var adm0=FS.id==='colaborador'&&FS.v.acao&&FS.v.acao!=='Cadastro';var id='p'+ST.n;ST.ped.unshift({id:id,f:adm0?'admissao':FS.id,tipo:adm0?FS.v.acao:F.t,quem:who||'',data:'Pedido em '+hoje(),st:'enviado',prot:prot,dados:pedDados(),em:hoje()});FS.ped=id;
  var paA=F.solic?pedAberto():null;arqFromFlow(FS.id,FS.v,id,who,paA?pedNome(paA):null);
  if(FS.id==='comprovante'){GUIAS.forEach(function(g,i){if(g===FS.v.guia)ST.pagas[i]=hoje();});}
@@ -684,7 +686,7 @@ function submit(){var F=FLOWS[FS.id];
  if(FS.id==='extrato'){ST.extr=ST.extr||{};(ST.extr[FS.v.comp]=ST.extr[FS.v.comp]||[]).push({banco:FS.v.desc,desc:FS.v.desc,arq:(FS.v.arq||[]).join(', '),data:hoje()});}
  var paS=F.solic?pedAberto():null;if(F.solic){ST.solic=1;if(paS){paS.done=1;paS.arq=(FS.v.arq||[]).join(', ');paS.em=hoje();}}
  if(F.doc||F.solic)ST.meus.unshift([F.solic?(paS?pedNome(paS):'Documento solicitado'):(FS.v.desc||'Documento'),hoje()]);
- ST.act.unshift([F.ok+(who?' · '+who:''),'Agora',1]);save();renderLists();}
+ ST.act.unshift([F.ok+(who?' · '+who:''),'Agora',1,NOW().getTime()]);save();renderLists();}
 
 /* dados de teste: 11 folhas finalizadas em outubro (Alvorada) */
 (function(){var d=MULTI.data.alvorada;if(!d||d.seed11)return;if(!d.folhas)d.folhas=JSON.parse(JSON.stringify(ST0.folhas));
@@ -717,7 +719,7 @@ function extraLists(){
   document.getElementById('g-total').textContent=cnt?'R$ '+fmt(tot):'R$ 0,00';
   document.getElementById('g-cnt').textContent=cnt?cnt+(cnt>1?' guias':' guia'):'Em dia';
   document.getElementById('g-lbl').textContent=cnt?'A pagar até 20 out':'Nada vencendo esta semana';}
- if(window.__ntOn)ntSync();var nu=(ST.notif||[]).filter(function(n){return n.u;}).length;
+ if(window.__ntOn)ntSync();var nu=(ST.notif||[]).filter(function(n){return n.u&&ntRec(n);}).length;
  setBadge('bd-chat',ST.unread);setBadge('bd-notif',nu);
  syncEmp();var hs=document.getElementById('hello-name');if(hs)hs.textContent='Olá, Marina';
 }
@@ -870,6 +872,8 @@ function scrollChat(){var d=document.getElementById('s-dyn');d.scrollTop=d.scrol
  Situação de pedido some no dia seguinte ao que foi lida. Pedido de documento lido some 24 horas depois e volta como alerta nos 3 últimos dias. */
 var NT_ST=/^(Pedido concluído|Contador está analisando|Pagamento confirmado|Recálculo concluído|O contador cobrou)/;
 function ntId(){return 'n'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+/* aviso dos últimos 15 dias (Recentes): pela hora em que foi criado ou pelo texto da data */
+function ntRec(n){return rec15(n.ts||(dtTxt(n.h)?n.h:n.ch));}
 function ntGet(id){return (ST.notif||[]).filter(function(n){return n.id===id;})[0];}
 function ntDocDe(n){if(n.t!=='O contador pediu um documento')return null;var nm=String(n.s||'').split(' · ')[0];return docsPed().filter(function(x){return pedNome(x)===nm;})[0]||null;}
 function ntFase(dd,env){if(env)return dd<0?'envio encerrado':dd===0?'último dia':dd===1?'falta 1 dia':'faltam '+dd+' dias';return dd===0?'vence hoje':dd===1?'vence amanhã':'vence em '+dd+' dias';}
@@ -894,7 +898,7 @@ function ntSync(){var L=ST.notif=ST.notif||[],t0=NOW().getTime(),hj=+dOnly(NOW()
  K.forEach(function(n){if(!n.id){n.id=ntId();mud=1;}if(!n.ch){n.ch=t0;mud=1;}if(n.pz)tem[n.pz]=1;var d=ntDocDe(n);if(d)orig[d.id]=1;});
  A.slice().reverse().forEach(function(a){if(tem[a.pz]||(a.doc&&orig[a.doc]))return;var o={id:ntId(),t:a.t,s:a.s,h:horaAgora(),go:a.go,u:1,pz:a.pz,fase:a.fase,ch:t0};if(a.c)o.c=a.c;if(a.pre)o.pre=a.pre;K.unshift(o);mud=1;});
  if(mud){ST.notif=K;save();}return mud;}
-function renderNotif(){if(window.__ntOn)ntSync();var L=ST.notif||[],nu=L.filter(function(n){return n.u;}).length;
+function renderNotif(){if(window.__ntOn)ntSync();var L=(ST.notif||[]).filter(ntRec),nu=L.filter(function(n){return n.u;}).length;
  return hdr('Notificações',nu?nu+(nu>1?' não lidas':' não lida'):'Tudo lido')+
  '<section><div class="sec"><h2>Recentes</h2>'+(nu?'<button type="button" class="lnk" data-readall>Marcar todas como lidas</button>':'')+'</div><div class="card">'+(L.map(function(n){return '<button type="button" class="r nt'+(n.u?' un':'')+'" data-nt="'+esc(n.id)+'" data-go="'+esc(n.go||'inicio')+'"'+(n.c?' data-setcomp="'+esc(n.c)+'"':'')+(n.pre?' data-pre=\''+JSON.stringify(n.pre).replace(/'/g,'&#39;')+'\'':'')+'><span class="ri">'+(n.pz?IC.clock:IC.bell)+'</span><span class="rt"><span class="a">'+esc(n.t)+'</span><span class="b">'+esc(n.s)+' · '+esc(n.h)+'</span></span>'+(n.u?'<span class="ud"></span>':IC.chev18)+'</button>';}).join('')||'<p class="empty">Nenhuma notificação. Tudo em dia.</p>')+'</div></section>';}
 
@@ -922,6 +926,7 @@ function cfgTeste(){var n=NOW(),v=n.getFullYear()+'-'+('0'+(n.getMonth()+1)).sli
  return '<section><div class="sec"><h2>Testes (provisório)</h2></div><div class="card">'+
   '<label class="r" for="cfg-sim"><span class="ri">'+IC.clock+'</span><span class="rt"><span class="a">Data do sistema</span><span class="b">'+(MULTI.sim?'Simulada: '+fmtP(n):'Hoje, data real')+' · muda o dia em todo o app</span></span><input type="date" id="cfg-sim" class="cfgsim" value="'+v+'"></label>'+
   (MULTI.sim?'<button type="button" class="r" data-simhoje><span class="ri">'+IC.clock+'</span><span class="rt"><span class="a">Voltar para a data de hoje</span><span class="b">Usa de novo a data real do aparelho</span></span>'+IC.chev18+'</button>':'')+
+  '<button type="button" class="r" data-zeralanc><span class="ri">'+IC.x+'</span><span class="rt"><span class="a">Apagar lançamentos</span><span class="b">Zera pedidos, documentos, notas, extratos, despesas, folhas, guias, colaboradores, chat e avisos. Ficam as empresas, os sócios e o escritório</span></span>'+IC.chev18+'</button>'+
   '<button type="button" class="r" data-zeraimp><span class="ri">'+IC.tax+'</span><span class="rt"><span class="a">Zerar impostos</span><span class="b">Apaga todas as guias e os pedidos de guias, em todas as empresas</span></span>'+IC.chev18+'</button>'+
  '</div><p class="foot">Botões provisórios, só para testar o protótipo.</p></section>';}
 function kv(a,b){return '<div class="rv"><span>'+a+'</span><span>'+b+'</span></div>';}
@@ -967,7 +972,7 @@ function funcSalvarEd(){var q=FED.k.split('~'),sid=q[0],n=q.slice(1).join('~'),d
  if(!mud.length)return {nada:1};
  S.f.forEach(function(f){var k=f[0],b=String(V[k]||'').trim();if(/^em(N|Rel|Tel)$/.test(k)){d.emerg=d.emerg||{};d.emerg[k==='emN'?'n':k==='emRel'?'rel':'tel']=b;}else if(sid==='endereco'){d.end=d.end||{};d.end[k]=b;}else d[k]=b;});
  ST.n++;ST.ped.unshift({id:'p'+ST.n,f:'cadfunc',tipo:'Atualização cadastral · '+S.t,quem:n,data:'Pedido em '+hoje(),st:'enviado',prot:'2026-'+ST.n,em:hoje(),dados:[['Colaborador',n],['Categoria',S.t]].concat(mud)});
- ST.act.unshift([S.t+' de '+n+' atualizado · contador avisado','Agora',1]);FED={};return {ok:mud.length};}
+ ST.act.unshift([S.t+' de '+n+' atualizado · contador avisado','Agora',1,NOW().getTime()]);FED={};return {ok:mud.length};}
 function renderFuncs(){return hdr('Colaboradores',FUNC.length+(FUNC.length===1?' colaborador':' colaboradores'))+'<div class="card">'+(FUNC.length?'':'<p class="empty">Nenhum colaborador ainda. Toque no + para admitir.</p>')+FUNC.map(function(n){var d=FUNCD[n];return '<button type="button" class="r" data-go="func-'+n+'"><span class="av2">'+n.split(' ').map(function(x){return x[0];}).join('')+'</span><span class="rt"><span class="a">'+n+'</span><span class="b">'+d.c+'</span></span>'+(d.adm==='Em admissão'?'<span class="pill warn">Em admissão</span>':IC.chev18)+'</button>';}).join('')+'</div>';}
 function renderFunc(n){var d=FUNCD[n];if(!d)return '';var pre=' data-pre=\'{"func":"'+n+'"}\'';
  var act=[['var','Folha de pagamento','folha'],['ferias','Férias','ferias'],['people','Colaborador','colaborador'],['afast','Afastamento','afastamento'],['pro','Alterar salário','salario'],['adm','Alterar cargo','cargo'],['var','Alterar jornada','jornada'],['clock','Alterar turno','turno'],['people','Dependente','dependente'],['ext','Vale-transporte','vt'],['disc','Medida disciplinar','medida'],['dem','Demissão','demissao']];
@@ -981,11 +986,21 @@ function renderSocios(){return hdr('Sócios',SOCIOS.length+(SOCIOS.length===1?' 
  '<p class="foot">Toque no + para incluir um sócio, pedir pró-labore ou lançar a divisão de lucros. Toque num sócio para ver os dados e o histórico.</p>';}
 function renderSocio(n){var d=SOCD[n];if(!d)return '';var v=function(x){return x==null||x===''?'—':esc(String(x));},pre=' data-pre=\''+esc(JSON.stringify({socio:n}))+'\'';
  var peds=ST.ped.filter(function(p){return p.quem===n&&(p.f==='prolabore'||p.f==='lucros'||p.f==='socio');});
- return hdr(n,'Sócio · '+(d.p||'—')+' do capital')+'<div class="card pad">'+kv('CPF',v(d.cpf))+kv('Nascimento',v(fmtD(d.nasc)||d.nasc))+kv('Gênero',v(d.gen))+kv('Nome da mãe',v(d.mae))+kv('Nome do pai',v(d.pai))+kv('Celular',v(d.tel))+kv('E-mail',v(d.email))+kv('Participação',v(d.p))+kv('Pró-labore',d.pl&&d.pl!=='—'?'R$ '+esc(d.pl):'—')+'</div>'+
+ return hdr(n,'Sócio · '+(d.p||'—')+' do capital')+'<div class="card pad">'+kv('CPF',v(d.cpf))+kv('Nascimento',v(fmtD(d.nasc)||d.nasc))+kv('Gênero',v(d.gen))+kv('Nome da mãe',v(d.mae))+kv('Nome do pai',v(d.pai))+kv('Estado civil',v(d.ecivil))+kv('Celular',v(d.tel))+kv('E-mail',v(d.email))+kv('Endereço',v(d.end))+kv('Participação',v(d.p))+kv('Pró-labore',d.pl&&d.pl!=='—'?'R$ '+esc(d.pl):'—')+'</div>'+
  '<p class="foot">Mudar a participação ou os dados do sócio passa pelo contrato social: fale com o contador.</p>'+
  '<section><div class="sec"><h2>Histórico de pedidos</h2><span class="s">'+peds.length+'</span></div><div class="card">'+(peds.map(pedRow).join('')||'<p class="empty">Nenhum pedido para este sócio ainda.</p>')+'</div></section>'+
  '<section><div class="sec"><h2>Pedir para '+esc(n.split(' ')[0])+'</h2></div><div class="g2b"><button type="button" class="wb" data-go="f-prolabore"'+pre+'>'+IC.pro+'Pró-labore</button><button type="button" class="wb" data-go="f-lucros"'+pre+'>'+IC.pie+'Divisão de lucros</button></div></section>';}
-function renderContador(){return hdr('Meu contador','Perfil')+'<div class="card pad"><div class="pt"><span class="cav lg">CH</span><span class="rt"><span class="a">Contabilidade Horizonte</span><span class="b">Responsável: Alves e Lopes</span></span></div></div><div class="card pad">'+kv('Atendimento','Seg a sex, 9h às 18h')+kv('E-mail','<span class="sel-t">atendimento@horizonte.exemplo</span>')+kv('Telefone','<span class="sel-t">(11) 4000-0000</span>')+kv('Cliente desde','Agosto de 2021')+'</div><p class="foot">Dados de exemplo.</p><div class="fbar"><button type="button" class="cta" data-go="#chatct">'+IC.chat+' Abrir chat</button></div>';}
+/* escritório de contabilidade: cadastro completo; o contador edita em Configurações e o cliente vê em Meu contador */
+var ESC_CAD={razao:'Horizonte Serviços Contábeis Ltda',fant:'Contabilidade Horizonte',cnpj:'23.456.789/0001-95',crc:'CRC-SP 2SP034567/O-1',im:'7.654.321-0',ab:'10/03/2015',end:'Av. Rebouças, 1585 · Conj. 42 · Pinheiros · São Paulo/SP · 05401-250',tel:'(11) 4000-0000',email:'atendimento@horizonte.exemplo',atend:'Seg a sex, 9h às 18h',resp:'Paula Mendes',
+ socios:[{n:'Paula Mendes',cpf:'451.829.307-04',crc:'CRC-SP 1SP254810/O-3',tel:'(11) 98222-4410',email:'paula@horizonte.exemplo',p:'60%'},{n:'Ricardo Lopes',cpf:'538.204.716-26',crc:'CRC-SP 1SP261337/O-9',tel:'(11) 98333-5520',email:'ricardo@horizonte.exemplo',p:'40%'}]};
+/* completa o cadastro guardado: troca os campos vazios ou provisórios (CNPJ e CRC zerados) pelos do cadastro */
+function escCompleta(){var c=MULTI.cfg=MULTI.cfg||{},d=c.esc;if(!d)return 0;var mud=0;Object.keys(ESC_CAD).forEach(function(k){var v=d[k];if(v==null||v===''||v==='—'||(k==='cnpj'&&/^00\.000/.test(v))||(k==='crc'&&/000000/.test(v))||(k==='end'&&/Sorocaba/.test(v))){d[k]=JSON.parse(JSON.stringify(ESC_CAD[k]));mud=1;}});return mud;}
+function escDados(){return (MULTI.cfg&&MULTI.cfg.esc)||ESC_CAD;}
+function renderContador(){var d=escDados(),S=d.socios||[],iniE=String(d.fant||'').split(' ').filter(function(w){return w.length>2;}).slice(0,2).map(function(w){return w[0];}).join('').toUpperCase();
+ return hdr('Meu contador','Perfil')+'<div class="card pad"><div class="pt"><span class="cav lg">'+esc(iniE||'CT')+'</span><span class="rt"><span class="a">'+esc(d.fant)+'</span><span class="b">Responsável: '+esc(d.resp||'—')+'</span></span></div></div>'+
+ '<div class="card pad">'+kv('Razão social',esc(d.razao))+kv('CNPJ','<span class="sel-t">'+esc(d.cnpj)+'</span>')+kv('Registro (CRC)',esc(d.crc))+kv('Endereço',esc(d.end))+kv('Atendimento',esc(d.atend))+kv('E-mail','<span class="sel-t">'+esc(d.email)+'</span>')+kv('Telefone','<span class="sel-t">'+esc(d.tel)+'</span>')+'</div>'+
+ (S.length?'<section><div class="sec"><h2>Sócios do escritório</h2></div><div class="card pad">'+S.map(function(x){return kv(esc(x.n),esc([x.crc,x.p?x.p+' do capital':''].filter(Boolean).join(' · ')));}).join('')+'</div></section>':'')+
+ '<div class="fbar"><button type="button" class="cta" data-go="#chatct">'+IC.chat+' Abrir chat</button></div>';}
 var FAQ=[
 /* Primeiros passos */
 ['Como troco de empresa ou adiciono outra?','1. Na tela Início, toque no nome da empresa no topo.<br>2. Escolha a empresa na lista e confirme a troca.<br>3. Para cadastrar outra, toque em Adicionar empresa, informe o CNPJ e escolha a cor do app para ela.','empresas','Minhas empresas','Primeiros passos'],
@@ -1074,12 +1089,12 @@ function renderRotinas(){var L=rotItens(),tot=L.length,ok=L.filter(function(x){r
  L.forEach(function(x){var g=gs.filter(function(y){return y[0]===x.g;})[0];if(!g){g=[x.g,[]];gs.push(g);}g[1].push(x);});
  return hdr('Verificar rotinas','Prazos definidos pelo seu contador')+'<div class="hero"><div class="hk"><span>Rotinas do mês</span><span class="pill-w">'+ok+' de '+tot+' feitas</span></div><div class="prog"><i style="width:'+Math.max(6,ok/tot*100)+'%"></i></div><p class="ht">'+(ok===tot?'Tudo em dia. Bom trabalho!':al?al+(al>1?' alertas ativos. ':' alerta ativo. ')+'Toque numa tarefa para resolver agora.':'Nenhum alerta agora. Os avisos começam no dia 1º do mês de cada prazo.')+'</p></div>'+
  gs.map(function(g){return '<section><div class="sec"><h2>'+g[0]+'</h2></div><div class="card">'+g[1].map(function(x){var s=rotSt(x);return '<button type="button" class="r rot'+(x.done?' feito':'')+'" data-go="'+x.go+'"'+(x.c?' data-setcomp="'+x.c+'"':'')+(x.pre?' data-pre=\''+JSON.stringify(x.pre)+'\'':'')+'><span class="cbx">'+(x.done?IC.check16:'')+'</span><span class="rt"><span class="a">'+esc(x.t)+'</span><span class="b">'+(x.vinc?'Readmissão · responda quando tiver as datas':x.fer?'Período aquisitivo vence '+fmtP(x.pz)+' · peça ou adie':x.pers?'Lançada pelo contador · vence '+fmtP(x.pz):'Prazo '+fmtP(x.pz)+' · avisa de '+fmtP(x.ini)+' até o prazo')+'</span></span><span class="pill '+(x.vinc?'warn':x.fer?x.fer.u:s.k)+'">'+(x.vinc?'Pendente':x.fer?(x.fer.dd<0?'Vencidas':'Faltam '+x.fer.dd+' dias'):s.p)+'</span></button>';}).join('')+'</div></section>';}).join('');}
-function renderAtiv(){return hdr('Atividade','Tudo o que aconteceu')+'<div class="card">'+ST.act.map(function(a){return '<div class="ar pad2"><span class="d'+(a[2]?' on':'')+'"></span><div class="rt"><span class="a">'+esc(a[0])+'</span><span class="b">'+esc(a[1])+'</span></div></div>';}).join('')+'</div>';}
+function renderAtiv(){var L=ST.act.filter(actRec);return hdr('Atividade','Últimos 15 dias')+'<div class="card">'+(L.map(function(a){return '<div class="ar pad2"><span class="d'+(a[2]?' on':'')+'"></span><div class="rt"><span class="a">'+esc(a[0])+'</span><span class="b">'+esc(actQuando(a))+'</span></div></div>';}).join('')||'<p class="empty">Nada aconteceu nos últimos 15 dias.</p>')+'</div>';}
 
 /* ===== guia ===== */
 /* o cliente abriu o que o contador enviou: fica visto; a guia já fica concluída, e o pedido que pediu a nova guia também */
 function arqAberto(a){if(!a||a.or!=='ct')return 0;var m=0,gu=a.cat==='guias';if(a.st==='disp'){arqMove(a,'visto',gu?'Aberta pelo cliente · concluída':'Visto pelo cliente');m=1;}
- var p=gu&&a.ped&&ST.ped.filter(function(x){return x.id===a.ped;})[0];if(p&&p.gEnv&&p.st!=='ok'){p.st='ok';p.gVis=horaAgora();ST.act.unshift(['Nova guia aberta · '+p.tipo+' concluído','Agora',1]);m=1;}return m;}
+ var p=gu&&a.ped&&ST.ped.filter(function(x){return x.id===a.ped;})[0];if(p&&p.gEnv&&p.st!=='ok'){p.st='ok';p.gVis=horaAgora();ST.act.unshift(['Nova guia aberta · '+p.tipo+' concluído','Agora',1,NOW().getTime()]);m=1;}return m;}
 function renderGuia(i){var g=GU[+i];if(!g)return '';if(arqAberto(arqList().filter(function(a){return a.gi===+i&&a.or==='ct';})[0]))save();var pg=ST.pagas[i],pre=' data-pre=\'{"guia":"'+GUIAS[i]+'"}\'';
  return hdr(g.n,'Guias de impostos')+'<div class="hero"><div class="hk"><span>Competência '+g.c+'</span><span class="pill-w">'+(pg?'Paga em '+pg:'Vence '+g.venc)+'</span></div><p class="amt">R$ '+g.v+'</p></div>'+
  '<section><div class="sec"><h2>Código de barras</h2></div><div class="card pad"><div class="bar" aria-hidden="true"></div><p class="code">'+g.code+'</p><div class="g2b"><button type="button" class="wb" data-copy="'+g.code+'">'+IC.copy15+'Copiar código</button><button type="button" class="wb" data-toast="PDF da guia baixado">'+IC.down15+'Baixar PDF</button></div></div></section>'+
@@ -1094,7 +1109,7 @@ function guiaStatusCli(i){var g=GU[+i],k=g.n.split(' · ')[0]+' · '+g.c;
 function guiaDespaga(i){i=+i;var g=GU[i];if(!g||!ST.pagas[i])return;delete ST.pagas[i];var k=g.n.split(' · ')[0]+' · '+g.c;
  arqList().forEach(function(a){if(a.gi===i&&a.or==='cli'){delete a.gi;(a.h=a.h||[]).push(['Guia desmarcada como paga',hoje()]);}});
  ST.ped.forEach(function(p){if(p.f==='comprovante'&&p.st!=='ok'&&String(p.quem||'').indexOf(k)===0)p.cli='Guia desmarcada como paga pelo cliente em '+hoje()+'.';});
- ST.act.unshift(['Guia '+g.n.split(' · ')[0]+' desmarcada como paga','Agora',1]);}
+ ST.act.unshift(['Guia '+g.n.split(' · ')[0]+' desmarcada como paga','Agora',1,NOW().getTime()]);}
 
 /* ===== entrar ===== */
 function renderLogin(){return '<div class="lg-wrap"><img class="logo-b" src="data:image/png;base64,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" alt="LivTask"><h1 class="big">Bem-vinda de volta</h1><p class="lead2">Entre para falar com seu contador e enviar seus documentos.</p>'+
@@ -1238,14 +1253,15 @@ function renderArq(id){var a=arqGet(id);if(!a)return '';var c=catOf(a.cat),s=arq
  return h;}
 function CATS_ENVIO(){return ['Alvarás','Certidões negativas','Certificado digital','Comprovantes','Declarações','Demonstrativos contábeis','Diversos','Documentos','Documentos de funcionário','Extratos bancários','Folha','Impostos','Notas exportadas','Notas fiscais de serviço','Recibos','Relatórios da Receita Federal','Societário'];}
 /* pasta de documentos: seletor de período (igual ao das folhas) e ações do botão + ligadas ao tipo */
-var PCOMP='all';
+var PCOMP='';
 /* competência da tela Documentos: abre sempre no mês do sistema; as pastas contam só os arquivos desse mês */
 var DCOMP='';function docComp(){var n=NOW();return DCOMP||cName(n.getFullYear(),n.getMonth());}
-function renderPasta(n){var c=catOf(n),k=c[0],all=PCOMP==='all',L=arqVis(k).filter(function(a){return all||a.comp===PCOMP||(a.or==='ct'&&a.st==='disp');}),g={};L.forEach(function(a){(g[a.comp]=g[a.comp]||[]).push(a);});
+/* pasta: só os arquivos da competência escolhida; as setas trocam o mês */
+function renderPasta(n){if(!PCOMP||PCOMP==='all')PCOMP=docComp();var c=catOf(n),k=c[0],all=false,L=arqVis(k).filter(function(a){return a.comp===PCOMP;}),g={};L.forEach(function(a){(g[a.comp]=g[a.comp]||[]).push(a);});
  var cs=Object.keys(g).sort(function(a,b){return compOrd(b)-compOrd(a);}),nv=L.filter(function(a){return a.st==='disp';}).length,nd=L.filter(function(a){return a.st==='dev';}).length,ne=L.filter(function(a){return a.or==='cli'&&(a.st==='enviado'||a.st==='analise');}).length;
  var msg=!L.length?(all?'Nenhum arquivo nesta pasta ainda. Toque no + para enviar.':'Nenhum arquivo de '+cMes(PCOMP)+' nesta pasta.'):nd?nd+(nd===1?' arquivo foi devolvido pelo contador. Abra para ver o motivo.':' arquivos foram devolvidos pelo contador. Abra para ver o motivo.'):nv?nv+(nv===1?' arquivo novo do contador.':' arquivos novos do contador.'):ne?ne+(ne===1?' arquivo seu em conferência pelo contador.':' arquivos seus em conferência pelo contador.'):'Tudo conferido neste período.';
  return hdr(c[1],'Documentos')+
- '<button type="button" class="perbtn" data-periodo="#pasta"><span class="pl">Período</span><b>'+(all?'Todos os períodos':esc(PCOMP))+'</b>'+IC.cal+'</button>'+
+ perBtn('#pasta',PCOMP)+
  '<div class="hero"><div class="hk"><span>'+(all?'Todos os períodos':'Competência '+esc(PCOMP))+'</span><span class="pill-w">'+L.length+(L.length===1?' arquivo':' arquivos')+'</span></div><p class="ht">'+msg+'</p></div>'+
  (cs.length?cs.map(function(cp){return '<section><div class="sec"><h2>'+esc(cp)+'</h2><span class="cnt">'+g[cp].length+'</span></div><div class="card">'+g[cp].map(function(a){return arqRow(a);}).join('')+'</div></section>';}).join(''):'')+
  '<p class="foot">Toque no + para ver o que dá para enviar ou pedir nesta pasta.</p>';}
@@ -1357,7 +1373,7 @@ function renderEnvio(g){if(!ENV_T[g])return '';ENVG=g;var T=ENV_T[g],c=ECOMP[g]|
  return h;}
 function encerraEnvio(g,c){var T=ENV_T[g],n=(g==='extratos'?extrOf(c):despOf(c)).length;ST['enc_'+g]=ST['enc_'+g]||{};ST['enc_'+g][c]={em:hoje(),n:n};ST.n++;var id='p'+ST.n;
  ST.ped.unshift({id:id,f:g==='extratos'?'extrato':'despesas',tipo:'Envio de '+T[2]+' · '+cMes(c),quem:n?n+' '+(n===1?T[1]:T[2]):'Sem '+T[2]+' no mês',data:'Pedido em '+hoje(),st:'enviado',prot:'2026-'+ST.n,dados:[['Competência',c],['Encerrado pelo cliente em',hoje()],['Itens lançados',String(n)]],em:hoje()});
- ST.act.unshift(['Envio de '+T[2]+' de '+cMes(c)+' encerrado · '+(n?n+' '+(n===1?T[1]:T[2]):'nenhum lançamento'),'Agora',1]);}
+ ST.act.unshift(['Envio de '+T[2]+' de '+cMes(c)+' encerrado · '+(n?n+' '+(n===1?T[1]:T[2]):'nenhum lançamento'),'Agora',1,NOW().getTime()]);}
 /* ===== Verificar rotinas: só o que está no prazo deste mês, ou o que venceu sem nada enviado ===== */
 function rotLanc(g,c){if(g==='notas'){var cf=(ST.cofre||{})[c];return !!(cf&&((cf.notas||[]).length||cf.st==='encerrado'));}if(g==='extratos')return extrOf(c).length>0||encSt(g,c)==='encerrado';if(g==='despesas')return despOf(c).length>0||!!(ST.desp||{})[c]||encSt(g,c)==='encerrado';
  if(g==='folha')return folhasOf().some(function(f){return f.comp===c&&fst(f)!=='rascunho';});return false;}
@@ -1500,7 +1516,7 @@ function semVarMes(c){var I=semVarInfo(c),ls=folhasOf();I.alvo.forEach(function(
   if(f){f.sem=true;f.vars={};f.st='enviada';f.data=hoje();}else ls.push({id:'sv'+Date.now().toString(36)+i,comp:c,func:n,tipo:'Mensal',st:'enviada',vars:{},sem:true,obs:'',criada:hoje(),data:hoje()});});
  var tot=I.alvo.length+I.env.length;ST.enc_folha=ST.enc_folha||{};ST.enc_folha[c]={em:hoje(),n:tot};
  ST.n++;ST.ped.unshift({id:'p'+ST.n,f:'folha',tipo:'Folha de '+cMes(c)+' · sem variáveis',quem:tot+(tot===1?' colaborador':' colaboradores'),data:'Pedido em '+hoje(),st:'enviado',prot:'2026-'+ST.n,dados:[['Competência',c],['Variáveis','Nenhum colaborador teve variáveis'],['Encerrado pelo cliente em',hoje()]],em:hoje()});
- ST.act.unshift(['Folha de '+cMes(c)+' encerrada sem variáveis e enviada ao contador','Agora',1]);return I;}
+ ST.act.unshift(['Folha de '+cMes(c)+' encerrada sem variáveis e enviada ao contador','Agora',1,NOW().getTime()]);return I;}
 
 /* ===== despesas: lançar manual ou por planilha ===== */
 function despMeses(){var n=NOW();return [cName(n.getFullYear(),n.getMonth()-1),cName(n.getFullYear(),n.getMonth())].filter(function(c){return compOk('despesas',c);});}
@@ -1525,7 +1541,7 @@ function renderDespPl(a){if(a&&cParse(a).m>-1&&!DPL.cSet)DPL.c=a;if(!DPL.c)DPL.c
  h+='<div class="fld"><label class="fl">Competência</label><button type="button" class="selbtn'+(c?' has':'')+(c&&!okC?' bad':'')+'" data-mes="#dpl"><span>'+(c?esc(c):'Selecione o mês')+'</span>'+IC.cal+'</button>'+(c&&okC?'<span class="fh">Envio de '+cMes(c)+' aberto até '+fmtP(prazo('despesas',c))+'</span>':c?'<span class="fe">O envio de '+cMes(c)+' está encerrado. Escolha outro mês ou toque no mês com cadeado para pedir ao contador.</span>':'')+'</div>';
  h+='<section><div class="sec"><h2>Planilha</h2></div><label class="up'+(DPL.arq?' has':'')+'" for="dpl-file"><span class="ri">'+(DPL.arq?IC.check16:(IC.up16||''))+'</span><span class="rt"><span class="a">'+(DPL.busy?'Lendo a planilha…':DPL.arq?esc(DPL.arq):'Escolher planilha')+'</span><span class="b">'+(DPL.arq?'Toque para trocar':'Excel (.xlsx) ou CSV')+'</span></span><input class="fi-over" type="file" id="dpl-file" accept=".xlsx,.xls,.csv,text/csv" aria-label="Escolher planilha"></label>'+
   '<p class="foot">Uma linha por despesa. Colunas: Descrição, Categoria, Valor, Emissão, Vencimento, Situação. Datas no formato dd/mm/aaaa e emissão dentro do mês da competência.</p>'+
-  (DPL.err?'<div class="note">'+esc(DPL.err)+'</div>':'')+(R.length?'':'<button type="button" class="wb" data-dplex>Usar planilha de exemplo</button>')+'</section>';
+  (DPL.err?'<div class="note">'+esc(DPL.err)+'</div>':'')+'</section>';
  if(R.length){
   if(bad)h+='<div class="lock"><span class="lk">'+(IC.x||'')+'</span><div><b>'+bad+(bad===1?' linha com problema':' linhas com problema')+'</b><p>'+(bad===1?'Ela não será enviada':'Elas não serão enviadas')+'. Corrija na planilha e carregue de novo, ou tire a linha e envie só as corretas.</p></div></div>';
   h+='<section><div class="sec"><h2>'+ok.length+(ok.length===1?' despesa pronta':' despesas prontas')+'</h2><span class="cnt">R$ '+fmt(tot)+'</span></div><div class="card">'+R.map(function(x,i){return '<div class="r"><span class="ri">'+(IC.desp||'')+'</span><span class="rt"><span class="a">'+esc(x.desc||'Sem descrição')+'</span><span class="b">'+(x.ok?esc([x.cat,x.emis?'emissão '+x.emis:'',x.venc?'vence '+x.venc:''].filter(Boolean).join(' · ')):'<b style="color:var(--badc,#c0392b)">'+esc(x.errs.join(' · '))+'</b>')+'</span></span>'+(x.ok?'<span class="pill neutral">R$ '+fmt(x.val)+'</span>':'<span class="pill bad">Corrigir</span>')+'<button type="button" class="vx" data-dpldel="'+i+'" aria-label="Tirar esta linha">'+IC.x+'</button></div>';}).join('')+'</div></section>';
@@ -1544,7 +1560,7 @@ function dplChecar(){var c=DPL.c,p=c?cParse(c):null;DPL.rows.forEach(function(x)
 function dplEnviar(){var c=DPL.c,ok=DPL.rows.filter(function(x){return x.ok;});if(!ok.length||!compOk('despesas',c))return 0;
  ok.forEach(function(x){ST.n++;ST.ped.unshift({id:'p'+ST.n,f:'despesas',tipo:'Cadastrar despesa',quem:x.desc,data:'Pedido em '+hoje(),st:'enviado',prot:'2026-'+ST.n,em:hoje(),
   dados:[['Categoria',x.cat],['Descrição',x.desc],['Valor','R$ '+fmt(x.val)],['Competência',c],['Emissão',x.emis||'—'],['Vencimento',x.venc||'—'],['Situação',x.sit],['Origem','Planilha '+(DPL.arq||'')]]});});
- ST.act.unshift([ok.length+(ok.length===1?' despesa enviada':' despesas enviadas')+' por planilha · '+cMes(c),'Agora',1]);var n=ok.length;DPL.rows=[];DPL.arq='';DPL.err='';return n;}
+ ST.act.unshift([ok.length+(ok.length===1?' despesa enviada':' despesas enviadas')+' por planilha · '+cMes(c),'Agora',1,NOW().getTime()]);var n=ok.length;DPL.rows=[];DPL.arq='';DPL.err='';return n;}
 
 /* ===== acompanhamento configurável pelo contador (notas, extratos, folhas/variáveis) e despesas diretas ===== */
 function acompOn(k){var a=(MULTI.cfg||{}).acomp||{};return a[k]!==false;}
@@ -1574,7 +1590,7 @@ function despSalvar(id){var p=ST.ped.filter(function(x){return x.id===id;})[0];i
  var ds=g('de-desc'),vl=dplVal(g('de-val'));if(!ds)return 'Preencha a descrição';if(!(vl>0))return 'Digite o valor';
  var set=function(k,rx,v){var x=(p.dados||[]).filter(function(d){return rx.test(d[0]);})[0];if(x)x[1]=v;else (p.dados=p.dados||[]).push([k,v]);};
  set('Descrição',/^descri/i,ds);set('Categoria',/^categoria/i,g('de-cat'));set('Valor',/^valor/i,'R$ '+fmt(vl));set('Emissão',/^emiss/i,isoBr(g('de-emis')));set('Vencimento',/^vencimento/i,isoBr(g('de-venc')));set('Situação',/^situa/i,g('de-sit'));
- p.quem=ds;p.ed=hoje();ST.act.unshift(['Despesa editada · '+ds,'Agora',1]);return '';}
+ p.quem=ds;p.ed=hoje();ST.act.unshift(['Despesa editada · '+ds,'Agora',1,NOW().getTime()]);return '';}
 
 
 /* ===== notas fiscais: leitura do XML e do PDF sem IA (grátis, no próprio aparelho) ===== */
@@ -1758,6 +1774,52 @@ seedFicha1();
 function seedTermOff(){if(!MULTI||MULTI.seedTermOff)return;Object.keys(MULTI.data||{}).forEach(function(k){var d=MULTI.data[k];if(d&&d.prefs)d.prefs.term=0;});MULTI.seedTermOff=1;if(window.save)save();}
 seedTermOff();
 
+/* ===== Recentes: só o que aconteceu nos últimos 15 dias (em todas as telas que têm Recentes) ===== */
+var REC_DIAS=15,MES3=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+/* lê as datas gravadas no app: "Agora", "Hoje, 08:40", "Ontem", "13 out", "13 out, 10:05", "13/10/2026" e "2026-10-13" */
+function dtTxt(s){s=String(s==null?'':s).toLowerCase().trim();if(!s)return null;var n=NOW(),m;
+ if(/^(agora|hoje)/.test(s))return dOnly(n);if(/^ontem/.test(s))return new Date(n.getFullYear(),n.getMonth(),n.getDate()-1);
+ if((m=/(?:^|[^\d])(\d{1,2})\s+(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)(?![a-z])/.exec(s))){var d=new Date(n.getFullYear(),MES3.indexOf(m[2]),+m[1]);if(d.getTime()>n.getTime()+864e5)d=new Date(n.getFullYear()-1,MES3.indexOf(m[2]),+m[1]);return d;}
+ if((m=/(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(s)))return new Date(+m[3],+m[2]-1,+m[1]);
+ if((m=/(\d{4})-(\d{2})-(\d{2})/.exec(s)))return new Date(+m[1],+m[2]-1,+m[3]);return null;}
+/* data em número (ms), Date ou texto; o que não tem data reconhecível continua aparecendo */
+function rec15(x){var d=typeof x==='number'?new Date(x):x instanceof Date?x:dtTxt(x);if(!d||isNaN(d.getTime()))return true;return (dOnly(NOW())-dOnly(d))/864e5<=REC_DIAS;}
+/* última movimentação de um arquivo: o último passo do histórico ou a data do envio */
+function arqQuando(a){var h=(a&&a.h)||[],u=h.length?h[h.length-1][1]:'';return dtTxt(u)?u:(a&&a.data)||u;}
+/* atividade: o momento gravado vira "Hoje, 10:05", "Ontem, 10:05" ou "13 out" */
+function actQuando(a){if(!a[3])return a[1];var d=new Date(a[3]),n=dOnly(NOW()),dd=Math.round((n-dOnly(d))/864e5),hh=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
+ return dd<=0?'Hoje, '+hh:dd===1?'Ontem, '+hh:('0'+d.getDate()).slice(-2)+' '+MES3[d.getMonth()];}
+function actRec(a){return rec15(a[3]||a[1]);}
+
+/* ===== cadastro completo dos sócios das empresas (preenche só o que estiver vazio) ===== */
+var SOC_CAD={'Marina Alves':{cpf:'318.472.659-28',nasc:'1986-05-12',gen:'Feminino',mae:'Teresa Alves',pai:'Jorge Alves',ecivil:'Casado(a)',tel:'(11) 98000-0000',email:'marina@alvorada.exemplo',end:'Rua Fradique Coutinho, 455 · Apto 62 · Pinheiros · São Paulo/SP · 05416-011'},
+ 'Rafael Costa':{cpf:'274.915.836-28',nasc:'1984-09-23',gen:'Masculino',mae:'Helena Costa',pai:'Paulo Costa',ecivil:'Solteiro(a)',tel:'(11) 98111-2233',email:'rafael@alvorada.exemplo',end:'Rua Harmonia, 120 · Vila Madalena · São Paulo/SP · 05435-000'}};
+function socCompleta(){var mud=0;(MULTI.emps||[]).forEach(function(e){var S=e.socios||{};Object.keys(S).forEach(function(n){var d=S[n],x=SOC_CAD[n];if(!d||!x)return;Object.keys(x).forEach(function(k){if(d[k]==null||d[k]===''||d[k]==='—'){d[k]=x[k];mud=1;}});});});return mud;}
+socCompleta();
+
+/* ===== apagar lançamentos: zera o que foi lançado e guarda só as empresas, os sócios e o escritório =====
+   Fica: dados das empresas, sócios, escritório, equipe, prazos e preferências do app.
+   Sai: pedidos, documentos, notas, extratos, despesas, folhas, guias, colaboradores, chat, avisos e atividade.
+   As marcas de exemplo já aplicado (seed..., arqv...) ficam, para os exemplos não voltarem. */
+var LANC_ZERO=['solic','vari','unread','impDemo2'];
+var LANC_MARCAS=['seed11','seedCofre','arqv','arqv2','seedFer','seedCad','seedRot','seedRot2','seedFolhaT1','seedAnaCad1','seedNf1','seedJess','seedFicha1','seedAnaArq3','impDemo2'];
+function zeraLancamentos(){
+ (MULTI.emps||[]).forEach(function(e){var d=MULTI.data[e.id]||{},n={cofre:{},extr:{},ped:[],act:[],pend:{extrato:0,nf1:0,nf2:0},solic:0,docsPed:[],fer:{},desp:{},meus:[],n:d.n||1000,pagas:{},vari:0,logged:1,prefs:d.prefs||{venc:1,msg:1,sem:0},chat:[],chatSis:[],unread:0,notif:[],folhas:[],arq:[],rotOff:{},lotes:[],lib:{},impV:{}};
+  Object.keys(d).forEach(function(k){var v=d[k];if(k in n||LANC_ZERO.indexOf(k)>-1)return;if(v===null||typeof v!=='object')n[k]=v;});
+  LANC_MARCAS.forEach(function(k){n[k]=1;});
+  if(d.devs)n.devs=d.devs;
+  var so=Object.keys(e.socios||{});if(d.users)n.users=d.users.filter(function(u){return so.indexOf(u.n)>-1;});
+  MULTI.data[e.id]=n;
+  e.func={};e.gu=[];e.gupg=[];var fo={};Object.keys(e.folders||{}).forEach(function(k){fo[k]=[];});e.folders=fo;e.zeraGu1=1;});
+ /* arquivos guardados neste navegador (cliente, contador e painel usam o mesmo banco) */
+ try{var r=indexedDB.open('contabills-arquivos',1);r.onupgradeneeded=function(){r.result.createObjectStore('f');};r.onsuccess=function(){try{r.result.transaction('f','readwrite').objectStore('f').clear();}catch(x){}};}catch(x){}
+ if(typeof useEmp==='function')useEmp(MULTI.cur);
+ if(window.save)save();}
+/* limpeza única pedida em 31/10/2026: tira todos os exemplos (lançamentos e cadastros de colaboradores) dos três apps */
+function limpaExemplos1(){if(!MULTI)return;MULTI.cfg=MULTI.cfg||{};if(MULTI.cfg.limpo1)return;MULTI.cfg.limpo1=1;socCompleta();if(!MULTI.cfg.esc)MULTI.cfg.esc=JSON.parse(JSON.stringify(ESC_CAD));escCompleta();zeraLancamentos();}
+limpaExemplos1();
+if(escCompleta()&&window.save)save();
+
 /* ===== tipos de arquivo aceitos em cada documento ===== */
 var FTG={pdf:{l:'PDF',e:['pdf'],acc:'.pdf,application/pdf'},img:{l:'foto (JPG ou PNG)',e:['jpg','jpeg','png','heic','heif','webp'],acc:'image/*'},xml:{l:'XML',e:['xml'],acc:null},ofx:{l:'OFX',e:['ofx','ofc'],acc:null},pfx:{l:'PFX ou P12',e:['pfx','p12'],acc:null},xls:{l:'planilha (XLSX, XLS ou CSV)',e:['xlsx','xls','csv'],acc:'.xlsx,.xls,.csv'},doc:{l:'Word (DOCX)',e:['doc','docx'],acc:'.doc,.docx'},zip:{l:'ZIP',e:['zip'],acc:'.zip'}};
 var FTY={};
@@ -1786,7 +1848,7 @@ function libKey(g,c){return (g==='cofre'?'notas':g)+'|'+c;}
 function libAte(g,c){var x=((typeof ST!=='undefined'&&ST&&ST.lib)||{})[libKey(g,c)];if(!x)return null;var q=x.split('-');return new Date(+q[0],+q[1]-1,+q[2]);}
 function libAtiva(g,c){var la=libAte(g,c);return !!(la&&dOnly(NOW())<=la);}
 function pedLibAberto(g,c){return ST.ped.filter(function(p){return p.f==='libmes'&&p.st!=='ok'&&p.lk===libKey(g,c);})[0];}
-function pedirLib(g,c){g=g==='cofre'?'notas':g;if(pedLibAberto(g,c))return 0;ST.n++;ST.ped.unshift({id:'p'+ST.n,f:'libmes',lk:libKey(g,c),tipo:'Liberar envio de '+LIBN[g]+' · '+cMes(c),quem:'',data:'Pedido em '+hoje(),st:'enviado',prot:'2026-'+ST.n,em:hoje(),dados:[['Envio',cap(LIBN[g])],['Competência',c],['Pedido','Liberar o envio do mês, que já foi encerrado']]});ST.act.unshift(['Pedido de liberação · '+LIBN[g]+' de '+cMes(c),'Agora',1]);return 1;}
+function pedirLib(g,c){g=g==='cofre'?'notas':g;if(pedLibAberto(g,c))return 0;ST.n++;ST.ped.unshift({id:'p'+ST.n,f:'libmes',lk:libKey(g,c),tipo:'Liberar envio de '+LIBN[g]+' · '+cMes(c),quem:'',data:'Pedido em '+hoje(),st:'enviado',prot:'2026-'+ST.n,em:hoje(),dados:[['Envio',cap(LIBN[g])],['Competência',c],['Pedido','Liberar o envio do mês, que já foi encerrado']]});ST.act.unshift(['Pedido de liberação · '+LIBN[g]+' de '+cMes(c),'Agora',1,NOW().getTime()]);return 1;}
 
 /* avisos de envio vencido que o cliente apagou: ficam num histórico oculto */
 function rotOcultos(){var off=ST.rotOff||{},n0=NOW(),jan=[-3,-2,-1].map(function(k){return cName(n0.getFullYear(),n0.getMonth()+k);}),L=Object.keys(off).filter(function(k){var q=k.split(':');return jan.indexOf(q[1])>-1&&ROTG[q[0]]&&q[1]&&!rotFeito(q[0],q[1])&&!rotLanc(q[0],q[1]);});if(!L.length)return '';
