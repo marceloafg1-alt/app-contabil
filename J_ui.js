@@ -159,8 +159,8 @@ if(t.hasAttribute('data-cyr')){CAL.y=+t.dataset.cyr;CAL.view=CAL.per?null:'m';re
  if(t.hasAttribute('data-edit')){FS.step=+t.dataset.edit;dyn.innerHTML=renderFlow();dyn.scrollTop=0;return;}
  if(t.hasAttribute('data-home')){home();return;}
  if(t.hasAttribute('data-despaga')){guiaDespaga(t.dataset.despaga);save();renderLists();show(cur,false,true);say('Guia desmarcada como paga. Recálculo e parcelamento liberados.');return;}
- if(t.hasAttribute('data-voceok')){ST.ped.forEach(function(x){if(x.id===t.dataset.voceok){x.st='analise';x.cli='Resolvido pelo cliente em '+hoje()+'.';x.cr=1;ST.act.unshift(['Respondido ao contador · '+x.tipo,'Agora',1,NOW().getTime()]);}});save();renderLists();show(cur,false,true);say('Contador avisado');return;}
- if(t.hasAttribute('data-sign')){ST.ped.forEach(function(x){if(x.id===t.dataset.sign){x.st='analise';x.cli='Aviso assinado em '+hoje()+'.';x.cr=1;ST.act.unshift(['Aviso de férias de '+x.quem+' assinado','Agora',1,NOW().getTime()]);}});save();renderLists();show(cur,false,true);say('Aviso assinado e enviado ao contador');return;}
+ if(t.hasAttribute('data-voceok')){ST.ped.forEach(function(x){if(x.id===t.dataset.voceok){x.st='analise';x.cli='Resolvido pelo cliente em '+hoje()+'.';x.cliH=horaAgora();x.cr=1;ST.act.unshift(['Respondido ao contador · '+x.tipo,'Agora',1,NOW().getTime()]);}});save();renderLists();show(cur,false,true);say('Contador avisado');return;}
+ if(t.hasAttribute('data-sign')){ST.ped.forEach(function(x){if(x.id===t.dataset.sign){x.st='analise';x.cli='Aviso assinado em '+hoje()+'.';x.cliH=horaAgora();x.cr=1;ST.act.unshift(['Aviso de férias de '+x.quem+' assinado','Agora',1,NOW().getTime()]);}});save();renderLists();show(cur,false,true);say('Aviso assinado e enviado ao contador');return;}
  if(t.hasAttribute('data-go')){var g=t.dataset.go;
   if(t.dataset.rk&&cur==='rotinas'){IMPSEQ=null;ROTV={k:t.dataset.rk,sig:rotSig(t.dataset.rk)};} /* tarefa de Verificar rotinas: ao resolver, volta para lá */
   if(g==='docs'&&cur!=='docs'&&head(cur)!=='pasta'&&DCOMP){DCOMP='';renderLists();} /* Documentos abre no mês do sistema */
@@ -371,7 +371,7 @@ function askGen(o){CFCB=o.cb;cfm.classList.toggle('cfsoft',!!o.soft);ov4.classLi
 function askCofre(c0){var c=c0||compEnc('notas');if(!c){var nw=NOW(),pc=cName(nw.getFullYear(),nw.getMonth()-1),cc=cName(nw.getFullYear(),nw.getMonth());say(cofreSt(pc)==='aberto'?'Nada para encerrar agora':'O cofre de '+cMes(cc)+' só pode ser encerrado a partir de '+fmtP(encIni(cc)));return;}if(cofreSt(c)!=='aberto'){say('O cofre de '+cMes(c)+' já está encerrado');return;}if(!podeEnc(c)){say('O cofre de '+cMes(c)+' só pode ser encerrado a partir de '+fmtP(encIni(c)));return;}var n=cofreOf(c).notas.length;
  askGen({ic:IC.cofre,t:'Encerrar o cofre de '+cMes(c)+'?',d:n?'As '+n+' notas do cofre vão para o contador agora. Depois disso, notas de '+cMes(c)+' só pedindo ao contador.':'O cofre está vazio. Encerrar avisa o contador que não houve notas em '+cMes(c)+'.',ok:'Encerrar e enviar',cb:function(){encCofre(c);}});}
 function encCofre(c){var cf=cofreOf(c),n=cf.notas.length;cf.st='encerrado';cf.em=hoje();ST.n++;var id='p'+ST.n;
- ST.ped.unshift({id:id,f:'notas',tipo:'Cofre de notas · '+cMes(c),quem:n+(n===1?' nota':' notas'),data:'Pedido em '+hoje(),st:'enviado',prot:'2026-'+ST.n});
+ ST.ped.unshift({id:id,f:'notas',tipo:'Cofre de notas · '+cMes(c),quem:n+(n===1?' nota':' notas'),data:'Pedido em '+horaAgora(),st:'enviado',prot:'2026-'+ST.n});
  arqCofre(ST,id);ST.act.unshift(['Cofre de notas de '+cMes(c)+' encerrado · '+n+(n===1?' nota enviada':' notas enviadas'),'Agora',1,NOW().getTime()]);save();renderLists();CCOMP=c;
  if(cur==='cofre')show('cofre',false,true);else go('cofre');say('Cofre de '+cMes(c)+' encerrado e enviado ao contador');}
 document.getElementById('cf-no').addEventListener('click',closeConfirm);ov4.addEventListener('click',closeConfirm);
