@@ -927,15 +927,54 @@ function cfgTeste(){var n=NOW(),v=n.getFullYear()+'-'+('0'+(n.getMonth()+1)).sli
   '<label class="r" for="cfg-sim"><span class="ri">'+IC.clock+'</span><span class="rt"><span class="a">Data do sistema</span><span class="b">'+(MULTI.sim?'Simulada: '+fmtP(n):'Hoje, data real')+' · muda o dia em todo o app</span></span><input type="date" id="cfg-sim" class="cfgsim" value="'+v+'"></label>'+
   (MULTI.sim?'<button type="button" class="r" data-simhoje><span class="ri">'+IC.clock+'</span><span class="rt"><span class="a">Voltar para a data de hoje</span><span class="b">Usa de novo a data real do aparelho</span></span>'+IC.chev18+'</button>':'')+
   '<button type="button" class="r" data-apagar-sel><span class="ri">'+IC.x+'</span><span class="rt"><span class="a">Apagar</span><span class="b">Escolha, em uma lista, o que apagar. Só sai o que estiver marcado</span></span>'+IC.chev18+'</button>'+
+  '<button type="button" class="r" data-exemplos><span class="ri">'+IC.doc+'</span><span class="rt"><span class="a">Criar exemplos</span><span class="b">Escolha a quantidade de exemplos de cada seção</span></span>'+IC.chev18+'</button>'+
  '</div><p class="foot">Botões provisórios, só para testar o protótipo.</p></section>';}
 
 /* Apagar com seletor: só apaga o que estiver marcado no modal */
 var APAGA_SEC=[['socios','Sócios'],['colab','Colaboradores'],['afast','Afastamentos'],['ferias','Férias'],['medida','Medida disciplinar'],['folha','Folha de pagamento'],['vari','Variáveis rápidas'],['desp','Despesas'],['extr','Extratos bancários'],['notas','Notas'],['docs','Documentos solicitados']];
+/* janela de teste (sem CSS de arquivo): fundo escuro e caixa no tema do app */
+function apModal(tit,nota,corpo,okTxt,okFn){
+ var ov=document.createElement('div');ov.id='ov-ap';ov.setAttribute('role','dialog');ov.setAttribute('aria-label',tit);
+ ov.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px';
+ ov.innerHTML='<div style="background:var(--card,#fff);color:var(--fg,#17181B);border:1px solid var(--line,#D6DED9);border-radius:18px;width:100%;max-width:380px;max-height:86vh;overflow:auto;padding:18px"><h3 style="margin:0 0 4px;font-size:16px">'+tit+'</h3><p style="margin:0 0 12px;font-size:12.5px;color:var(--sub,#5F6670)">'+nota+'</p>'+corpo+'<div style="display:flex;gap:8px;margin-top:14px"><button type="button" class="wb" style="flex:1" id="ap-no">Cancelar</button><button type="button" class="wb red" style="flex:1" id="ap-ok">'+okTxt+'</button></div></div>';
+ document.body.appendChild(ov);
+ ov.onclick=function(ev){if(ev.target===ov)ov.remove();};
+ document.getElementById('ap-no').onclick=function(){ov.remove();};
+ document.getElementById('ap-ok').onclick=function(){if(okFn(ov)!==false)ov.remove();};
+}
+function apDepois(){if(window.save)save();if(window.__refresh)window.__refresh();else location.reload();}
 function apagaSelOpen(){
- var h='<div class="ap-ov" id="ov-ap" role="dialog" aria-label="Apagar"><div class="ap-box"><h3>Apagar o que for marcado</h3><p class="ap-n">Vale para todas as empresas. Não dá para desfazer.</p>'+APAGA_SEC.map(function(s){return '<label class="ap-row"><input type="checkbox" value="'+s[0]+'"> '+s[1]+'</label>';}).join('')+'<div class="ap-btns"><button type="button" class="wb" id="ap-no">Cancelar</button><button type="button" class="wb red" id="ap-ok">Apagar marcados</button></div></div></div>';
- var w=document.createElement('div');w.innerHTML=h;document.body.appendChild(w.firstChild);
- document.getElementById('ap-no').onclick=function(){document.getElementById('ov-ap').remove();};
- document.getElementById('ap-ok').onclick=function(){var ks=[].slice.call(document.querySelectorAll('#ov-ap input:checked')).map(function(i){return i.value;});if(!ks.length)return;apagaSel(ks);document.getElementById('ov-ap').remove();if(window.save)save();if(window.__refresh)window.__refresh();else location.reload();};
+ var corpo=APAGA_SEC.map(function(s){return '<label style="display:flex;align-items:center;gap:10px;padding:9px 2px;font-size:14px;border-top:1px solid var(--line,#D6DED9)"><input type="checkbox" value="'+s[0]+'" style="width:18px;height:18px"> '+s[1]+'</label>';}).join('');
+ apModal('Apagar o que for marcado','Só sai o que estiver marcado, em todas as empresas. Não dá para desfazer.',corpo,'Apagar marcados',function(ov){
+  var ks=[].slice.call(ov.querySelectorAll('input:checked')).map(function(i){return i.value;});
+  if(!ks.length)return false;apagaSel(ks);apDepois();});
+}
+/* Criar exemplos: quantidade por seção, na empresa aberta e no mês da data do sistema */
+function exemplosOpen(){
+ var corpo=APAGA_SEC.map(function(s){return '<label style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 2px;font-size:14px;border-top:1px solid var(--line,#D6DED9)"><span>'+s[1]+'</span><input type="number" min="0" max="20" value="0" data-ex="'+s[0]+'" inputmode="numeric" style="width:64px;height:36px;text-align:center;border:1px solid var(--line,#D6DED9);border-radius:10px;background:transparent;color:inherit;font-size:14px"></label>';}).join('');
+ apModal('Criar exemplos','Quantos exemplos criar em cada seção (0 a 20). Entram na empresa aberta, no mês da data do sistema.',corpo,'Criar exemplos',function(ov){
+  var q={},t=0;[].slice.call(ov.querySelectorAll('input[data-ex]')).forEach(function(i){var v=Math.max(0,Math.min(20,parseInt(i.value,10)||0));if(v){q[i.dataset.ex]=v;t+=v;}});
+  if(!t)return false;criaExemplos(q);apDepois();});
+}
+function criaExemplos(q){
+ var e=EMP(),n0=NOW(),c=cName(n0.getFullYear(),n0.getMonth()),h=hoje(),mm=('0'+(n0.getMonth()+1)).slice(-2),k=0;
+ var L=new Date(n0.getTime()+10*864e5),lim=L.getFullYear()+'-'+('0'+(L.getMonth()+1)).slice(-2)+'-'+('0'+L.getDate()).slice(-2);
+ var NM=['Paula Mendes','Diego Ramos','Larissa Costa','Tiago Nunes','Camila Rocha','Bruno Alves','Fernanda Lima','Rafael Dias'];
+ function nome(lista,i){var b=NM[i%NM.length],n=b+(i>=NM.length?' '+(Math.floor(i/NM.length)+1):'');return n;}
+ function pd(f,tipo,quem,dados){ST.n++;ST.ped.unshift({id:'p'+ST.n,f:f,tipo:tipo,quem:quem,data:'Pedido em '+h,st:'enviado',prot:'2026-'+ST.n,dados:dados,em:h});}
+ function pessoa(i){var l=funcAtivos();return l.length?l[i%l.length]:'Colaborador exemplo';}
+ var i;
+ if(q.socios){e.socios=e.socios||{};for(i=0,k=0;i<q.socios;k++){var sn='Sócio exemplo '+(k+1);if(e.socios[sn])continue;e.socios[sn]={cpf:'000.000.000-00',nasc:'1980-01-01',gen:'Feminino',mae:'—',pai:'—',ecivil:'Solteiro(a)',tel:'(11) 90000-0000',email:'exemplo@exemplo.com',end:'—'};i++;}}
+ if(q.colab){e.func=e.func||{};for(i=0,k=0;i<q.colab;k++){var cn=nome(null,k);if(e.func[cn])continue;e.func[cn]={c:'Auxiliar administrativo',adm:'01/'+mm+'/'+n0.getFullYear(),sal:'2.000,00',jor:'44h semanais'};i++;}FUNCD=e.func;FUNC=funcAtivos();}
+ for(i=0;i<(q.afast||0);i++)pd('afastamento','Afastamento',pessoa(i),[['Funcionário',pessoa(i)],['Motivo','Doença'],['Quantidade de dias','3']]);
+ for(i=0;i<(q.ferias||0);i++)pd('ferias','Férias',pessoa(i),[['Funcionário',pessoa(i)],['Dias de férias','30']]);
+ for(i=0;i<(q.medida||0);i++)pd('medida','Medida disciplinar',pessoa(i),[['Funcionário',pessoa(i)],['Tipo de medida','Advertência verbal']]);
+ for(i=0;i<(q.vari||0);i++)pd('variaveis','Variáveis rápidas · '+c,'Todos os colaboradores',[['Mês da folha',c]]);
+ for(i=0;i<(q.desp||0);i++){ST.desp=ST.desp||{};ST.desp[c]=1;pd('despesas','Despesa · '+c,'Despesa exemplo '+(i+1),[['Competência',c],['Categoria','Energia elétrica']]);}
+ if(q.folha){ST.folhas=ST.folhas||[];for(i=0;i<q.folha;i++){ST.n++;ST.folhas.push({id:'fx'+ST.n,comp:c,func:pessoa(i),tipo:'Mensal',st:'fechada',vars:{},obs:'',data:h});}}
+ if(q.extr){ST.extr=ST.extr||{};var xl=ST.extr[c]=ST.extr[c]||[];for(i=0;i<q.extr;i++){ST.n++;xl.push({banco:['Itaú','Bradesco','Nubank','Inter'][i%4],arq:'extrato-exemplo-'+ST.n+'.pdf',data:h});}}
+ if(q.notas){ST.cofre=ST.cofre||{};var cf=ST.cofre[c]=ST.cofre[c]||{notas:[],st:''};cf.notas=cf.notas||[];for(i=0;i<q.notas;i++){ST.n++;cf.notas.push({arq:'NF-exemplo-'+ST.n+'.xml',tipo:i%2?'Recebidas (compras)':'Emitidas (vendas)',data:h});}}
+ if(q.docs){for(i=0;i<q.docs;i++){ST.n++;docsPed().push({id:'dx'+ST.n,t:'Enviar documento de exemplo '+(i+1),lim:lim,go:'f-solicitado'});}}
 }
 function apagaSel(ks){
  function has(k){return ks.indexOf(k)>-1;}
