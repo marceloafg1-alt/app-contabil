@@ -406,45 +406,36 @@ const PLANOS=[
 const planoDe=id=>PLANOS.find(p=>p.id===id);
 const NOMES=['Ana Lima','Bruno Rocha','Carla Mendes','Diego Alves','Elisa Prado','Fábio Nunes','Gabriela Reis','Heitor Campos','Isabela Torres','João Pedro Sá','Karina Lopes','Lucas Martins','Mariana Costa','Nícolas Ferraz','Olívia Pires','Paulo Henrique','Renata Dias','Samuel Freitas','Tatiane Gomes','Vinícius Ramos','Yasmin Duarte','Rafael Souza','Letícia Barros','André Moura','Beatriz Lacerda','Caio Ribeiro','Débora Siqueira','Eduardo Teles','Fernanda Viana','Gustavo Leal'];
 const EMPN=['Padaria Pão Dourado','Auto Peças Rodovia','Clínica Sorriso','Mercado Bom Preço','Studio Bella','Tech Norte Sistemas','Construtora Alicerce','Farmácia Vida','Pet Shop Amigo Fiel','Restaurante Sabor Caseiro','Ótica Visão Clara','Academia Corpo Ativo','Gráfica Impressa','Loja Moda Leve','Transportes Veloz','Escola Pequeno Saber','Café Grão Nobre','Oficina Motor Forte','Imobiliária Lar Novo','Distribuidora Sul','Floricultura Jardim','Laboratório Análise','Hotel Recanto','Marcenaria Arte Madeira','Agência Pixel','Contábil Express','Lavanderia Limpeza Já','Papelaria Lápis','Açougue Boi Gordo','Sorveteria Gelato','Consultório Dr. Silva','Barbearia Navalha','Eletro Casa','Vidraçaria Cristal','Doceria Mel','Buffet Festa','Serralheria Aço','Pousada Mar Azul','Livraria Página','Drogaria Central','Material Construção Forte','Clínica Vet Patas','Escritório Advocacia Lima','Estética Renove','Mecânica Turbo','Hortifruti Verde','Joalheria Brilho','Info Store'];
+/* escritórios de contabilidade com o cadastro completo e os sócios; as empresas, os logins de clientes e os lançamentos vêm só dos apps (teste ao vivo) */
 const ESC=[
- {id:'e1',nome:'Contabilidade Horizonte',cidade:'São Paulo, SP',plano:'esc',st:'ativo',desde:'mar/2025',resp:'Ana Lima',dom:'horizonte.livtask.com.br'},
- {id:'e2',nome:'Prado & Associados',cidade:'Campinas, SP',plano:'pro',st:'ativo',desde:'jun/2025',resp:'Elisa Prado'},
- {id:'e3',nome:'Contábil Rocha',cidade:'Belo Horizonte, MG',plano:'pro',st:'ativo',desde:'set/2025',resp:'Bruno Rocha'},
- {id:'e4',nome:'Exata Assessoria',cidade:'Curitiba, PR',plano:'ess',st:'atraso',desde:'jan/2026',resp:'Diego Alves'},
- {id:'e5',nome:'Mendes Contadores',cidade:'Recife, PE',plano:'ess',st:'teste',desde:'out/2026',resp:'Carla Mendes'},
- {id:'e6',nome:'Balanço Certo',cidade:'Porto Alegre, RS',plano:'pro',st:'suspenso',desde:'fev/2025',resp:'Fábio Nunes'}
+ {id:'e1',nome:'Contabilidade Horizonte',razao:'Horizonte Serviços Contábeis Ltda',cnpj:'23.456.789/0001-95',crc:'CRC-SP 2SP034567/O-1',cidade:'São Paulo, SP',end:'Av. Rebouças, 1585 · Conj. 42 · Pinheiros · São Paulo/SP · 05401-250',tel:'(11) 4000-0000',email:'atendimento@horizonte.exemplo',plano:'esc',st:'ativo',desde:'mar/2025',resp:'Paula Mendes',dom:'horizonte.livtask.com.br',
+  socios:[{nome:'Paula Mendes',cpf:'451.829.307-04',crc:'CRC-SP 1SP254810/O-3',email:'paula@horizonte.exemplo',tel:'(11) 98222-4410',part:'60%'},{nome:'Ricardo Lopes',cpf:'538.204.716-26',crc:'CRC-SP 1SP261337/O-9',email:'ricardo@horizonte.exemplo',tel:'(11) 98333-5520',part:'40%'}]},
+ {id:'e2',nome:'Prado & Associados',razao:'Prado & Associados Contabilidade Ltda',cnpj:'31.820.456/0001-21',crc:'CRC-SP 2SP041228/O-6',cidade:'Campinas, SP',end:'Av. Norte-Sul, 1400 · Sala 1203 · Cambuí · Campinas/SP · 13025-320',tel:'(19) 3254-7800',email:'contato@pradoassociados.exemplo',plano:'pro',st:'ativo',desde:'jun/2025',resp:'Elisa Prado',
+  socios:[{nome:'Elisa Prado',cpf:'612.730.948-40',crc:'CRC-SP 1SP198344/O-2',email:'elisa@pradoassociados.exemplo',tel:'(19) 99812-3344',part:'70%'},{nome:'Marcos Prado',cpf:'390.561.827-30',crc:'CRC-SP 1SP221905/O-7',email:'marcos@pradoassociados.exemplo',tel:'(19) 99745-1180',part:'30%'}]},
+ {id:'e3',nome:'Contábil Rocha',razao:'Rocha Assessoria Contábil Ltda',cnpj:'45.281.937/0001-10',crc:'CRC-MG 012345/O-4',cidade:'Belo Horizonte, MG',end:'Rua da Bahia, 1148 · Sala 905 · Centro · Belo Horizonte/MG · 30160-011',tel:'(31) 3222-4510',email:'contato@contabilrocha.exemplo',plano:'pro',st:'ativo',desde:'set/2025',resp:'Bruno Rocha',
+  socios:[{nome:'Bruno Rocha',cpf:'705.318.264-90',crc:'CRC-MG 087654/O-1',email:'bruno@contabilrocha.exemplo',tel:'(31) 99133-7820',part:'100%'}]},
+ {id:'e4',nome:'Exata Assessoria',razao:'Exata Assessoria Contábil e Empresarial Ltda',cnpj:'57.910.423/0001-66',crc:'CRC-PR 009876/O-3',cidade:'Curitiba, PR',end:'Rua Marechal Deodoro, 630 · Conj. 1501 · Centro · Curitiba/PR · 80010-912',tel:'(41) 3029-6610',email:'contato@exataassessoria.exemplo',plano:'ess',st:'atraso',desde:'jan/2026',resp:'Diego Alves',
+  socios:[{nome:'Diego Alves',cpf:'846.102.937-22',crc:'CRC-PR 054321/O-8',email:'diego@exataassessoria.exemplo',tel:'(41) 99611-2045',part:'50%'},{nome:'Renata Dias',cpf:'163.947.205-34',crc:'CRC-PR 061187/O-5',email:'renata@exataassessoria.exemplo',tel:'(41) 99702-5518',part:'50%'}]},
+ {id:'e5',nome:'Mendes Contadores',razao:'Mendes Contadores Associados Ltda',cnpj:'61.382.095/0001-40',crc:'CRC-PE 004521/O-9',cidade:'Recife, PE',end:'Av. Eng. Domingos Ferreira, 2160 · Sala 304 · Boa Viagem · Recife/PE · 51111-020',tel:'(81) 3466-1290',email:'contato@mendescontadores.exemplo',plano:'ess',st:'teste',desde:'out/2026',resp:'Carla Mendes',
+  socios:[{nome:'Carla Mendes',cpf:'927.405.618-49',crc:'CRC-PE 021876/O-0',email:'carla@mendescontadores.exemplo',tel:'(81) 99876-4410',part:'100%'}]},
+ {id:'e6',nome:'Balanço Certo',razao:'Balanço Certo Serviços Contábeis Ltda',cnpj:'70.249.518/0001-49',crc:'CRC-RS 007733/O-2',cidade:'Porto Alegre, RS',end:'Rua dos Andradas, 1234 · Sala 802 · Centro Histórico · Porto Alegre/RS · 90020-008',tel:'(51) 3226-8840',email:'contato@balancocerto.exemplo',plano:'pro',st:'suspenso',desde:'fev/2025',resp:'Fábio Nunes',
+  socios:[{nome:'Fábio Nunes',cpf:'284.610.573-17',crc:'CRC-RS 045612/O-6',email:'fabio@balancocerto.exemplo',tel:'(51) 99654-3321',part:'60%'},{nome:'Letícia Barros',cpf:'519.372.846-46',crc:'CRC-RS 052287/O-3',email:'leticia@balancocerto.exemplo',tel:'(51) 99587-1146',part:'40%'}]}
 ];
-const CONT=[];let ni=6;
-const NCONT={e1:6,e2:4,e3:3,e4:2,e5:1,e6:2};
-ESC.forEach(e=>{CONT.push({id:'c'+e.id,nome:e.resp,esc:e.id,adm:1});for(let i=1;i<NCONT[e.id];i++){CONT.push({id:'c'+e.id+i,nome:NOMES[ni++%NOMES.length],esc:e.id,adm:0})}});
-const NEMP={e1:16,e2:10,e3:8,e4:6,e5:3,e6:5};
-const EMP=[];let ei=0;
-ESC.forEach(e=>{const cs=CONT.filter(c=>c.esc===e.id);for(let i=0;i<NEMP[e.id];i++){const n=EMPN[ei%EMPN.length];ei++;
- const st=e.st==='suspenso'?'suspensa':(rnd()<.06?'suspensa':'ativa');
- const prz=st!=='ativa'?'—':pick(['emdia','emdia','emdia','emdia','pend','pend','atras','lib']);
- EMP.push({id:'m'+ei,nome:n,cnpj:String(ri(10,99))+'.'+ri(100,999)+'.'+ri(100,999)+'/0001-'+String(ri(10,99)),esc:e.id,cont:cs[i%cs.length].id,st,prz,
-  docs:ri(30,420),notas:ri(10,260),arm:+(rnd()*14+0.4).toFixed(1),func:ri(0,38),ult:ri(0,9)})}});
+/* contadores: os sócios de cada escritório (o responsável é o admin) */
+const CONT=[];
+ESC.forEach(e=>e.socios.forEach((so,i)=>CONT.push({id:'c'+e.id+(i||''),nome:so.nome,esc:e.id,adm:so.nome===e.resp?1:0})));
+const EMP=[];
 const PAPEIS=['Sócio','Financeiro','Leitura'];
 const USR=[];let ui=0;
 const mail=(n,d)=>n.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z ]/g,'').split(' ').slice(0,2).join('.')+'@'+d;
-CONT.forEach(c=>{const e=ESC.find(x=>x.id===c.esc);USR.push({id:'u'+(ui++),nome:c.nome,email:mail(c.nome,e.nome.toLowerCase().split(' ')[0].normalize('NFD').replace(/[^a-z]/g,'')+'.com.br'),tipo:'contador',papel:c.adm?'Admin do escritório':'Contador',esc:c.esc,emps:EMP.filter(m=>m.cont===c.id).map(m=>m.id),ult:ri(0,48),mfa:rnd()<.85,st:e.st==='suspenso'?'suspenso':'ativo'})});
-const CLN=['Marcos Vieira','Patrícia Alves','Roberto Lima','Sandra Melo','Thiago Couto','Vanessa Brito','Wagner Pinto','Aline Castro','Ricardo Paiva','Juliana Rezende','Márcio Antunes','Camila Freire','Otávio Brandão','Priscila Ventura','Leandro Assis','Sílvia Moraes','Henrique Paes','Lívia Matos','Rodrigo Queiroz','Bianca Teixeira'];
-EMP.forEach((m,i)=>{const k=ri(1,3);for(let j=0;j<k;j++){const nome=CLN[(i*2+j)%CLN.length]+(j>0&&i>9?'':'');
- const ex=USR.find(u=>u.tipo==='cliente'&&u.nome===nome&&rnd()<.5);
- if(ex&&!ex.emps.includes(m.id)){ex.emps.push(m.id);continue}
- USR.push({id:'u'+(ui++),nome,email:mail(nome,m.nome.toLowerCase().split(' ').slice(-1)[0].normalize('NFD').replace(/[^a-z]/g,'')+'.com'),tipo:'cliente',papel:j===0?'Sócio':pick(['Financeiro','Leitura','Financeiro']),esc:m.esc,emps:[m.id],ult:ri(0,240),mfa:rnd()<.45,st:m.st==='suspensa'?'suspenso':(rnd()<.06?'convidado':'ativo')})}});
+CONT.forEach(c=>{const e=ESC.find(x=>x.id===c.esc),so=e.socios.find(x=>x.nome===c.nome)||{};USR.push({id:'u'+(ui++),nome:c.nome,email:so.email||mail(c.nome,'escritorio.com.br'),tipo:'contador',papel:c.adm?'Admin do escritório':'Sócio do escritório',esc:c.esc,emps:[],ult:0,mfa:true,st:e.st==='suspenso'?'suspenso':'ativo'})});
 const empDe=id=>EMP.find(m=>m.id===id), escDe=id=>ESC.find(e=>e.id===id), contDe=id=>CONT.find(c=>c.id===id);
-const HIST=[2140,2380,2510,2690,2930,3180];
-const ACOES=[['Login','entrou no app do contador'],['Login','entrou no app do cliente'],['Acesso','trocou de empresa'],['Usuário','convidou um novo login'],['Usuário','alterou o papel de um login'],['Mês','liberou o mês por 7 dias'],['Mês','encerrou o mês de setembro'],['Segurança','ativou a verificação em duas etapas'],['Segurança','tentativa de login recusada'],['Guias','enviou guias em lote'],['Plano','alterou o plano'],['Escritório','atualizou feriados da cidade']];
-const AUD=[];for(let i=0;i<60;i++){const u=pick(USR);const a=pick(ACOES);const d=new Date(HOJE.getTime()-i*ri(20,95)*60000);AUD.push({quando:d,quem:u.nome,tipo:u.tipo,esc:u.esc,cat:a[0],acao:a[1],ip:'177.'+ri(10,250)+'.'+ri(1,250)+'.'+ri(1,250),disp:pick(['iPhone · app','Android · app','Chrome · Windows','Safari · Mac','Edge · Windows'])})}
-AUD.unshift({quando:new Date(HOJE.getTime()-4*60000),quem:'Marcelo',tipo:'admin',esc:'',cat:'Painel',acao:'abriu o painel de gestão',ip:'189.40.12.8',disp:'Chrome · Mac'});
-const TK=[
- {id:'#1042',esc:'e4',quem:'Diego Alves',ass:'Boleto do plano não chegou',pri:'alta',st:'aberto',h:2,msgs:[['in','Bom dia, o boleto de outubro não chegou no e-mail do escritório.','08:12']]},
- {id:'#1041',esc:'e2',quem:'Elisa Prado',ass:'Cliente não consegue ler XML da nota',pri:'media',st:'aberto',h:5,msgs:[['in','Um cliente envia o XML e aparece "arquivo inválido". É nota de serviço de Campinas.','06:40'],['out','Oi, Elisa. Pode pedir para ele enviar o PDF junto enquanto verificamos o padrão da prefeitura?','07:02']]},
- {id:'#1039',esc:'e1',quem:'Ana Lima',ass:'Adicionar feriado municipal',pri:'baixa',st:'andamento',h:20,msgs:[['in','O feriado de 20/11 não está aparecendo no cálculo do prazo.','ontem']]},
- {id:'#1036',esc:'e5',quem:'Carla Mendes',ass:'Como importar clientes em lote?',pri:'baixa',st:'aberto',h:26,msgs:[['in','Estou no período de teste e queria trazer meus 40 clientes de uma planilha.','ontem']]},
- {id:'#1030',esc:'e3',quem:'Bruno Rocha',ass:'Holerite saiu com nome cortado',pri:'media',st:'resolvido',h:72,msgs:[['in','O nome da funcionária ficou cortado no PDF do holerite.','seg'],['out','Corrigido na versão de ontem. Pode gerar de novo?','ter'],['in','Funcionou, obrigado!','ter']]}
-];
+/* notas recebidas nos últimos 6 meses: contadas nos dados dos apps (teste ao vivo) */
+const MESF=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+function histNotas(){const M=LIVE.M,out=[];for(let k=5;k>=0;k--){const d=new Date(HOJE.getFullYear(),HOJE.getMonth()-k,1),c=MESF[d.getMonth()]+'/'+d.getFullYear();let n=0;
+ if(M)M.emps.forEach(e=>{const x=(M.data||{})[e.id]||{};n+=(x.arq||[]).filter(a=>a.cat==='notas'&&a.comp===c).length;const cf=(x.cofre||{})[c];if(cf&&cf.notas)n+=cf.notas.length});out.push({m:MESES[d.getMonth()],v:n})}return out}
+const AUD=[];
+const TK=[];
 /* ---------- teste ao vivo: lê os dados que o app do cliente e o app do contador gravam neste navegador ----------
    Mesma origem (mesma pasta no GitHub Pages): chave "app-multi-v1" do localStorage.
    Só contagens, categorias e situações. Nome e conteúdo dos arquivos nunca aparecem aqui (LGPD). */
@@ -478,13 +469,12 @@ function lvMonta(){const M=lvLer();
  for(let i=USR.length-1;i>=0;i--)if(USR[i].live)USR.splice(i,1);
  for(let i=CONT.length-1;i>=0;i--)if(CONT[i].live)CONT.splice(i,1);
  LIVE.M=M&&M.emps&&M.emps.length?M:null;if(!LIVE.M)return;
- CONT.push({id:'clive',nome:'Paula',esc:'e1',adm:0,live:1});
  const ids=[];
  M.emps.slice().reverse().forEach(e=>{const st=lvStats(M,e),id='live-'+e.id;ids.push(id);
-  EMP.unshift({id,nome:e.nome,cnpj:e.cnpj||'—',esc:'e1',cont:'clive',st:'ativa',prz:st.lib?'lib':(st.dev||st.pedVoce)?'pend':'emdia',docs:st.total,notas:st.notas,arm:0,func:st.func,ult:0,live:1,lv:st,eid:e.id});
+  EMP.unshift({id,nome:e.nome,cnpj:e.cnpj||'—',esc:'e1',cont:'ce1',st:'ativa',prz:st.lib?'lib':(st.dev||st.pedVoce)?'pend':'emdia',docs:st.total,notas:st.notas,arm:0,func:st.func,ult:0,live:1,lv:st,eid:e.id});
   const so=Object.keys(e.socios||{})[0];if(so&&!USR.some(u=>u.live&&u.nome===so))USR.unshift({id:'ul-'+e.id,nome:so,email:mail(so,'empresa.com'),tipo:'cliente',papel:'Sócio',esc:'e1',emps:[id],ult:0,mfa:false,st:'ativo',live:1});
   else if(so)USR.find(u=>u.live&&u.nome===so).emps.push(id)});
- USR.unshift({id:'ulive',nome:'Paula',email:'paula@horizonte.com.br',tipo:'contador',papel:'Contador',esc:'e1',emps:ids,ult:0,mfa:true,st:'ativo',live:1})}
+ const pm=USR.find(u=>u.tipo==='contador'&&u.esc==='e1'&&u.nome==='Paula Mendes');if(pm)pm.emps=ids}
 function lvAtualiza(primeira){const antes=LIVE.base;lvMonta();const agora=lvResumo(LIVE.M);
  if(!primeira&&antes&&Object.keys(antes).length){const ev=lvDiff(antes,agora);if(ev.length){const h=new Date();ev.forEach(x=>{x.h=h});LIVE.ev=ev.concat(LIVE.ev).slice(0,40);toast(ev[0].e+' · '+ev[0].t+(ev.length>1?' (+'+(ev.length-1)+')':''));if(window.PUSH)PUSH.avisar(ev.map((x,i)=>({k:'pn|'+(+h)+'|'+i,t:x.e,s:x.t,go:'aovivo'})))}}
  LIVE.base=agora;LIVE.em=Date.now()}
@@ -535,7 +525,7 @@ V.geral=()=>{
  const empA=EMP.filter(m=>m.st==='ativa');
  const cnt=k=>empA.filter(m=>m.prz===k).length;
  const arm=EMP.reduce((a,m)=>a+m.arm,0);
- const max=Math.max(...HIST);
+ const HIST=histNotas(),max=Math.max(1,...HIST.map(x=>x.v));
  const tkA=TK.filter(t=>t.st!=='resolvido').length;
  return `
  <div class="mob-srch">${srchHtml()}</div>
@@ -544,20 +534,19 @@ V.geral=()=>{
    <svg class="bg ico" viewBox="0 0 24 24">${P.office}</svg>
    <div class="l">Receita recorrente mensal</div>
    <div class="v">${brl(mrr())}</div>
-   <div style="font-size:13px;font-weight:600;opacity:.9">+12,4% em relação a setembro</div>
    <div class="row"><div><b>${ativos}</b>escritórios ativos</div><div><b>${empA.length}</b>empresas ativas</div><div><b>${num(USR.filter(u=>u.st!=='suspenso').length)}</b>logins</div></div>
   </div>
   <div class="card">
-   <div style="display:flex;justify-content:space-between;align-items:center"><b>Notas recebidas por mês</b><span class="chip ok">+8%</span></div>
-   <div class="bars">${HIST.map((v,i)=>`<div class="b${i===HIST.length-1?' cur':''}"><em>${num(v)}</em><i style="height:${Math.round(v/max*100)}%"></i><span>${MESES[4+i]}</span></div>`).join('')}</div>
+   <div style="display:flex;justify-content:space-between;align-items:center"><b>Notas recebidas por mês</b></div>
+   <div class="bars">${HIST.map((x,i)=>`<div class="b${i===HIST.length-1?' cur':''}"><em>${num(x.v)}</em><i style="height:${Math.round(x.v/max*100)}%"></i><span>${x.m}</span></div>`).join('')}</div>
   </div>
  </div>
  ${LIVE.M?`<button class="card" data-go="aovivo" style="display:flex;gap:12px;align-items:center;width:100%;margin-top:12px"><span class="livedot"></span><div style="flex:1;min-width:0"><b>Teste ao vivo</b><div style="font-size:12.5px;color:var(--muted);margin-top:2px">${LIVE.M.emps.length} empresas dos apps · ${LIVE.M.emps.reduce((a,e)=>a+lvStats(LIVE.M,e).total,0)} documentos trocados entre cliente e escritório</div></div>${I('chev','s')}</button>`:''}
  <div class="grid kpis" style="margin-top:12px">
-  ${kpi('Documentos no mês',num(EMP.reduce((a,m)=>a+m.docs,0)),'+6% vs. set','up','file')}
+  ${kpi('Documentos no mês',num(EMP.reduce((a,m)=>a+m.docs,0)),'','','file')}
   ${kpi('Armazenamento',gb(arm),'de 2 TB contratados','','db')}
   ${kpi('Chamados abertos',tkA,TK.filter(t=>t.pri==='alta'&&t.st!=='resolvido').length+' de prioridade alta','dn','help')}
-  ${kpi('Logins com 2 etapas',Math.round(USR.filter(u=>u.mfa).length/USR.length*100)+'%','meta: 90%','','shield')}
+  ${kpi('Logins com 2 etapas',(USR.length?Math.round(USR.filter(u=>u.mfa).length/USR.length*100):0)+'%','meta: 90%','','shield')}
  </div>
  <div class="sec">Prazos de outubro <a data-go="empresas">Ver empresas</a></div>
  <div class="card">
@@ -567,7 +556,7 @@ V.geral=()=>{
    <div class="p"><b class="dn">${cnt('atras')}</b><span>Atrasadas</span></div>
    <div class="p"><b style="color:var(--info)">${cnt('lib')}</b><span>Liberadas</span></div>
   </div>
-  <div class="meter" style="margin-top:14px">${['emdia','pend','atras','lib'].map(k=>`<i class="${k==='pend'?'wa':k==='atras'?'ba':''}" style="width:${cnt(k)/empA.length*100}%;${k==='lib'?'background:var(--info)':''}"></i>`).join('')}</div>
+  <div class="meter" style="margin-top:14px">${['emdia','pend','atras','lib'].map(k=>`<i class="${k==='pend'?'wa':k==='atras'?'ba':''}" style="width:${empA.length?cnt(k)/empA.length*100:0}%;${k==='lib'?'background:var(--info)':''}"></i>`).join('')}</div>
   <div style="font-size:12.5px;color:var(--muted);margin-top:10px">Folha no 5º dia útil (07/11) · Notas, extratos e despesas até 10/11 · Prazo definido por cada escritório</div>
  </div>
  <div class="row2 eq" style="margin-top:0">
@@ -577,7 +566,7 @@ V.geral=()=>{
    </div></div>
   <div><div class="sec">Suporte recente <a data-go="suporte">Ver todos</a></div>
    <div class="list">
-    ${TK.filter(t=>t.st!=='resolvido').slice(0,4).map(t=>`<div class="it" data-tk="${t.id}"><div class="av r">${ini(t.quem)}</div><div class="tx"><div class="t">${esc(t.ass)}</div><div class="s">${esc(escDe(t.esc).nome)} · ${ultTxt(t.h)}</div></div>${chip({alta:['ba','Alta'],media:['wa','Média'],baixa:['mu','Baixa']},t.pri)}</div>`).join('')}
+    ${(TK.filter(t=>t.st!=='resolvido'&&t.h<=15*24).slice(0,4).map(t=>`<div class="it" data-tk="${t.id}"><div class="av r">${ini(t.quem)}</div><div class="tx"><div class="t">${esc(t.ass)}</div><div class="s">${esc(escDe(t.esc).nome)} · ${ultTxt(t.h)}</div></div>${chip({alta:['ba','Alta'],media:['wa','Média'],baixa:['mu','Baixa']},t.pri)}</div>`).join(''))||'<div class="it"><div class="tx"><div class="s">Nenhum chamado nos últimos 15 dias.</div></div></div>'}
    </div></div>
  </div>`};
 V.aovivo=()=>{
@@ -647,9 +636,9 @@ V.usuarios=()=>{
  </div>`};
 
 V.planos=()=>{
- const fat=[];ESC.forEach((e,i)=>{if(e.st==='teste')return;const p=planoDe(e.plano);fat.push({esc:e,v:p.preco,venc:new Date(2026,9,5+i*3),st:e.st==='atraso'||e.st==='suspenso'?'atras':i%3===0&&i>0?'aberta':'paga'})});
+ const fat=[];ESC.forEach((e,i)=>{if(e.st==='teste')return;const p=planoDe(e.plano);fat.push({esc:e,v:p.preco,venc:new Date(2026,9,5+i*3),st:e.st==='atraso'||e.st==='suspenso'?'atras':'aberta'})});
  return `<div class="grid kpis">
-  ${kpi('Receita mensal',brl(mrr()),'+12,4%','up','card')}
+  ${kpi('Receita mensal',brl(mrr()),'','','card')}
   ${kpi('Pagas em outubro',brl(fat.filter(f=>f.st==='paga').reduce((a,f)=>a+f.v,0)),fat.filter(f=>f.st==='paga').length+' faturas','','check')}
   ${kpi('Em aberto',brl(fat.filter(f=>f.st==='aberta').reduce((a,f)=>a+f.v,0)),'vencem esta semana','','clock')}
   ${kpi('Em atraso',brl(fat.filter(f=>f.st==='atras').reduce((a,f)=>a+f.v,0)),fat.filter(f=>f.st==='atras').length+' escritórios','dn','alert')}
@@ -662,17 +651,17 @@ V.planos=()=>{
   <div class="end">${chip({paga:['ok','Paga'],aberta:['in','Em aberto'],atras:['ba','Em atraso']},f.st)}<small>${brl(f.v)}</small></div></div>`))}`};
 
 V.uso=()=>{
- const st=ESC.map(e=>({e,s:escStats(e)}));const tot=st.reduce((a,x)=>a+x.s.arm,0);
+ const st=ESC.map(e=>({e,s:escStats(e)}));const tot=st.reduce((a,x)=>a+x.s.arm,0),tot1=tot||1;
  const cores=['var(--a2)','var(--a1)','var(--info)','var(--warn)','var(--okc)','var(--muted2)'];
  return `<div class="grid kpis">
   ${kpi('Armazenamento usado',gb(tot),'de 2 TB no servidor','','db')}
-  ${kpi('Documentos no mês',num(st.reduce((a,x)=>a+x.s.docs,0)),'+6%','up','file')}
-  ${kpi('Notas fiscais no mês',num(st.reduce((a,x)=>a+x.s.notas,0)),'+8%','up','file')}
+  ${kpi('Documentos no mês',num(st.reduce((a,x)=>a+x.s.docs,0)),'','','file')}
+  ${kpi('Notas fiscais no mês',num(st.reduce((a,x)=>a+x.s.notas,0)),'','','file')}
   ${kpi('Maior arquivo',CFG.limiteUp,'limite por envio','','download')}
  </div>
  <div class="sec">Espaço por escritório</div>
  <div class="card">
-  <div class="meter" style="height:16px">${st.map((x,i)=>`<i style="width:${x.s.arm/tot*100}%;background:${cores[i]}"></i>`).join('')}</div>
+  <div class="meter" style="height:16px">${st.map((x,i)=>`<i style="width:${x.s.arm/tot1*100}%;background:${cores[i]}"></i>`).join('')}</div>
   <div class="leg">${st.map((x,i)=>`<span><i style="background:${cores[i]}"></i>${esc(x.e.nome)}</span>`).join('')}</div>
  </div>
  <div class="sec">Uso do limite do plano</div>
@@ -738,8 +727,12 @@ function detEsc(id){const e=escDe(id),s=escStats(e),p=planoDe(e.plano);const cs=
  <div class="grid kpis">${kpi('Empresas',s.emp+' / '+p.emp,'','','store')}${kpi('Armazenamento',gb(s.arm),'de '+gb(p.arm),'','db')}${kpi('Docs no mês',num(s.docs),'','','file')}${kpi('Logins',s.usu,'','','users')}</div>
  <div class="sec">Plano</div>
  <div class="card"><div class="kv"><span>Plano atual</span><select class="sel" data-plano="${e.id}">${PLANOS.map(x=>`<option value="${x.id}"${x.id===e.plano?' selected':''}>${x.nome} · ${brl(x.preco)}</option>`).join('')}</select></div><div class="kv"><span>Responsável</span><b>${esc(e.resp)}</b></div>${e.dom?`<div class="kv"><span>Domínio</span><b>${e.dom}</b></div>`:''}</div>
+ <div class="sec">Cadastro</div>
+ <div class="card">${[['Razão social',e.razao],['CNPJ',e.cnpj],['Registro (CRC)',e.crc],['Endereço',e.end],['Telefone',e.tel],['E-mail',e.email]].map(x=>`<div class="kv"><span>${x[0]}</span><b>${esc(x[1]||'—')}</b></div>`).join('')}</div>
+ <div class="sec">Sócios</div>
+ <div class="list">${(e.socios||[]).map(so=>`<div class="it"><div class="av r">${ini(so.nome)}</div><div class="tx"><div class="t">${esc(so.nome)}${so.part?' · '+esc(so.part):''}</div><div class="s">${esc([so.crc,so.cpf?'CPF '+so.cpf:'',so.tel,so.email].filter(Boolean).join(' · '))}</div></div></div>`).join('')||'<div class="it"><div class="tx"><div class="s">Nenhum sócio cadastrado.</div></div></div>'}</div>
  <div class="sec">Contadores e carteiras</div>
- <div class="list">${cs.map(c=>{const n=EMP.filter(m=>m.cont===c.id).length;return `<div class="it" data-usr="${USR.find(u=>u.nome===c.nome&&u.esc===id).id}"><div class="av r">${ini(c.nome)}</div><div class="tx"><div class="t">${esc(c.nome)}</div><div class="s">${c.adm?'Admin do escritório':'Contador'}</div></div><div class="end"><b style="font-size:14px">${n}</b><small>empresas</small></div></div>`}).join('')}</div>
+ <div class="list">${cs.map(c=>{const n=EMP.filter(m=>m.cont===c.id).length,uu=USR.find(u=>u.nome===c.nome&&u.esc===id);return `<div class="it"${uu?` data-usr="${uu.id}"`:''}><div class="av r">${ini(c.nome)}</div><div class="tx"><div class="t">${esc(c.nome)}</div><div class="s">${c.adm?'Admin do escritório':'Contador'}</div></div><div class="end"><b style="font-size:14px">${n}</b><small>empresas</small></div></div>`}).join('')}</div>
  <div class="sec">Ações</div>
  <div class="acts">${e.st==='suspenso'?`<button class="btn sm" data-act="reativarEsc" data-id="${id}">${I('play','s')}Reativar</button>`:`<button class="btn dg sm" data-act="suspEsc" data-id="${id}">${I('pause','s')}Suspender</button>`}<button class="btn gh sm" data-act="filtraEmp" data-id="${id}">${I('store','s')}Ver empresas</button><button class="btn gh sm" data-act="convidar" data-id="${id}">${I('mail','s')}Convidar contador</button></div>
  <div class="note wa" style="margin-top:14px">${I('alert','s')}<div>Suspender bloqueia o login de todos os contadores e clientes deste escritório. Os documentos continuam guardados.</div></div>`)}
@@ -786,7 +779,15 @@ function formConvite(o){o=o||{};const empSel=o.emp?empDe(o.emp):null;
 function formEsc(){abre(shH('<div class="av" style="width:52px;height:52px">'+I('office')+'</div>','Novo escritório','Cria um novo inquilino no servidor')+`
  <label class="fl">Nome do escritório</label><input class="inp" id="neNome" placeholder="Ex.: Contabilidade Aurora">
  <label class="fl">Cidade</label><input class="inp" id="neCid" placeholder="Cidade, UF">
- <label class="fl">Responsável</label><input class="inp" id="neResp" placeholder="Nome de quem administra">
+ <label class="fl">Razão social</label><input class="inp" id="neRaz" placeholder="Ex.: Aurora Serviços Contábeis Ltda">
+ <label class="fl">CNPJ</label><input class="inp" id="neCnpj" placeholder="00.000.000/0000-00" inputmode="numeric">
+ <label class="fl">Registro (CRC)</label><input class="inp" id="neCrc" placeholder="Ex.: CRC-SP 2SP000000/O-0">
+ <label class="fl">Endereço</label><input class="inp" id="neEnd" placeholder="Rua, número, bairro, cidade/UF, CEP">
+ <label class="fl">Telefone</label><input class="inp" id="neTel" placeholder="(00) 0000-0000" inputmode="tel">
+ <label class="fl">E-mail</label><input class="inp" id="neMail" placeholder="contato@escritorio.com.br" inputmode="email">
+ <label class="fl">Sócio responsável</label><input class="inp" id="neResp" placeholder="Nome de quem administra">
+ <label class="fl">CPF do sócio</label><input class="inp" id="neRespCpf" placeholder="000.000.000-00" inputmode="numeric">
+ <label class="fl">CRC do sócio</label><input class="inp" id="neRespCrc" placeholder="Ex.: CRC-SP 1SP000000/O-0">
  <label class="fl">Plano</label><select class="inp" id="nePlano">${PLANOS.map(p=>`<option value="${p.id}">${p.nome} · ${brl(p.preco)}</option>`).join('')}</select>
  <div class="tg" style="margin-top:10px"><div class="tx"><div class="t">Começar com 14 dias grátis</div><div class="s">O plano só é cobrado depois</div></div><button class="sw on" data-act="swLocal"></button></div>
  <button class="btn bl" style="margin-top:18px" data-act="criaEsc">${I('check','s')}Criar escritório</button>`)}
@@ -857,7 +858,7 @@ document.addEventListener('click',ev=>{
     USR.unshift(u);log('Usuário','convidou '+nm);fecha();toast('Convite enviado para '+em);render();break}
    case 'criaEsc':{const nm=$('neNome').value.trim();if(!nm){toast('Informe o nome do escritório');break}
     const id2='e'+(ESC.length+1+Math.floor(rnd()*1000));const resp=$('neResp').value.trim()||'Responsável';
-    ESC.push({id:id2,nome:nm,cidade:$('neCid').value.trim()||'—',plano:$('nePlano').value,st:'teste',desde:'out/2026',resp});
+    const vv=k=>$(k).value.trim();ESC.push({id:id2,nome:nm,razao:vv('neRaz')||nm,cnpj:vv('neCnpj'),crc:vv('neCrc'),cidade:vv('neCid')||'—',end:vv('neEnd'),tel:vv('neTel'),email:vv('neMail'),plano:$('nePlano').value,st:'teste',desde:'out/2026',resp,socios:[{nome:resp,cpf:vv('neRespCpf'),crc:vv('neRespCrc'),email:'',tel:'',part:'100%'}]});
     CONT.push({id:'c'+id2,nome:resp,esc:id2,adm:1});USR.unshift({id:'u'+(ui++),nome:resp,email:'convite pendente',tipo:'contador',papel:'Admin do escritório',esc:id2,emps:[],ult:0,mfa:false,st:'convidado'});
     log('Escritório','criou o escritório '+nm);fecha();S.f.esc='todos';go('escritorios');toast('Escritório criado em teste');break}
    case 'criaEmp':{const nm=$('nmNome').value.trim();if(!nm){toast('Informe a razão social');break}

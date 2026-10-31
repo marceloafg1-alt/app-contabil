@@ -20,7 +20,7 @@ function done(){MULTI.cur=CLI0;}
 function commit(msg){done();save();rerender();if(msg)toast(msg);}
 function agora(){var d=new Date();return hoje()+', '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
 function avisar(t,s,go){ST.notif=ST.notif||[];ST.notif.unshift({t:t,s:s,h:'Agora',go:go,u:1});}
-function ativ(t){ST.act=ST.act||[];ST.act.unshift([t,'Agora',1]);}
+function ativ(t){ST.act=ST.act||[];ST.act.unshift([t,'Agora',1,NOW().getTime()]);}
 function maskMoney(v){var d=String(v).replace(/\D/g,'').replace(/^0+/,'');if(!d)return '';while(d.length<3)d='0'+d;return d.slice(0,-2).replace(/\B(?=(\d{3})+(?!\d))/g,'.')+','+d.slice(-2);}
 function dInput(dt){return dt.getFullYear()+'-'+('0'+(dt.getMonth()+1)).slice(-2)+'-'+('0'+dt.getDate()).slice(-2);}
 function guiaCode(){var s='';for(var i=0;i<48;i++)s+=Math.floor(Math.random()*10);return '8'+s.slice(1,11)+'-'+s[11]+' '+s.slice(12,23)+'-'+s[23]+' '+s.slice(24,35)+'-'+s[35]+' '+s.slice(36,47)+'-'+s[47];}
@@ -110,10 +110,12 @@ function nlSave(){try{localStorage.setItem('contador-notif',JSON.stringify(NLIDA
 function ctNotifs(){var L=[];
  emps('all').forEach(function(e){B(e.id);arqCofre(ST);var en=e.fant||e.nome;
   ST.ped.forEach(function(p){if(pedDireto(p))return;var cr=p.st==='analise'&&p.cr;if(p.st!=='enviado'&&!cr)return;
-   L.push({k:'p|'+e.id+'|'+p.id+'|'+(cr?'cr':'nv'),ic:IC[(FLOWS[p.f]||{}).i]||IC.sol,t:(cr?'Cliente respondeu: ':p.f==='libmes'?'':'Novo pedido: ')+p.tipo+(p.quem?' · '+p.quem:''),s:en+' · '+p.data,go:'ped-'+e.id+'|'+p.id});});
-  aConferir().forEach(function(a){L.push({k:'a|'+e.id+'|'+a.id,ic:IC.down,t:'Documento recebido: '+a.n,s:en+' · '+catOf(a.cat)[1]+' · '+a.data,go:'doc-'+e.id+'|'+a.id});});
-  folhasFechar().forEach(function(f){L.push({k:'f|'+e.id+'|'+f.id,ic:IC['var'],t:'Folha para fechar: '+f.func+' · '+f.tipo,s:en+' · '+f.comp,go:'folha-'+e.id+'|'+f.id});});
-  var nm=clientMsgs(ST),n=nm-(LIDAS[e.id]||0);if(n>0)L.push({k:'m|'+e.id+'|'+nm,ic:IC.chat,t:n+(n===1?' mensagem nova':' mensagens novas'),s:en+' · Chat',go:'chat-'+e.id});});done();
+   L.push({k:'p|'+e.id+'|'+p.id+'|'+(cr?'cr':'nv'),ic:IC[(FLOWS[p.f]||{}).i]||IC.sol,t:(cr?'Cliente respondeu: ':p.f==='libmes'?'':'Novo pedido: ')+p.tipo+(p.quem?' · '+p.quem:''),s:en+' · '+p.data,go:'ped-'+e.id+'|'+p.id,q:p.em||p.data});});
+  aConferir().forEach(function(a){L.push({k:'a|'+e.id+'|'+a.id,ic:IC.down,t:'Documento recebido: '+a.n,s:en+' · '+catOf(a.cat)[1]+' · '+a.data,go:'doc-'+e.id+'|'+a.id,q:arqQuando(a)});});
+  folhasFechar().forEach(function(f){L.push({k:'f|'+e.id+'|'+f.id,ic:IC['var'],t:'Folha para fechar: '+f.func+' · '+f.tipo,s:en+' · '+f.comp,go:'folha-'+e.id+'|'+f.id,q:f.env||f.data||f.criada});});
+  var nm=clientMsgs(ST),n=nm-(LIDAS[e.id]||0);if(n>0){var um=(ST.chat||[]).filter(function(m){return m.me;}).pop()||{};L.push({k:'m|'+e.id+'|'+nm,ic:IC.chat,t:n+(n===1?' mensagem nova':' mensagens novas'),s:en+' · Chat',go:'chat-'+e.id,q:um.ts||um.h});}});done();
+ /* Recentes: só os avisos dos últimos 15 dias */
+ L=L.filter(function(x){return rec15(x.q);});
  L.forEach(function(x){x.u=!NLIDAS[x.k];});return L.filter(function(x){return x.u;}).concat(L.filter(function(x){return !x.u;}));}
 /* notificações push: os mesmos avisos do sino, no aparelho, com o app em segundo plano; ligar e os tipos ficam guardados neste aparelho (Ajustes) */
 var PUSHT={};try{PUSHT=JSON.parse(localStorage.getItem('contador-push-tipos')||'{}');}catch(e){}
@@ -383,13 +385,13 @@ function vRecNovo(a){var q=String(a||'').split('|'),e=eById(q[0]);if(!e)return n
   txt('rc-d','Observação',t0.indexOf('Convênio médico')===0?'Ex.: titular + 1 dependente':/Empréstimo/.test(t0)?'Ex.: banco e contrato':'Ex.: combinado com o cliente','',1)+'<span class="fe" id="rc-err" hidden></span></div><div class="fbar"><button type="button" class="cta" data-recsave="'+e.id+'|'+T+'">Salvar recorrência</button></div>';}
 /* ===== equipe do escritório ===== */
 /* ===== dados do escritório e equipe (ficam em MULTI.cfg, para sincronizar com o app) ===== */
-function escDefault(){return {razao:'Horizonte Serviços Contábeis Ltda',fant:'Contabilidade Horizonte',cnpj:'00.000.000/0001-00',crc:'CRC-SP 1SP000000/O-0',end:'Rua das Acácias, 120 · Centro · Sorocaba/SP',tel:'(11) 4000-0000',email:'atendimento@horizonte.exemplo',atend:'Seg a sex, 9h às 18h',resp:'Paula Mendes'};}
+function escDefault(){return JSON.parse(JSON.stringify(ESC_CAD));}
 function escAdm(d){return {id:'adm',n:d.resp,area:'todas',papel:'admin'};}
 /* criar a conta de um escritório: o perfil principal entra na equipe como administrador */
 function escNovo(d){var c=MULTI.cfg=MULTI.cfg||{};c.esc=d;c.equipe=[escAdm(d)];if(window.save)save();return c;}
 /* garante os dados do escritório e o administrador da equipe (sem apagar quem já foi incluído) */
 function escGarante(){var c=MULTI.cfg=MULTI.cfg||{};if(!c.esc){escNovo(escDefault());return;}if(!c.equipe){c.equipe=[escAdm(c.esc)];if(window.save)save();}}
-function escKv(d){return kv('Razão social',esc(d.razao))+kv('Nome fantasia',esc(d.fant))+kv('CNPJ',esc(d.cnpj))+kv('Registro (CRC)',esc(d.crc))+kv('Endereço',esc(d.end))+kv('Telefone','<span class="sel-t">'+esc(d.tel)+'</span>')+kv('E-mail','<span class="sel-t">'+esc(d.email)+'</span>')+kv('Atendimento',esc(d.atend))+kv('Responsável',esc(d.resp));}
+function escKv(d){return kv('Razão social',esc(d.razao))+kv('Nome fantasia',esc(d.fant))+kv('CNPJ',esc(d.cnpj))+kv('Registro (CRC)',esc(d.crc))+kv('Endereço',esc(d.end))+kv('Telefone','<span class="sel-t">'+esc(d.tel)+'</span>')+kv('E-mail','<span class="sel-t">'+esc(d.email)+'</span>')+kv('Atendimento',esc(d.atend))+kv('Responsável',esc(d.resp))+(d.im?kv('Inscrição municipal',esc(d.im)):'')+(d.ab?kv('Abertura',esc(d.ab)):'')+(d.socios||[]).map(function(x){return kv('Sócio',esc(x.n)+'<br><small>'+esc([x.crc,'CPF '+x.cpf,x.p?x.p+' do capital':'',x.tel,x.email].filter(Boolean).join(' · '))+'</small>');}).join('');}
 function eqNome(id){var u=(MULTI.cfg.equipe||[]).filter(function(x){return x.id===id;})[0];return u?u.n:'';}
 function EU(){return (MULTI.cfg.equipe||[]).filter(function(x){return x.id===MULTI.eu;})[0]||null;}
 function EV(){var u=EU();if(!u)return MULTI.emps;var L=MULTI.emps.filter(function(e){return e.resp===u.id;});return L.length?L:MULTI.emps;}
@@ -455,6 +457,7 @@ function celSt(g,c){var n=dOnly(NOW()),pz=prazo(g,c),p=cParse(c),ini=new Date(p.
  else if(g==='notas'){var L=cofreOf(c).notas||[];L.forEach(function(x){tot+=x.nf&&x.nf.val||0;});det=L.length?L.length+(L.length===1?' nota':' notas')+(tot?' · '+nfMoeda(tot):''):'Nenhuma nota';}
  else if(g==='extratos'){var E=extrOf(c);det=E.length?E.length+(E.length===1?' extrato':' extratos'):'Nenhum extrato';}
  else{var D=despOf(c).filter(function(x){return !/^Envio de/.test(x.tipo||'');});D.forEach(function(x){tot+=dplVal(String(despDv(x,/^valor/i)).replace(/^R\$\s*/,''));});det=D.length?D.length+(D.length===1?' despesa':' despesas')+(tot?' · '+nfMoeda(tot):''):'Nenhuma despesa';}
+ var qf=cParse(c);if(qf.y*12+qf.m>n.getFullYear()*12+n.getMonth())return {k:'neutral',t:'Ainda não abriu',det:det,pz:pz,tot:tot,f:'futuro'}; /* mês que ainda não começou (setas para frente) */
  if(n<ini)return {k:'neutral',t:g==='notas'||g==='despesas'?'Mês em curso':'Abre em '+fmtP(ini),det:det,pz:pz,tot:tot,f:'futuro'};
  if(lancOk(g,c))return {k:'ok',t:'Lançado no sistema',det:det,pz:pz,tot:tot,f:'ok'};
  if(feito)return {k:'ok',t:g==='folha'&&folhaEnc(c)?'Sem variáveis':'Recebido',det:det,pz:pz,tot:tot,f:'ok'};
@@ -488,7 +491,8 @@ function gcComps(){var n=NOW();return [-2,-1,0].map(function(k){return cName(n.g
 function gcPerRow(id,c,attr){var at=' data-pk="'+id+'" data-base="'+esc(c)+'"';return '<div class="perrow" style="margin:0 0 14px"><button type="button" class="pern" data-permv="-1"'+at+' aria-label="Mês anterior">'+IC.tri+'</button><button type="button" class="perbtn" '+attr+' aria-haspopup="dialog"><span class="pl">Competência</span><b>'+esc(c)+'</b>'+IC.cal+'</button><button type="button" class="pern nx" data-permv="1"'+at+' aria-label="Próximo mês">'+IC.tri+'</button></div>';}
 /* troca o mês direto: mês fora da faixa permitida (gcOk) só avisa, sem mudar a competência */
 function permStepC(id,base,dv){var q=cParse(base),y=q.y,m=q.m+dv;while(m<0){m+=12;y--;}while(m>11){m-=12;y++;}var v=cName(y,m);if(!gcOk(v)){toast('Esse mês não está disponível para escolher');return;}setVal(id,v);}
-function gcOk(c){var q=cParse(c),n=NOW();if(q.m<0||!q.y)return false;var k=q.y*12+q.m,h=n.getFullYear()*12+n.getMonth();return k<=h&&k>h-120;}
+/* competências que dá para ver: até 10 anos para trás e 12 meses para frente (as setas não travam no mês atual) */
+function gcOk(c){var q=cParse(c),n=NOW();if(q.m<0||!q.y)return false;var k=q.y*12+q.m,h=n.getFullYear()*12+n.getMonth();return k<=h+12&&k>h-120;}
 /* pedidos de liberação de mês encerrado: cada um aparece na área do envio (notas no cofre, extratos, despesas; folha no DP) */
 function libPeds(g){return (ST.ped||[]).filter(function(p){return p.f==='libmes'&&p.st!=='ok'&&String(p.lk||'').indexOf(g+'|')===0;});}
 function libBloco(e,g,txt){var L=libPeds(g);if(!L.length)return '';return '<div class="sec gcs"><h2>Pedidos de liberação</h2><span class="s">'+L.length+'</span></div><div class="card">'+L.map(function(p){return pedRow({e:e,p:p});}).join('')+'</div><p class="foot">'+txt+' Toque no pedido para liberar o mês por 3, 7 ou 15 dias.</p>';}
@@ -556,7 +560,7 @@ function vGestao(a){var q=String(a||'').split('|'),ops=gcComps();if(q[0]&&eById(
  h+='<button type="button" class="empsw empsel" data-gcemp aria-haspopup="dialog" style="margin:0 0 12px">'+esw(e,1)+'<span>Cliente: '+esc(e.fant||e.nome)+'</span>'+IC.chevd+'</button>';
  h+=gcPerRow('gc-comp',c,'data-gcper');
  /* situação dos envios do mês */
- var G=[['notas','Notas fiscais','nf'],['extratos','Extratos','ext'],['despesas','Despesas','desp']],S=G.map(function(g){var x=celSt(g[0],c);if(g[0]==='notas'&&['encerrado','auto'].indexOf(cofreStOf(ST,c))<0){x={k:x.k,t:x.t,det:'Cofre aberto',f:x.f};}return [g,x];}),rec=S.filter(function(x){return x[1].f==='ok';}).length;
+ var G=[['notas','Notas fiscais','nf'],['extratos','Extratos','ext'],['despesas','Despesas','desp']],S=G.map(function(g){var x=celSt(g[0],c);if(g[0]==='notas'&&x.t!=='Ainda não abriu'&&['encerrado','auto'].indexOf(cofreStOf(ST,c))<0){x={k:x.k,t:x.t,det:'Cofre aberto',f:x.f};}return [g,x];}),rec=S.filter(function(x){return x[1].f==='ok';}).length;
  h+='<div class="hero"><div class="hk"><span>Envios de '+esc(cMes(c))+'</span><span class="pill-w">'+rec+' de 3 recebidos</span></div><p class="ht">Notas, extratos e despesas encerram em '+fmtP(prazo('notas',c))+'. Depois do prazo, o que o cliente lançou chega sozinho.</p></div>';
  h+='<div class="gcg">'+S.map(function(x){return '<div class="'+x[1].k+'"><span class="gc1">'+(IC[x[0][2]]||'')+' '+x[0][1]+'</span><span class="gc2">'+esc(x[1].t)+'</span><span class="gc3">'+esc(x[1].det)+'</span></div>';}).join('')+'</div>';
  var OL=[];EV().forEach(function(o){if(o.id===e.id)return;B(o.id);var k=['notas','extratos','despesas'].reduce(function(s0,g){return s0+libPeds(g).length;},0);if(k)OL.push([o,k]);});B(e.id);
@@ -1024,14 +1028,14 @@ function vArquivo(){var e=arqEmp();B(e.id);arqCofre(ST);var L=arqList(),q=(UI.q|
   return '<button type="button" class="t fo" data-go="pasta-'+e.id+'|'+c[0]+'"><span class="foh"><span class="ib">'+(IC[c[2]]||IC.folder)+'</span><span class="foi"><span class="tc">'+n+(n===1?' item':' itens')+'</span>'+(pc?'<span class="pfo">'+pc+' para conferir</span>':'')+'</span></span><span class="tl">'+c[1]+'</span></button>';}).join('')+'</div></section>';
  h+='<p class="foot">Caminho no armazenamento: '+esc(e.cnpj)+' / mês / pasta</p>';done();return h;}
 function vPasta(x){var q=x.split('|'),e=eById(q[0]);if(!e)return null;B(e.id);var c=catOf(q[1]),k=c[0];
- var L=arqList().filter(function(a){return a.cat===k;}),g={};L.forEach(function(a){(g[a.comp]=g[a.comp]||{d:[],f:[]}).d.push(a);});
- if(k==='folha')folhasOf().forEach(function(f){if(fst(f)==='rascunho')return;(g[f.comp]=g[f.comp]||{d:[],f:[]}).f.push(f);});
- var cofres=k==='notas'?Object.keys(ST.cofre||{}).filter(function(cc){var y=ST.cofre[cc];return y&&y.notas&&y.notas.length&&cofreStOf(ST,cc)==='aberto';}):[];
+ var cp=arqComp(),L=arqList().filter(function(a){return a.cat===k&&a.comp===cp;}),g={};L.forEach(function(a){(g[a.comp]=g[a.comp]||{d:[],f:[]}).d.push(a);});
+ if(k==='folha')folhasOf().forEach(function(f){if(fst(f)==='rascunho'||f.comp!==cp)return;(g[f.comp]=g[f.comp]||{d:[],f:[]}).f.push(f);});
+ var cofres=k==='notas'?Object.keys(ST.cofre||{}).filter(function(cc){var y=ST.cofre[cc];return cc===cp&&y&&y.notas&&y.notas.length&&cofreStOf(ST,cc)==='aberto';}):[];
  var cs=Object.keys(g).sort(function(a,b){return compOrd(b)-compOrd(a);});
- var h=hdr(c[1],e.fant||e.nome);
+ var h=hdr(c[1],e.fant||e.nome)+gcPerRow('arq-comp',cp,'data-arqper');
  h+='<div class="g2b"><button type="button" class="wb pri" data-go="novodoc-'+e.id+'|'+k+'">'+IC.up16+' Enviar para esta pasta</button><button type="button" class="wb" data-go="arquivo">'+IC.folder+' Outras pastas</button></div>';
  if(cofres.length)h+=cofres.map(function(cc){var n=ST.cofre[cc].notas.length;return '<div class="note">Cofre de '+esc(cMes(cc))+' ainda aberto: '+n+(n===1?' nota carregada':' notas carregadas')+'. Elas chegam aqui quando o cliente encerrar ou em '+fmtP(prazo('notas',cc))+'.</div>';}).join('');
- h+=cs.length?cs.map(function(cp){var G=g[cp];return '<section>'+sec(cp,'<span class="s">'+(G.d.length+G.f.length)+'</span>')+'<div class="card">'+G.f.map(function(f){return folhaRow(e,f);}).join('')+G.d.map(function(a){return docRow(e,a);}).join('')+'</div></section>';}).join(''):'<div class="card"><p class="empty">Nenhum arquivo nesta pasta.</p></div>';
+ h+=cs.length?cs.map(function(cp){var G=g[cp];return '<section>'+sec(cp,'<span class="s">'+(G.d.length+G.f.length)+'</span>')+'<div class="card">'+G.f.map(function(f){return folhaRow(e,f);}).join('')+G.d.map(function(a){return docRow(e,a);}).join('')+'</div></section>';}).join(''):'<div class="card"><p class="empty">Nenhum arquivo de '+esc(cMes(cp))+' nesta pasta.</p></div>';
  if(k==='interno')h+='<p class="foot">Esta pasta não aparece para o cliente.</p>';
  done();return h;}
 /* ===== chat: mesmo visual e funcionamento do app do cliente, ensinando o sistema do contador ===== */
@@ -1287,10 +1291,10 @@ function ajRow(ic,a,b,go){return '<button type="button" class="r" data-go="'+go+
 /* Perfil do contador: a conta, os dados do escritório e a equipe */
 function vPerfilC(){var c=MULTI.cfg;
  var h='<div class="phd"><span class="pav">PM</span><div><h1>Paula Mendes</h1><div class="s">Contadora · Contabilidade Horizonte</div></div></div>';
- h+='<section>'+sec('Minha conta')+'<div class="card pad">'+kv('Nome','Paula Mendes')+kv('E-mail','<span class="sel-t">paula@horizonte.exemplo</span>')+kv('Celular','(11) 97000-0000')+'</div></section>';
+ h+='<section>'+sec('Minha conta')+'<div class="card pad">'+kv('Nome','Paula Mendes')+kv('E-mail','<span class="sel-t">paula@horizonte.exemplo</span>')+kv('Celular','(11) 98222-4410')+'</div></section>';
  h+='<section>'+sec('Meu escritório')+'<div class="card pad">'+escKv(c.esc)+'</div></section>';
  h+='<section>'+sec('Equipe do escritório')+'<div class="card">'+eqLinhas()+ajRow(IC.people,'Gerenciar equipe','Incluir pessoas e definir quem administra','ajequipe')+'</div></section>';
- return h+'<p class="foot">Dados de exemplo.</p>';}
+ return h;}
 function vAjustes(){var c=MULTI.cfg,n=NOW(),on=window.syncStatus==='online',eq=MULTI.cfg.equipe||[],na=['notas','extratos','folha'].filter(function(k){return acompOn(k);}).length,ad=admDias();
  var h=hdr('Configurações','Ajustes do app');
  var tt=TEMAS.filter(function(x){return x[0]===UI.tema;})[0]||TEMAS[0];
@@ -1301,7 +1305,7 @@ function vAjustes(){var c=MULTI.cfg,n=NOW(),on=window.syncStatus==='online',eq=M
  h+='<section>'+sec('Suporte')+'<div class="card"><button type="button" class="r" data-go="ajuda"><span class="ri">'+IC.duv+'</span><span class="rt"><span class="a">Ajuda</span><span class="b">Passo a passo e perguntas frequentes</span></span><span class="cv">'+IC.chev18+'</span></button></div></section>';
  h+='<section>'+sec('Testes (provisório)')+'<div class="card pad form">'+dateF('pz-sim','Hoje no app',dInput(n))+'<button type="button" class="wb" data-real>Usar a data de hoje</button></div></section>';
  h+='<div class="note">'+(on?'Ligado ao app dos clientes: o que você faz aqui aparece para eles.':'Sem conexão com o banco: as mudanças ficam só neste navegador.')+'</div>';
- h+='<button type="button" class="rst" data-reset>Restaurar dados de exemplo</button>';
+ h+='<button type="button" class="rst" data-zeralanc>Apagar lançamentos</button><p class="fh">Apaga pedidos, documentos, notas, extratos, despesas, folhas, guias, colaboradores, chat e avisos de todos os clientes. Ficam as empresas, os sócios e o escritório.</p>';
  h+='<p class="foot">Versão 1.0 · protótipo</p>';
  return h;}
 function vAjNotif(){return hdr('Notificações push','Configurações')+ajPush();}
@@ -1397,7 +1401,7 @@ function renderCal(){var t=NOW(),hj=iso(t.getFullYear(),t.getMonth(),t.getDate()
  if(CAL.view==='y'){var y0=t.getFullYear(),ys=CAL.per?y0-15:y0-100,ye=y0+(CAL.per?2:10),yl='';for(var yy=ye;yy>=ys;yy--)yl+='<button type="button" class="'+(yy===CAL.y?'on':'')+(yy===y0&&yy!==CAL.y?' now':'')+'" data-cyr="'+yy+'"'+(yy===CAL.y?' id="cyr-sel"':'')+'>'+yy+'</button>';
   h+='<div class="cnav"><span class="cml" style="flex:1;text-align:center">Escolha o ano</span></div><div class="cmes cyrs" style="max-height:300px;overflow-y:auto;grid-template-columns:repeat(4,1fr)">'+yl+'</div>';csb.innerHTML=h;var ok0=document.getElementById('cs-ok');if(ok0)ok0.disabled=true;var sl=document.getElementById('cyr-sel');if(sl)sl.scrollIntoView({block:'center'});return;}
   if(CAL.per){h+='<div class="cnav"><button type="button" class="cn" data-cmv="-1" aria-label="Ano anterior">'+IC.tri+'</button><button type="button" class="cml" data-cyear>'+CAL.y+IC.chevd+'</button><button type="button" class="cn nx" data-cmv="1" aria-label="Próximo ano">'+IC.tri+'</button></div>';
-  var gcm=CAL.id==='gc-comp'||CAL.id==='arq-comp';h+='<div class="cmes">'+MES.map(function(n,i){var on=i===CAL.pm&&CAL.y===CAL.py,now=i===t.getMonth()&&CAL.y===t.getFullYear(),ok=!gcm||gcOk(cName(CAL.y,i));return '<button type="button" class="'+(on&&ok?'on':'')+(now&&!on?' now':'')+(ok?'':' off')+'" data-cmes="'+i+'"'+(ok?'':' disabled aria-disabled="true" aria-label="'+n+' ainda não chegou"')+'>'+n.slice(0,3)+'</button>';}).join('')+'</div>';if(gcm)h+='<p class="cnote"><span>'+(CAL.id==='arq-comp'?'Escolha o mês para ver os documentos dele nas pastas.':'Escolha o mês para ver o que o cliente enviou.')+' Meses que ainda não chegaram ficam indisponíveis.</span></p>';csb.innerHTML=h;$('cs-ok').disabled=gcm&&!gcOk(cName(CAL.py,CAL.pm));return;}
+  var gcm=CAL.id==='gc-comp'||CAL.id==='arq-comp';h+='<div class="cmes">'+MES.map(function(n,i){var on=i===CAL.pm&&CAL.y===CAL.py,now=i===t.getMonth()&&CAL.y===t.getFullYear(),ok=!gcm||gcOk(cName(CAL.y,i));return '<button type="button" class="'+(on&&ok?'on':'')+(now&&!on?' now':'')+(ok?'':' off')+'" data-cmes="'+i+'"'+(ok?'':' disabled aria-disabled="true" aria-label="'+n+' indisponível"')+'>'+n.slice(0,3)+'</button>';}).join('')+'</div>';if(gcm)h+='<p class="cnote"><span>'+(CAL.id==='arq-comp'?'Escolha o mês para ver os documentos dele nas pastas.':'Escolha o mês para ver o que o cliente enviou.')+'</span></p>';csb.innerHTML=h;$('cs-ok').disabled=gcm&&!gcOk(cName(CAL.py,CAL.pm));return;}
  h+='<div class="cnav"><button type="button" class="cn" data-cmv="-1" aria-label="Anterior">'+IC.tri+'</button><button type="button" class="cml" data-cmode>'+(CAL.view==='d'?MES[CAL.m]+' '+CAL.y:CAL.y)+IC.chevd+'</button><button type="button" class="cn nx" data-cmv="1" aria-label="Próximo">'+IC.tri+'</button></div>';
  if(CAL.view==='d'){h+='<div class="cwk">'+['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(function(d){return '<span>'+d+'</span>';}).join('')+'</div><div class="cgrid">';
   var f=new Date(CAL.y,CAL.m,1).getDay(),dm=new Date(CAL.y,CAL.m+1,0).getDate(),pm=new Date(CAL.y,CAL.m,0).getDate();
@@ -1532,7 +1536,7 @@ if(d.ctgen){var gv={};document.querySelectorAll('#ctform [data-ck]').forEach(fun
  if(d.recdel){var rq=d.recdel.split('|');askGen({t:'Tirar esta recorrência?',d:'O lançamento deixa de aparecer todo mês e na folha.',ok:'Tirar',cb:function(){B(rq[0]);ST.rec=(ST.rec||[]).filter(function(x){return x.id!==rq[1];});done();commit('Recorrência removida');}});return;}
  if(d.recpl){var pq=d.recpl.split('|');askGen({t:'Tirar o pró-labore de '+pq.slice(1).join('|')+'?',d:'A ficha do sócio fica sem pró-labore. Um novo pedido do cliente pode lançar de novo.',ok:'Tirar',cb:function(){B(pq[0]);var sd=SOCD[pq.slice(1).join('|')];if(sd)sd.pl='—';done();commit('Pró-labore removido');}});return;}
  if(d.rct){UI.recT=d.rct==='soc'?'soc':'col';keep();cur='rec-'+(UI.recEmp||'all');rerender();return;}
- if(d.libdias){var cx=CTX;if(!cx)return;B(cx.e);var pp=ST.ped.filter(function(x){return x.id===cx.p;})[0];if(!pp){done();return;}var nd=+d.libdias,dt=dOnly(NOW());dt.setDate(dt.getDate()+nd);var isoD=dt.getFullYear()+'-'+('0'+(dt.getMonth()+1)).slice(-2)+'-'+('0'+dt.getDate()).slice(-2);ST.lib=ST.lib||{};ST.lib[pp.lk]=isoD;pp.st='ok';var lmsg='Liberado até '+fmtA(dt)+'. Pode enviar normalmente até essa data.';pp.resp=Array.isArray(pp.resp)?pp.resp:[];pp.resp.push([lmsg,agora()]);ST.chat=ST.chat||[];ST.chat.push({me:0,t:lmsg,h:agora(),go:'ped-'+pp.id,gl:'Ver pedido'});ST.unread=(ST.unread||0)+1;ST.act.unshift(['Contador liberou '+pp.tipo.replace(/^Liberar envio de /,'')+' até '+fmtA(dt),'Agora',1]);done();commit('Liberado até '+fmtA(dt));return;}
+ if(d.libdias){var cx=CTX;if(!cx)return;B(cx.e);var pp=ST.ped.filter(function(x){return x.id===cx.p;})[0];if(!pp){done();return;}var nd=+d.libdias,dt=dOnly(NOW());dt.setDate(dt.getDate()+nd);var isoD=dt.getFullYear()+'-'+('0'+(dt.getMonth()+1)).slice(-2)+'-'+('0'+dt.getDate()).slice(-2);ST.lib=ST.lib||{};ST.lib[pp.lk]=isoD;pp.st='ok';var lmsg='Liberado até '+fmtA(dt)+'. Pode enviar normalmente até essa data.';pp.resp=Array.isArray(pp.resp)?pp.resp:[];pp.resp.push([lmsg,agora()]);ST.chat=ST.chat||[];ST.chat.push({me:0,t:lmsg,h:agora(),go:'ped-'+pp.id,gl:'Ver pedido'});ST.unread=(ST.unread||0)+1;ST.act.unshift(['Contador liberou '+pp.tipo.replace(/^Liberar envio de /,'')+' até '+fmtA(dt),'Agora',1,NOW().getTime()]);done();commit('Liberado até '+fmtA(dt));return;}
  if(d.dpx){UI.dpx=UI.dpx||{};UI.dpx[d.dpx]=!UI.dpx[d.dpx];keep();rerender();return;}
  if(t.id==='pd-arq-x'){var px=$('pd-arq');if(px){px.value='';px.dispatchEvent(new Event('change',{bubbles:true}));}return;}if(t.hasAttribute('data-presp')){rspOpen();return;}if(t.hasAttribute('data-rsend')){pedResp();return;}if(t.hasAttribute('data-rclose')){rspClose();return;}
  if(d.pst){pedAct(d.pst);return;}
@@ -1554,6 +1558,7 @@ if(d.ctgen){var gv={};document.querySelectorAll('#ctform [data-ck]').forEach(fun
  if(d.etema){ED.tema=d.etema;SCR.querySelectorAll('[data-etema]').forEach(function(x){x.classList.toggle('on',x===t);});return;}
  if(t.hasAttribute('data-eesc')){ED.escuro=ED.escuro?0:1;t.setAttribute('aria-checked',ED.escuro?'true':'false');return;}
  if(t.hasAttribute('data-edsave')){edSave();return;}
+ if(t.hasAttribute('data-zeralanc')){askGen({t:'Apagar todos os lançamentos?',d:'Pedidos, documentos, notas, extratos, despesas, folhas, guias, colaboradores, chat e avisos saem de todos os clientes, aqui e no app do cliente. Ficam as empresas, os sócios e o escritório. Não dá para desfazer.',ok:'Apagar lançamentos',ic:IC.clock,cb:function(){zeraLancamentos();UI.chatSis=[];keep();cur='inicio';rerender();toast('Lançamentos apagados');}});return;}
  if(t.hasAttribute('data-reset')){askGen({t:'Restaurar dados de exemplo?',d:'Apaga o que foi feito no app do cliente e no do contador e volta aos dados iniciais.',ok:'Restaurar',ic:IC.clock,cb:function(){(window.syncReset?syncReset():Promise.resolve()).then(function(){location.reload();});}});return;}
 });
 document.addEventListener('keydown',function(e){if(e.key!=='Escape')return;if(rsh&&!rsh.hidden){rspClose();return;}if(!cfm.hidden){closeConfirm();return;}if(!ps.hidden||!cs.hidden){closeSheets();return;}if(!es.hidden){closeEmp();return;}if(!modal.hidden){fecharTema();return;}if(P.classList.contains('fab-on'))fabClose();});
