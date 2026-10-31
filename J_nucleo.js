@@ -522,7 +522,7 @@ function contHero(){var d=compPad('docs'),cf=cofreSt(d),nn=cofreOf(d).notas.leng
  return '<div class="hk"><span>Pendências de '+cMes(d)+'</span><span class="pill-w">'+ok+' de '+it.length+' feitas</span></div><div class="prog" aria-hidden="true"><i style="width:'+Math.max(6,ok/it.length*100)+'%"></i></div><div class="chk">'+it.map(function(x){return '<button type="button" class="ci'+(x[1]?' ok':'')+(x[2]?' feito':'')+'" data-go="'+x[3]+'" data-setcomp="'+d+'"><span class="cb">'+IC.ok12+'</span><span class="cl">'+x[0]+'</span><span class="cd">'+x[4]+'</span></button>';}).join('')+'</div><div class="hb"><span class="due">Envio de '+cMes(d)+' encerra em '+fmtP(pz)+' · '+falta(pz)+'</span></div>';}
 function closedBanner(g,c,msg,tt){var lg=g==='cofre'?'notas':g,pend=LIBN[lg]&&pedLibAberto(lg,c);
  return '<div class="lock"><span class="lk">'+IC.lock+'</span><div><b>'+(tt||'Envio de '+cMes(c)+' encerrado')+'</b><p>'+msg+'</p>'+(pend?'<p><b>Pedido de liberação enviado.</b> Aguarde o contador.</p>':LIBN[lg]?'<p>Precisa enviar algo de '+cMes(c)+'? Ao lançar, escolha o mês com cadeado e peça ao contador para liberar.</p>':'')+'</div></div>';}
-function renderCofre(){var c=CCOMP||compPad('docs');CCOMP=c;var st=cofreSt(c),cf=cofreOf(c),ns=cf.notas,pz=prazo('notas',c),n=ns.length;
+function renderCofre(){var c=CCOMP||compPad('docs');CCOMP=c;var st=cofreSt(c),cf=cofreOf(c);if(st==='aberto'&&nfJuntaCofre(cf)&&window.save)save();var ns=cf.notas,pz=prazo('notas',c),n=ns.length;
  var h=hdr('Cofre de notas','Gestão contábil')+perBtn('#cofre',c);
  if(st==='aberto')h+='<div class="hero"><div class="hk"><span>Cofre de '+cMes(c)+' · aberto</span><span class="pill-w">'+n+(n===1?' nota':' notas')+'</span></div><p class="ht">'+(podeEnc(c)?'O mês de '+cMes(c)+' terminou. Encerre o cofre para enviar as notas ao contador. Se você não encerrar, ele fecha sozinho em '+fmtP(pz)+' e envia tudo automaticamente.':'Carregue as notas durante o mês. O encerramento abre em '+fmtP(encIni(c))+', quando '+cMes(c)+' terminar. Se você não encerrar, o cofre fecha sozinho em '+fmtP(pz)+' e envia tudo automaticamente.')+'</p><div class="hb"><span class="due">Encerra em '+fmtP(pz)+' · '+falta(pz)+'</span></div></div>';
  else if(st==='futuro')h+='<div class="note">O cofre de '+cMes(c)+' ainda não abriu. Hoje você carrega notas de '+cMes(compPad('docs'))+'.</div>';
@@ -1657,11 +1657,32 @@ function nfAgrupa(list){var out=[];list.forEach(function(n){var ks=nfKeys(n),g=o
  out.forEach(function(n){var px=n.files.filter(function(f){return f.e==='pdf';})[0],xx=n.files.filter(function(f){return f.e==='xml';})[0];n.pdf=px?px.n:undefined;n.xml=xx?xx.n:undefined;n.arq=(xx||px||n.files[0]).n;if(n.nf&&!n.tipoFix)n.tipo=nfTipoAuto(n.nf,n.tipo);if(n.pend&&!n.pend.length)delete n.pend;});return out;}
 function nfCofreAdd(cf,names,tipo){var ja={};Object.keys(ST.cofre||{}).forEach(function(k){((ST.cofre[k]||{}).notas||[]).forEach(function(n){if(n.nf&&n.nf.chave)ja[n.nf.chave]=k;});});var dupN=[];names=(names||[]).filter(function(a){var o=NFP[a];if(o&&o.chave&&ja[o.chave]){dupN.push(a);return false;}return true;});if(typeof FS!=='undefined'&&FS)FS.nfDup=dupN;var b='b'+Date.now().toString(36),novas=(names||[]).map(function(a){var fi=window.FILES&&FILES[a]||{},nf=NFP[a];return {arq:a,tipo:tipo,data:hoje(),b:b,files:[{n:a,e:nfExt(a),fid:fi.id||undefined,ft:fi.type||undefined}],nf:nf||undefined,pend:NFQ[a]&&!(a in NFP)?[a]:[]};});
  var g=nfAgrupa(novas);g.forEach(function(n){var f0=n.files.filter(function(f){return f.n===n.arq;})[0]||{};n.fileId=f0.fid;n.ftype=f0.ft;cf.notas.push(n);});
+ /* nota que já estava no cofre (carregada antes, em outro envio): junta PDF e XML no mesmo cartão */
+ var jx=0;g.slice().forEach(function(n){var r=nfJunta(cf,n);if(r==='dup'){dupN=dupN.concat(n.files.map(function(f){return f.n;}));jx++;}});if(typeof FS!=='undefined'&&FS)FS.nfDup=dupN;
  /* leitura que ainda não terminou: completa a nota depois */
- g.forEach(function(n){(n.pend||[]).forEach(function(a){NFQ[a].then(function(){nfCompleta(cf,b);});});});return g.length;}
+ g.forEach(function(n){(n.pend||[]).forEach(function(a){NFQ[a].then(function(){nfCompleta(cf,b);});});});return g.length-jx;}
 function nfCompleta(cf,b){var lote=cf.notas.filter(function(n){return n.b===b;}),resto=cf.notas.filter(function(n){return n.b!==b;});
  lote.forEach(function(n){n.files.forEach(function(f){if(NFP[f.n]){n.nf=nfMerge(n.nf,NFP[f.n]);}});n.pend=(n.pend||[]).filter(function(a){return !(a in NFP);});});
- var g=nfAgrupa(lote);cf.notas.length=0;resto.concat(g).forEach(function(n){cf.notas.push(n);});if(window.save)save();if(window.renderLists)renderLists();if(window.__nfRefresh)__nfRefresh();}
+ var g=nfAgrupa(lote);cf.notas.length=0;resto.concat(g).forEach(function(n){cf.notas.push(n);});g.forEach(function(n){nfJunta(cf,n);});if(window.save)save();if(window.renderLists)renderLists();if(window.__nfRefresh)__nfRefresh();}
+/* mesma nota carregada em envios separados (ex.: o PDF num dia e o XML noutro).
+   É a mesma quando a chave de acesso é igual; sem chave nas duas, quando o número é igual e nada diverge:
+   mesmo modelo, mesma data de emissão, mesmo valor e ao menos um CNPJ/CPF em comum (emitente ou tomador),
+   com pelo menos um desses três conferido além do número. */
+function nfMesma(a,b){if(!a||!b)return false;if(a.chave&&b.chave)return a.chave===b.chave;
+ var nn=function(x){return String(x.num||'').replace(/\D/g,'').replace(/^0+/,'');},na=nn(a);if(!na||na!==nn(b))return false;
+ var gen=function(m){return !m||m==='Nota fiscal';};if(!gen(a.mod)&&!gen(b.mod)&&a.mod!==b.mod)return false;
+ var prova=0;if(a.dt&&b.dt){if(nfDt(a.dt)!==nfDt(b.dt))return false;prova++;}
+ if(a.val!=null&&b.val!=null){if(Math.abs(a.val-b.val)>0.005)return false;prova++;}
+ var ds=function(x){return [nfDig(x.emitDoc),nfDig(x.destDoc)].filter(Boolean);},da=ds(a),db=ds(b);
+ if(da.length&&db.length){if(!da.some(function(d){return db.indexOf(d)>-1;}))return false;prova++;}
+ return prova>0;}
+function nfArqs(n){var px=n.files.filter(function(f){return f.e==='pdf';})[0],xx=n.files.filter(function(f){return f.e==='xml';})[0];n.pdf=px?px.n:undefined;n.xml=xx?xx.n:undefined;var f0=xx||px||n.files[0];n.arq=f0.n;n.fileId=f0.fid;n.ftype=f0.ft;}
+/* junta a nota n numa nota igual que já está no cofre: devolve true (juntou), 'dup' (os arquivos já estavam lá) ou false */
+function nfJunta(cf,n){if(!n||!n.nf||(n.pend&&n.pend.length)||!n.files)return false;var e=cf.notas.filter(function(o){return o!==n&&o.files&&o.nf&&!(o.pend&&o.pend.length)&&nfMesma(o.nf,n.nf);})[0];if(!e)return false;
+ var novo=0;n.files.forEach(function(f){if(e.files.some(function(x){return x.n===f.n||x.e===f.e&&(f.e==='pdf'||f.e==='xml');}))return;e.files.push(f);novo++;});
+ if(novo)e.nf=nfMerge(e.nf,n.nf);nfArqs(e);if(!e.tipoFix)e.tipo=nfTipoAuto(e.nf,e.tipo);var ix=cf.notas.indexOf(n);if(ix>-1)cf.notas.splice(ix,1);return novo?true:'dup';}
+/* cofre que já tem a mesma nota em dois cartões (carregada antes desta regra): junta ao abrir */
+function nfJuntaCofre(cf){var mud=0;cf.notas.slice().forEach(function(n){if(cf.notas.indexOf(n)>-1&&nfJunta(cf,n))mud++;});return mud;}
 function nfMoeda(v){return v==null?'—':'R$ '+fmt(v);}
 function nfTitulo(n){var nf=n.nf;if(!nf)return n.arq;return (nf.mod||'Nota')+(nf.num?' nº '+nf.num:'')+(nf.serie&&nf.mod!=='NFS-e'?' · série '+nf.serie:'');}
 function nfParte(n){var nf=n.nf||{},em=/Emitidas/.test(n.tipo);return em?{l:'Tomador',n:nf.destN,d:nf.destDoc}:{l:'Emitente',n:nf.emitN||nf.emitF,d:nf.emitDoc};}
