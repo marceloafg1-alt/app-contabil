@@ -320,18 +320,31 @@ function pedTl(p,quem){var F=FLOWS[p.f]||{a:'docs'},ct=quem==='ct',ferias=p.f===
  A.push([ferias?(ct?'Assinatura do cliente no aviso':'Sua assinatura no aviso'):(ct?'Resposta do cliente':'Sua resposta'),p.cli||'']);
  A.push(['Concluído','']);
  var at2=p.st==='ok'?6:p.cr?5:p.cvis?4:3;return {f:A,at:at2};}
+/* detalhe do pedido nos dois apps: título, data e hora do envio, o que foi informado e o histórico com data e hora de cada resposta */
+function pedEnvH(p){return String(p.data||p.em||'').replace(/^Pedido em /,'');}
+function pedHist(p,ct){var H=[[ct?'Enviado pelo cliente':'Enviado por você',pedEnvH(p),'']];
+ if(p.vis)H.push([ct?'Visualizado por você':'Visualizado pelo contador',p.vis,'']);
+ (p.resp||[]).forEach(function(r){H.push([ct?'Resposta enviada por você':'Resposta do contador',r[1],r[0]]);});
+ if(p.cvis)H.push([ct?'Aberto pelo cliente':'Aberto por você',p.cvis,'']);
+ if(p.cli)H.push([ct?'Resposta do cliente':'Sua resposta',p.cliH||'',p.cli]);
+ if(ct&&p.rsn&&(p.rcb||0)>=p.rsn&&p.rcbH)H.push(['Recebido pelo cliente',p.rcbH,'']);
+ if(p.st==='ok'&&p.okEm)H.push(['Concluído',p.okEm,'']);
+ return H;}
+function pedDetHtml(p,ct){var F=FLOWS[p.f]||{t:p.tipo};
+ var h='<section><div class="sec"><h2>Dados do pedido</h2></div><div class="card pad">'+kv('Solicitação',esc(F.t))+kv('Enviado em',esc(pedEnvH(p)))+(p.quem&&!(p.dados||[]).length?kv('Referente a',esc(p.quem)):'')+(p.dados||[]).map(function(d){return kv(esc(d[0]),esc(d[1]));}).join('')+'</div></section>';
+ h+='<section><div class="sec"><h2>Histórico com data e hora</h2></div><div class="card pad">'+pedHist(p,ct).map(function(x){return '<div class="rv"><span>'+esc(x[0])+(x[2]?'<br><i>'+esc(x[2])+'</i>':'')+'</span><span>'+esc(x[1]||'—')+'</span></div>';}).join('')+'</div></section>';
+ return h;}
 function renderPed(id){var p=ST.ped.filter(function(x){return x.id===id;})[0];if(!p)return '';var F=FLOWS[p.f];
  var t3={dp:'Documentos do contador',servicos:'Aditivo ou documento pronto',contabil:'Lançado na contabilidade',guias:'Resposta do contador',docs:'Documento disponível'}[F.a];
  if(p.st==='voce'&&!p.cvis){p.cvis=horaAgora();setTimeout(function(){save();},0);} /* o cliente abriu o pedido do contador: a análise dele fica confirmada */
  var TL=pedTl(p,'cli'),fases=TL.f,at=TL.at;var dir=pedDireto(p)&&p.st!=='voce',vg=viaGestao()&&p.st!=='voce';
  var h=hdr(F.t,AREA_NOME[F.a])+'<div class="card pad"><div class="pt"><span class="ri">'+IC[F.i]+'</span><span class="rt"><span class="a">'+esc(p.tipo)+(p.quem?' · '+esc(p.quem):'')+'</span><span class="b">Protocolo #'+esc(p.prot||'2026-'+(p.id==='p1'?'1031':'1038'))+'</span></span></div></div>';
- if(vg&&p.dados&&p.dados.length)h+='<section><div class="sec"><h2>Dados do pedido</h2></div><div class="card pad">'+p.dados.map(function(d){return kv(esc(d[0]),esc(d[1]));}).join('')+'</div></section>';
+ h+=pedDetHtml(p,false);
  h+=vg?'':dir?'<div class="note">Recebido pelo contador. Se ele precisar de algo, chama você no chat.</div>':'';
  h+=recalcBox(p);
  if(p.gEnv&&p.st!=='ok'){var na=arqDoPed(p.id).filter(function(a){return a.or==='ct'&&a.cat==='guias';})[0];h+='<div class="note">O contador enviou a nova guia. Abra a guia para concluir o pedido.</div>'+(na?'<button type="button" class="r solo" data-go="'+(typeof na.gi==='number'?'guia-'+na.gi:'arq-'+na.id)+'"><span class="ri">'+IC.tax+'</span><span class="rt"><span class="a">Abrir a nova guia</span><span class="b">'+esc(na.n)+'</span></span>'+IC.chev18+'</button>':'');}
  else if(p.gVis)h+='<div class="note">Concluído quando você abriu a nova guia, em '+esc(p.gVis)+'.</div>';
- if(p.resp&&p.resp.length)h+='<section><div class="sec"><h2>Mensagens do contador</h2></div><div class="card pad">'+p.resp.map(function(r){return '<div class="rv"><span>'+esc(r[1])+'</span><span>'+esc(r[0])+'</span></div>';}).join('')+'</div></section>';
- if(p.docs&&p.docs.length)h+='<section><div class="sec"><h2>Documentos deste pedido</h2></div><div class="card">'+p.docs.map(function(d){return '<button type="button" class="r" data-toast="'+esc(d[0])+' baixado"><span class="ri">'+IC.doc+'</span><span class="rt"><span class="a">'+esc(d[0])+'</span><span class="b">'+esc(d[1])+' · '+esc(d[2]||'')+'</span></span><span class="dl sm">'+IC.down16+'</span></button>';}).join('')+'</div></section>';
+ var AQc=arqDoPed(p.id);if(AQc.length||(p.docs&&p.docs.length))h+='<section><div class="sec"><h2>Documentos do pedido</h2></div><div class="card">'+AQc.map(function(a){return arqRow(a);}).join('')+(p.docs||[]).map(function(d){return '<button type="button" class="r" data-toast="'+esc(d[0])+' baixado"><span class="ri">'+IC.doc+'</span><span class="rt"><span class="a">'+esc(d[0])+'</span><span class="b">'+esc(d[1])+' · '+esc(d[2]||'')+'</span></span><span class="dl sm">'+IC.down16+'</span></button>';}).join('')+'</div></section>';
  if(p.cli)h+='<p class="foot">'+esc(p.cli)+'</p>';
  if(p.st==='voce'&&p.f==='ferias')h+='<div class="note">'+esc(p.pede||('O aviso de férias de '+(p.quem||'')+' está pronto. Confira e assine para o contador seguir.'))+'</div><div class="fbar"><button type="button" class="cta" data-sign="'+p.id+'">Assinar aviso de férias</button></div>';
  else if(p.st==='voce')h+='<div class="note">'+esc(p.pede||'O contador precisa de uma informação sua para seguir com este pedido.')+'</div><div class="fbar row"><button type="button" class="cta ghost" data-go="#chatct">'+IC.chat+' Responder no chat</button><button type="button" class="cta" data-voceok="'+p.id+'">Já resolvi</button></div>';
@@ -414,7 +427,7 @@ function renderEnvFolhas(){if(!FCOMP)FCOMP=compPad('folha');if(ENVOK){var n=ENVO
  (ok.length?'<div class="fbar"><button type="button" class="cta" data-envall>'+IC.up16+' Enviar '+ok.length+(ok.length>1?' folhas':' folha')+' ao contador</button></div>':'');}
 function envAll(lista){var ok=lista||pendEnvio().filter(prontaEnvio);if(!ok.length)return 0;ST.n++;var id='p'+ST.n;
  ok.forEach(function(f){f.st='enviada';f.data=hoje();if(f.comp==='Outubro/2026')ST.vari=1;});
- ST.ped.unshift({id:id,f:'folha',tipo:'Folhas de pagamento',quem:ok.length+(ok.length>1?' colaboradores':' colaborador'),data:'Pedido em '+hoje(),st:'enviado',prot:'2026-'+ST.n});
+ ST.ped.unshift({id:id,f:'folha',tipo:'Folhas de pagamento',quem:ok.length+(ok.length>1?' colaboradores':' colaborador'),data:'Pedido em '+horaAgora(),st:'enviado',prot:'2026-'+ST.n});
  ST.act.unshift([ok.length+(ok.length>1?' folhas de pagamento enviadas':' folha de pagamento enviada'),'Agora',1,NOW().getTime()]);save();renderLists();
  return ok.length;}
 function renderFolha(id){var f=getFolha(id);if(!f)return '';var es=fst(f),s=fstLbl(es),e=estimar(f.func,f.vars),vt=varsTxt(f.vars);
@@ -671,7 +684,7 @@ function submit(){var F=FLOWS[FS.id];
  if(FS.id==='senha'){ST.pwdAt='agora';FS.res='';FS.ped=null;save();return;}
  if(FS.id==='convite'){USR().push({n:FS.v.nome,e:FS.v.email,r:FS.v.perfil,pend:1});FS.res='';FS.ped=null;ST.act.unshift(['Convite enviado · '+FS.v.nome,'Agora',1,NOW().getTime()]);save();renderLists();return;}
  if(F.cofre){var cc=FS.v.comp,cf=cofreOf(cc),k=nfCofreAdd(cf,(FS.v.arqX||[]).concat(FS.v.arqP||[],FS.v.arq||[]),FS.v.tipo);FS.nfK=k;FS.res='';FS.ped=null;ST.act.unshift([k+(k>1?' notas carregadas':' nota carregada')+' no cofre de '+cMes(cc),'Agora',1,NOW().getTime()]);save();renderLists();return;}ST.n++;var prot='2026-'+ST.n;FS.res=prot;var who=F.who?FS.v[F.who]:'';
- var adm0=FS.id==='colaborador'&&FS.v.acao&&FS.v.acao!=='Cadastro';var id='p'+ST.n;ST.ped.unshift({id:id,f:adm0?'admissao':FS.id,tipo:adm0?FS.v.acao:F.t,quem:who||'',data:'Pedido em '+hoje(),st:'enviado',prot:prot,dados:pedDados(),em:hoje()});FS.ped=id;
+ var adm0=FS.id==='colaborador'&&FS.v.acao&&FS.v.acao!=='Cadastro';var id='p'+ST.n;ST.ped.unshift({id:id,f:adm0?'admissao':FS.id,tipo:adm0?FS.v.acao:F.t,quem:who||'',data:'Pedido em '+horaAgora(),st:'enviado',prot:prot,dados:pedDados(),em:hoje()});FS.ped=id;
  var paA=F.solic?pedAberto():null;arqFromFlow(FS.id,FS.v,id,who,paA?pedNome(paA):null);
  if(FS.id==='comprovante'){GUIAS.forEach(function(g,i){if(g===FS.v.guia)ST.pagas[i]=hoje();});}
  if(F.a==='guias'&&FS.id!=='comprovante'){var gn=String(FS.v.guia||'').split(' · ').slice(0,2).join(' · '),tx=String(FS.v.msg||FS.v.obs||'').trim();ST.chat.push({me:1,t:'Pedido: '+F.t+(gn?' · '+gn:'')+(tx?'. Mensagem: '+tx:''),h:horaAgora(),go:'ped-'+id,gl:'Ver pedido'});}
@@ -1118,7 +1131,7 @@ function funcSalvarEd(){var q=FED.k.split('~'),sid=q[0],n=q.slice(1).join('~'),d
  var mud=[];S.f.forEach(function(f){var a=String(funcVal(d,f[0])||''),b=String(V[f[0]]||'').trim();if(a!==b)mud.push([f[1],(a||'—')+' → '+(b||'—')]);});
  if(!mud.length)return {nada:1};
  S.f.forEach(function(f){var k=f[0],b=String(V[k]||'').trim();if(/^em(N|Rel|Tel)$/.test(k)){d.emerg=d.emerg||{};d.emerg[k==='emN'?'n':k==='emRel'?'rel':'tel']=b;}else if(sid==='endereco'){d.end=d.end||{};d.end[k]=b;}else d[k]=b;});
- ST.n++;ST.ped.unshift({id:'p'+ST.n,f:'cadfunc',tipo:'Atualização cadastral · '+S.t,quem:n,data:'Pedido em '+hoje(),st:'enviado',prot:'2026-'+ST.n,em:hoje(),dados:[['Colaborador',n],['Categoria',S.t]].concat(mud)});
+ ST.n++;ST.ped.unshift({id:'p'+ST.n,f:'cadfunc',tipo:'Atualização cadastral · '+S.t,quem:n,data:'Pedido em '+horaAgora(),st:'enviado',prot:'2026-'+ST.n,em:hoje(),dados:[['Colaborador',n],['Categoria',S.t]].concat(mud)});
  ST.act.unshift([S.t+' de '+n+' atualizado · contador avisado','Agora',1,NOW().getTime()]);FED={};return {ok:mud.length};}
 function renderFuncs(){return hdr('Colaboradores',FUNC.length+(FUNC.length===1?' colaborador':' colaboradores'))+'<div class="card">'+(FUNC.length?'':'<p class="empty">Nenhum colaborador ainda. Toque no + para admitir.</p>')+FUNC.map(function(n){var d=FUNCD[n];return '<button type="button" class="r" data-go="func-'+n+'"><span class="av2">'+n.split(' ').map(function(x){return x[0];}).join('')+'</span><span class="rt"><span class="a">'+n+'</span><span class="b">'+d.c+'</span></span>'+(d.adm==='Em admissão'?'<span class="pill warn">Em admissão</span>':IC.chev18)+'</button>';}).join('')+'</div>';}
 function renderFunc(n){var d=FUNCD[n];if(!d)return '';var pre=' data-pre=\'{"func":"'+n+'"}\'';
@@ -1255,7 +1268,7 @@ function guiaStatusCli(i){var g=GU[+i],k=g.n.split(' · ')[0]+' · '+g.c;
 /* desmarca a guia como paga: o comprovante continua em Recibos, mas deixa de dar baixa na guia */
 function guiaDespaga(i){i=+i;var g=GU[i];if(!g||!ST.pagas[i])return;delete ST.pagas[i];var k=g.n.split(' · ')[0]+' · '+g.c;
  arqList().forEach(function(a){if(a.gi===i&&a.or==='cli'){delete a.gi;(a.h=a.h||[]).push(['Guia desmarcada como paga',hoje()]);}});
- ST.ped.forEach(function(p){if(p.f==='comprovante'&&p.st!=='ok'&&String(p.quem||'').indexOf(k)===0)p.cli='Guia desmarcada como paga pelo cliente em '+hoje()+'.';});
+ ST.ped.forEach(function(p){if(p.f==='comprovante'&&p.st!=='ok'&&String(p.quem||'').indexOf(k)===0)p.cli='Guia desmarcada como paga pelo cliente em '+hoje()+'.';p.cliH=horaAgora();});
  ST.act.unshift(['Guia '+g.n.split(' · ')[0]+' desmarcada como paga','Agora',1,NOW().getTime()]);}
 
 /* ===== entrar ===== */
@@ -1387,13 +1400,16 @@ function renderPasta(n){var c=catOf(n),k=c[0],L=arqVis(k),g={};L.forEach(functio
  (cs.length?cs.map(function(cp){return '<section><div class="sec"><h2>'+esc(cp)+'</h2><span class="s">'+g[cp].length+'</span></div><div class="card">'+g[cp].map(function(a){return arqRow(a);}).join('')+'</div></section>';}).join(''):'<div class="card"><p class="empty">Nenhum arquivo nesta pasta ainda.</p></div>')+
  '<p class="foot">Toque no + para enviar um documento.</p>';}
 var ARQ_FLOW={extratos:'f-extrato',notas:'f-notas',folha:'folhas'};
+function arqEnvHtml(a,ct){var h0=(a.h&&a.h[0])||[],q=a.or==='ct';
+ return '<section><div class="sec"><h2>Dados do envio</h2></div><div class="card pad">'+kv('Título',esc(a.n))+kv(q?(ct?'Enviado por você em':'Enviado pelo contador em'):(ct?'Enviado pelo cliente em':'Enviado por você em'),esc(h0[1]||a.data||'—'))+kv('Competência',esc(a.comp||'—'))+(a.quem?kv('Referente a',esc(a.quem)):'')+'</div></section>';}
 function renderArq(id){var a=arqGet(id);if(!a)return '';var c=catOf(a.cat),s=arqSt(a);
  if(arqAberto(a))save();
  var fases=a.or==='ct'?[['Enviado pelo contador',a.data],['Disponível para você',''],['Visto por você','']]:[['Enviado por você',a.data],['Em conferência pelo contador',''],[a.st==='dev'?'Devolvido para correção':'Conferido','']];
  var at=a.or==='ct'?(a.st==='disp'?1:3):({enviado:1,analise:1,ok:3,dev:2}[a.st]);if(a.or==='cli'&&a.st==='enviado')at=1;if(arqDireto(a)&&a.st!=='dev'){fases=[['Enviado por você',a.data],['Recebido pelo contador','']];at=2;}
  var h=hdr(a.n,c[1])+'<div class="card pad"><div class="pt"><span class="ri">'+(IC[c[2]]||IC.doc)+'</span><span class="rt"><span class="a">'+esc(a.arq||a.n)+'</span><span class="b">'+esc(a.comp)+' · '+(a.or==='ct'?'do contador':'enviado por você')+'</span></span></div></div>'+(window.arqPreview?arqPreview(a):'');
  if(a.st==='dev')h+='<div class="note"><b>O contador devolveu este arquivo.</b><br>'+esc(a.mot||'Confira e envie de novo.')+'</div>';
- if(a.h&&a.h.length)h+='<section><div class="sec"><h2>Histórico</h2></div><div class="card pad">'+a.h.slice().reverse().map(function(x){return '<div class="rv"><span>'+esc(x[1])+'</span><span>'+esc(x[0])+'</span></div>';}).join('')+'</div></section>';
+ h+=arqEnvHtml(a,false);
+ if(a.h&&a.h.length)h+='<section><div class="sec"><h2>Histórico com data e hora</h2></div><div class="card pad">'+a.h.slice().reverse().map(function(x){return '<div class="rv"><span>'+esc(x[1])+'</span><span>'+esc(x[0])+'</span></div>';}).join('')+'</div></section>';
  if(a.ped){var p=ST.ped.filter(function(x){return x.id===a.ped;})[0];if(p)h+='<button type="button" class="r solo" data-go="ped-'+p.id+'"><span class="ri">'+IC.sol+'</span><span class="rt"><span class="a">'+esc(p.tipo)+(p.quem?' · '+esc(p.quem):'')+'</span><span class="b">Pedido #'+esc(p.prot||'')+'</span></span><span class="cv">'+IC.chev18+'</span></button>';}
  h+='<div class="fbar">'+(a.st==='dev'?'<button type="button" class="cta" data-go="'+(ARQ_FLOW[a.cat]||'f-enviar')+'"'+(ARQ_FLOW[a.cat]?'':' data-pre=\''+JSON.stringify({tipo:c[1],comp:compSt(a.cat==='extratos'?'extratos':a.cat==='despesas'?'despesas':'docs',a.comp)==='aberto'?a.comp:undefined})+'\'')+'>'+IC.up16+' Enviar nova versão</button>':'')+'<button type="button" class="cta ghost" data-dlarq="'+a.id+'">'+IC.down16+' Abrir ou baixar</button>'+(a.or==='cli'&&a.cat==='extratos'&&a.comp&&encSt('extratos',a.comp)==='aberto'?'<button type="button" class="cta ghost danger" data-delextr="'+a.id+'">Excluir extrato</button>':'')+'</div>'+(a.or==='cli'&&a.cat==='extratos'&&a.comp&&encSt('extratos',a.comp)!=='aberto'?'<p class="foot">O envio de extratos de '+cMes(a.comp)+' foi encerrado: este extrato não pode mais ser excluído.</p>':'');
  return h;}
@@ -1517,7 +1533,7 @@ function renderEnvio(g){if(!ENV_T[g])return '';ENVG=g;var T=ENV_T[g],c=ECOMP[g]|
  if(st==='aberto')h+=podeEnc(c)?'<p class="foot">Para encerrar o envio de '+cMes(c)+', toque no + e escolha Encerrar envio.</p>':'<p class="foot">'+cap(cMes(c))+' ainda não terminou. O botão de encerrar aparece em '+fmtP(encIni(c))+' e fica até '+fmtP(pz)+'. Depois disso, o envio fecha sozinho.</p>';
  return h;}
 function encerraEnvio(g,c){var T=ENV_T[g],n=(g==='extratos'?extrOf(c):despOf(c)).length;ST['enc_'+g]=ST['enc_'+g]||{};ST['enc_'+g][c]={em:hoje(),n:n};ST.n++;var id='p'+ST.n;
- ST.ped.unshift({id:id,f:g==='extratos'?'extrato':'despesas',tipo:'Envio de '+T[2]+' · '+cMes(c),quem:n?n+' '+(n===1?T[1]:T[2]):'Sem '+T[2]+' no mês',data:'Pedido em '+hoje(),st:'enviado',prot:'2026-'+ST.n,dados:[['Competência',c],['Encerrado pelo cliente em',hoje()],['Itens lançados',String(n)]],em:hoje()});
+ ST.ped.unshift({id:id,f:g==='extratos'?'extrato':'despesas',tipo:'Envio de '+T[2]+' · '+cMes(c),quem:n?n+' '+(n===1?T[1]:T[2]):'Sem '+T[2]+' no mês',data:'Pedido em '+horaAgora(),st:'enviado',prot:'2026-'+ST.n,dados:[['Competência',c],['Encerrado pelo cliente em',hoje()],['Itens lançados',String(n)]],em:hoje()});
  ST.act.unshift(['Envio de '+T[2]+' de '+cMes(c)+' encerrado · '+(n?n+' '+(n===1?T[1]:T[2]):'nenhum lançamento'),'Agora',1,NOW().getTime()]);}
 /* ===== Verificar rotinas: só o que está no prazo deste mês, ou o que venceu sem nada enviado ===== */
 function rotLanc(g,c){if(g==='notas'){var cf=(ST.cofre||{})[c];return !!(cf&&((cf.notas||[]).length||cf.st==='encerrado'));}if(g==='extratos')return extrOf(c).length>0||encSt(g,c)==='encerrado';if(g==='despesas')return despOf(c).length>0||!!(ST.desp||{})[c]||encSt(g,c)==='encerrado';
@@ -1660,7 +1676,7 @@ function semVarInfo(c){var ls=folhasOf().filter(function(f){return f.comp===c&&f
 function semVarMes(c){var I=semVarInfo(c),ls=folhasOf();I.alvo.forEach(function(n,i){var f=ls.filter(function(x){return x.comp===c&&x.tipo==='Mensal'&&x.func===n;})[0];
   if(f){f.sem=true;f.vars={};f.st='enviada';f.data=hoje();}else ls.push({id:'sv'+Date.now().toString(36)+i,comp:c,func:n,tipo:'Mensal',st:'enviada',vars:{},sem:true,obs:'',criada:hoje(),data:hoje()});});
  var tot=I.alvo.length+I.env.length;ST.enc_folha=ST.enc_folha||{};ST.enc_folha[c]={em:hoje(),n:tot};
- ST.n++;ST.ped.unshift({id:'p'+ST.n,f:'folha',tipo:'Folha de '+cMes(c)+' · sem variáveis',quem:tot+(tot===1?' colaborador':' colaboradores'),data:'Pedido em '+hoje(),st:'enviado',prot:'2026-'+ST.n,dados:[['Competência',c],['Variáveis','Nenhum colaborador teve variáveis'],['Encerrado pelo cliente em',hoje()]],em:hoje()});
+ ST.n++;ST.ped.unshift({id:'p'+ST.n,f:'folha',tipo:'Folha de '+cMes(c)+' · sem variáveis',quem:tot+(tot===1?' colaborador':' colaboradores'),data:'Pedido em '+horaAgora(),st:'enviado',prot:'2026-'+ST.n,dados:[['Competência',c],['Variáveis','Nenhum colaborador teve variáveis'],['Encerrado pelo cliente em',hoje()]],em:hoje()});
  ST.act.unshift(['Folha de '+cMes(c)+' encerrada sem variáveis e enviada ao contador','Agora',1,NOW().getTime()]);return I;}
 
 /* ===== despesas: lançar manual ou por planilha ===== */
@@ -1703,7 +1719,7 @@ function dplChecar(){var c=DPL.c,p=c?cParse(c):null;DPL.rows.forEach(function(x)
   if(ref&&p&&p.m>-1&&(ref.getFullYear()!==p.y||ref.getMonth()!==p.m))e.push((de?'emissão':'vencimento')+' fora de '+cMes(c)+' ('+(de||dv)+')');
   x.errs=e;x.ok=!e.length;});}
 function dplEnviar(){var c=DPL.c,ok=DPL.rows.filter(function(x){return x.ok;});if(!ok.length||!compOk('despesas',c))return 0;
- ok.forEach(function(x){ST.n++;ST.ped.unshift({id:'p'+ST.n,f:'despesas',tipo:'Cadastrar despesa',quem:x.desc,data:'Pedido em '+hoje(),st:'enviado',prot:'2026-'+ST.n,em:hoje(),
+ ok.forEach(function(x){ST.n++;ST.ped.unshift({id:'p'+ST.n,f:'despesas',tipo:'Cadastrar despesa',quem:x.desc,data:'Pedido em '+horaAgora(),st:'enviado',prot:'2026-'+ST.n,em:hoje(),
   dados:[['Categoria',x.cat],['Descrição',x.desc],['Valor','R$ '+fmt(x.val)],['Competência',c],['Emissão',x.emis||'—'],['Vencimento',x.venc||'—'],['Situação',x.sit],['Origem','Planilha '+(DPL.arq||'')]]});});
  ST.act.unshift([ok.length+(ok.length===1?' despesa enviada':' despesas enviadas')+' por planilha · '+cMes(c),'Agora',1,NOW().getTime()]);var n=ok.length;DPL.rows=[];DPL.arq='';DPL.err='';return n;}
 
@@ -1723,8 +1739,8 @@ function brIso(s){var m=/^(\d\d)\/(\d\d)\/(\d{4})$/.exec(s||'');return m?m[3]+'-
 function renderDespEdit(id){var p=ST.ped.filter(function(x){return x.id===id&&x.f==='despesas';})[0];if(!p)return '';var c=despComp(p),ab=encSt('despesas',c)==='aberto',sel=function(k,l,o,v){return '<div class="fld"><label class="fl" for="'+k+'">'+l+'</label><select id="'+k+'">'+(o.indexOf(v)<0&&v?'<option>'+esc(v)+'</option>':'')+o.map(function(x){return '<option'+(x===v?' selected':'')+'>'+esc(x)+'</option>';}).join('')+'</select></div>';};
  var d={desc:p.quem||despDv(p,/^descri/i),cat:despDv(p,/^categoria/i),val:despDv(p,/^valor/i).replace(/^R\$\s*/,''),venc:despDv(p,/^vencimento/i),emis:despDv(p,/^emiss/i),sit:despDv(p,/^situa/i)};
  var h=hdr(ab?'Editar despesa':'Despesa','Despesas de '+cMes(c));
- if(!ab)return h+'<div class="card pad">'+[['Descrição',d.desc],['Categoria',d.cat],['Valor','R$ '+d.val],['Emissão',d.emis],['Vencimento',d.venc],['Situação',d.sit]].map(function(x){return kv(x[0],esc(x[1]||'—'));}).join('')+'</div><div class="note">O envio de despesas de '+cMes(c)+' está encerrado. Para corrigir, solicite ao contador.</div><div class="fbar"><button type="button" class="cta ghost" data-go="f-outro" data-pre=\''+JSON.stringify({ass:'Correção de despesa · '+cMes(c)}).replace(/'/g,'&#39;')+'\'>Solicitar ao contador</button></div>';
- return h+'<div class="form"><div class="fld"><label class="fl" for="de-desc">Descrição</label><input id="de-desc" type="text" value="'+esc(d.desc)+'"></div>'+sel('de-cat','Categoria',DESP_CATS,d.cat)+
+ if(!ab)return h+'<div class="card pad">'+[['Descrição',d.desc],['Categoria',d.cat],['Valor','R$ '+d.val],['Emissão',d.emis],['Vencimento',d.venc],['Situação',d.sit],['Enviada em',pedEnvH(p)]].map(function(x){return kv(x[0],esc(x[1]||'—'));}).join('')+'</div><div class="note">O envio de despesas de '+cMes(c)+' está encerrado. Para corrigir, solicite ao contador.</div><div class="fbar"><button type="button" class="cta ghost" data-go="f-outro" data-pre=\''+JSON.stringify({ass:'Correção de despesa · '+cMes(c)}).replace(/'/g,'&#39;')+'\'>Solicitar ao contador</button></div>';
+ return h+'<p class="foot">Enviada em '+esc(pedEnvH(p))+'</p><div class="form"><div class="fld"><label class="fl" for="de-desc">Descrição</label><input id="de-desc" type="text" value="'+esc(d.desc)+'"></div>'+sel('de-cat','Categoria',DESP_CATS,d.cat)+
  '<div class="fld"><label class="fl" for="de-val">Valor</label><div class="mon"><span>R$</span><input id="de-val" inputmode="decimal" value="'+esc(d.val)+'"></div></div>'+
  '<div class="fld"><label class="fl" for="de-emis">Emissão</label><input id="de-emis" type="date" value="'+brIso(d.emis)+'"></div><div class="fld"><label class="fl" for="de-venc">Vencimento</label><input id="de-venc" type="date" value="'+brIso(d.venc)+'"></div>'+
  sel('de-sit','Situação',['A pagar','Paga','Vencida','Agendada'],d.sit)+'<span class="fe" id="de-err" hidden></span></div>'+
@@ -1993,7 +2009,7 @@ function libKey(g,c){return (g==='cofre'?'notas':g)+'|'+c;}
 function libAte(g,c){var x=((typeof ST!=='undefined'&&ST&&ST.lib)||{})[libKey(g,c)];if(!x)return null;var q=x.split('-');return new Date(+q[0],+q[1]-1,+q[2]);}
 function libAtiva(g,c){var la=libAte(g,c);return !!(la&&dOnly(NOW())<=la);}
 function pedLibAberto(g,c){return ST.ped.filter(function(p){return p.f==='libmes'&&p.st!=='ok'&&p.lk===libKey(g,c);})[0];}
-function pedirLib(g,c){g=g==='cofre'?'notas':g;if(pedLibAberto(g,c))return 0;ST.n++;ST.ped.unshift({id:'p'+ST.n,f:'libmes',lk:libKey(g,c),tipo:'Liberar envio de '+LIBN[g]+' · '+cMes(c),quem:'',data:'Pedido em '+hoje(),st:'enviado',prot:'2026-'+ST.n,em:hoje(),dados:[['Envio',cap(LIBN[g])],['Competência',c],['Pedido','Liberar o envio do mês, que já foi encerrado']]});ST.act.unshift(['Pedido de liberação · '+LIBN[g]+' de '+cMes(c),'Agora',1,NOW().getTime()]);return 1;}
+function pedirLib(g,c){g=g==='cofre'?'notas':g;if(pedLibAberto(g,c))return 0;ST.n++;ST.ped.unshift({id:'p'+ST.n,f:'libmes',lk:libKey(g,c),tipo:'Liberar envio de '+LIBN[g]+' · '+cMes(c),quem:'',data:'Pedido em '+horaAgora(),st:'enviado',prot:'2026-'+ST.n,em:hoje(),dados:[['Envio',cap(LIBN[g])],['Competência',c],['Pedido','Liberar o envio do mês, que já foi encerrado']]});ST.act.unshift(['Pedido de liberação · '+LIBN[g]+' de '+cMes(c),'Agora',1,NOW().getTime()]);return 1;}
 
 /* avisos de envio vencido que o cliente apagou: ficam num histórico oculto */
 function rotOcultos(){var off=ST.rotOff||{},n0=NOW(),jan=[-3,-2,-1].map(function(k){return cName(n0.getFullYear(),n0.getMonth()+k);}),L=Object.keys(off).filter(function(k){var q=k.split(':');return jan.indexOf(q[1])>-1&&ROTG[q[0]]&&q[1]&&!rotFeito(q[0],q[1])&&!rotLanc(q[0],q[1]);});if(!L.length)return '';
