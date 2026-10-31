@@ -926,9 +926,35 @@ function cfgTeste(){var n=NOW(),v=n.getFullYear()+'-'+('0'+(n.getMonth()+1)).sli
  return '<section><div class="sec"><h2>Testes (provisório)</h2></div><div class="card">'+
   '<label class="r" for="cfg-sim"><span class="ri">'+IC.clock+'</span><span class="rt"><span class="a">Data do sistema</span><span class="b">'+(MULTI.sim?'Simulada: '+fmtP(n):'Hoje, data real')+' · muda o dia em todo o app</span></span><input type="date" id="cfg-sim" class="cfgsim" value="'+v+'"></label>'+
   (MULTI.sim?'<button type="button" class="r" data-simhoje><span class="ri">'+IC.clock+'</span><span class="rt"><span class="a">Voltar para a data de hoje</span><span class="b">Usa de novo a data real do aparelho</span></span>'+IC.chev18+'</button>':'')+
-  '<button type="button" class="r" data-zeralanc><span class="ri">'+IC.x+'</span><span class="rt"><span class="a">Apagar lançamentos</span><span class="b">Zera pedidos, documentos, notas, extratos, despesas, folhas, guias, colaboradores, chat e avisos. Ficam as empresas, os sócios e o escritório</span></span>'+IC.chev18+'</button>'+
-  '<button type="button" class="r" data-zeraimp><span class="ri">'+IC.tax+'</span><span class="rt"><span class="a">Zerar impostos</span><span class="b">Apaga todas as guias e os pedidos de guias, em todas as empresas</span></span>'+IC.chev18+'</button>'+
+  '<button type="button" class="r" data-apagar-sel><span class="ri">'+IC.x+'</span><span class="rt"><span class="a">Apagar</span><span class="b">Escolha, em uma lista, o que apagar. Só sai o que estiver marcado</span></span>'+IC.chev18+'</button>'+
  '</div><p class="foot">Botões provisórios, só para testar o protótipo.</p></section>';}
+
+/* Apagar com seletor: só apaga o que estiver marcado no modal */
+var APAGA_SEC=[['socios','Sócios'],['colab','Colaboradores'],['afast','Afastamentos'],['ferias','Férias'],['medida','Medida disciplinar'],['folha','Folha de pagamento'],['vari','Variáveis rápidas'],['desp','Despesas'],['extr','Extratos bancários'],['notas','Notas'],['docs','Documentos solicitados']];
+function apagaSelOpen(){
+ var h='<div class="ap-ov" id="ov-ap" role="dialog" aria-label="Apagar"><div class="ap-box"><h3>Apagar o que for marcado</h3><p class="ap-n">Vale para todas as empresas. Não dá para desfazer.</p>'+APAGA_SEC.map(function(s){return '<label class="ap-row"><input type="checkbox" value="'+s[0]+'"> '+s[1]+'</label>';}).join('')+'<div class="ap-btns"><button type="button" class="wb" id="ap-no">Cancelar</button><button type="button" class="wb red" id="ap-ok">Apagar marcados</button></div></div></div>';
+ var w=document.createElement('div');w.innerHTML=h;document.body.appendChild(w.firstChild);
+ document.getElementById('ap-no').onclick=function(){document.getElementById('ov-ap').remove();};
+ document.getElementById('ap-ok').onclick=function(){var ks=[].slice.call(document.querySelectorAll('#ov-ap input:checked')).map(function(i){return i.value;});if(!ks.length)return;apagaSel(ks);document.getElementById('ov-ap').remove();if(window.save)save();if(window.__refresh)window.__refresh();else location.reload();};
+}
+function apagaSel(ks){
+ function has(k){return ks.indexOf(k)>-1;}
+ var tipos=[];if(has('afast'))tipos.push('afastamento');if(has('ferias'))tipos.push('ferias');if(has('medida'))tipos.push('medida');if(has('vari'))tipos.push('variaveis');if(has('desp'))tipos.push('despesas');
+ MULTI.emps.forEach(function(e){var d=MULTI.data[e.id];
+  if(has('socios'))e.socios={};
+  if(has('colab'))e.func={};
+  if(d){
+   if(tipos.length)d.ped=(d.ped||[]).filter(function(p){return tipos.indexOf(p.f)<0;});
+   if(has('ferias'))d.fer={};
+   if(has('folha'))d.folhas=[];
+   if(has('vari'))d.vari=0;
+   if(has('desp'))d.desp={};
+   if(has('extr'))d.extr={};
+   if(has('notas'))d.cofre={};
+   if(has('docs')){d.solic=0;d.docsPed=[];}
+  }});
+ if(typeof useEmp==='function')useEmp(MULTI.cur);
+}
 function kv(a,b){return '<div class="rv"><span>'+a+'</span><span>'+b+'</span></div>';}
 function renderEmpresa(){var e=EMP();return hdr('Dados da empresa',e.fant)+'<div class="card pad">'+kv('Razão social',esc(e.nome))+kv('Nome fantasia',esc(e.fant))+kv('CNPJ','<span class="sel-t">'+esc(e.cnpj)+'</span>')+kv('Regime',esc(e.reg))+kv('Atividade',esc(e.ativ))+kv('Endereço',esc(e.end))+kv('Abertura',esc(e.ab))+'</div>'+(e.demo||e.id==='lume'?'<p class="foot">Dados de exemplo.</p>':'')+'<div class="fbar"><button type="button" class="cta ghost" data-go="f-outro" data-pre=\'{"ass":"Alterar dados da empresa"}\'>Pedir alteração de dados</button></div>';}
 function tsw(k){var t=TEMAS.filter(function(x){return x[0]===k;})[0]||TEMAS[0];return 'background:linear-gradient(135deg,'+t[2]+','+t[3]+')';}
