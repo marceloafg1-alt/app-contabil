@@ -13,7 +13,12 @@ var ixs=[].slice.call(document.querySelectorAll('.ix')),dyn=document.getElementB
 function head(id){return id.indexOf('f-')===0?'f':id.split('-')[0];}
 function areaOf(id){if(MAIN.indexOf(id)>-1)return id;var h=head(id);if(h==='f')return FLOWS[id.slice(2)]?FLOWS[id.slice(2)].a:'inicio';if(h==='ped'){var p=ST.ped.filter(function(x){return x.id===id.slice(4);})[0];return p?FLOWS[p.f].a:'dp';}return PARENT[h]||'inicio';}
 function chain(id){var c=[],a=areaOf(id),g=0;while(a&&a!=='inicio'&&g++<5){c.unshift(a);a=areaOf(a);}if(id!=='inicio')c.unshift('inicio');return c;}
+var COMP_FAM={cofre:'cofre',nota:'cofre',envio:'envio',escdesp:'envio',desppl:'envio',despedit:'envio',folhas:'folha',folha:'folha',envfolhas:'folha',docs:'docs',pasta:'docs',arq:'docs',varr:'varr',lote:'varr'},COMP_FLOW={notas:'cofre',despesas:'envio',despedit:'envio',extrato:'envio',folha:'folha',variaveis:'varr'};
+function compFam(id){var h=head(id);return h==='f'?COMP_FLOW[id.slice(2)]||'':COMP_FAM[h]||'';}
+function compSai(novo){var a=compFam(cur),b=compFam(novo);if(!a||a===b)return;
+ if(a==='cofre')CCOMP=null;else if(a==='envio'){ECOMP={};DPL.c='';DPL.cSet=0;}else if(a==='folha')FCOMP=null;else if(a==='docs'){DCOMP='';PCOMP='';}else if(a==='varr')VCOMP=null;}
 function show(id,back,keep){if(id==='inicio')IMPSEQ=null;if(id==='inicio'||id==='rotinas')ROTV=null;if(head(id)==='chat'&&head(cur)!=='chat'&&!back&&!keep){CHT=window.__chtAbre||'ct';PENDCHAT=null;}window.__chtAbre=null;if(id==='f-admissao'||id==='f-vinculo')id='f-colaborador';if(id==='f-despesas'&&!back&&!keep&&cur!=='f-despesas'){if(PRE&&PRE.__manual){delete PRE.__manual;}else{var pc0=PRE&&PRE.comp;PRE=null;id='escdesp'+(pc0?'-'+pc0:'');}}if(/^despedit-/.test(id)){var dq=ST.ped.filter(function(x){return x.id===id.slice(9)&&x.f==='despesas';})[0];if(dq&&encSt('despesas',despComp(dq))==='aberto'){PRE=despPre(dq);id='f-despedit';keep=false;}} /* liberado: abre a tela nova de editar, não a antiga */
+ compSai(id); /* ao sair de uma página, a competência que se mexeu nela volta ao mês atual */
  var el,h=head(id);if(window.closeSheets)closeSheets();
  if(MAIN.indexOf(id)>-1)el=document.getElementById('s-'+id);
  else{el=dyn;var html='';
