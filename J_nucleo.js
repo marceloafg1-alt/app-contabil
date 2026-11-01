@@ -331,9 +331,14 @@ function pedHist(p,ct){var H=[[ct?'Enviado pelo cliente':'Enviado por você',ped
  if(p.st==='ok'&&p.okEm)H.push(['Concluído',p.okEm,'']);
  return H;}
 function pedDetHtml(p,ct){var F=FLOWS[p.f]||{t:p.tipo};
- var dl=function(t){return '<button type="button" class="dl sm" '+t+' aria-label="Baixar" title="Baixar">'+IC.down16+'</button>';};
- var ex=ct?'':arqDoPed(p.id).map(function(a){return '<div class="rv"><span>'+(a.cat==='extratos'?'Arquivo do extrato':'Arquivo')+'</span><span style="display:flex;align-items:center;justify-content:flex-end;gap:8px">'+esc(a.arq||a.n)+dl('data-dlarq="'+a.id+'"')+'</span></div>';}).join('')+(p.docs||[]).map(function(d){return '<div class="rv"><span>Documento</span><span style="display:flex;align-items:center;justify-content:flex-end;gap:8px">'+esc(d[0])+dl('data-toast="'+esc(d[0])+' baixado"')+'</span></div>';}).join('');
- var h='<section><div class="sec"><h2>Dados do pedido</h2></div><div class="card pad">'+kv('Solicitação',esc(F.t))+kv('Enviado em',esc(pedEnvH(p)))+(p.quem&&!(p.dados||[]).length?kv('Referente a',esc(p.quem)):'')+(p.dados||[]).map(function(d){return kv(esc(d[0]),esc(d[1]));}).join('')+ex+'</div></section>';
+ var dl=function(t){return '<button type="button" class="dl sm" '+t+' aria-label="Baixar" title="Baixar">'+IC.down16+'</button>';},fx='<span style="display:flex;align-items:center;justify-content:flex-end;gap:8px;flex:1;min-width:0;text-align:right;word-break:break-word">',
+  AQ=ct?[]:arqDoPed(p.id),usado={},nomes={};
+ AQ.forEach(function(a){var n=a.arq||a.n;if(n&&!nomes[n])nomes[n]=a;});
+ var rows=(p.dados||[]).map(function(d){var v=String(d[1]),ps=v.split(', '),ok=ps.length&&ps.every(function(x){return nomes[x];});
+  if(!ok)return kv(esc(d[0]),esc(d[1]));
+  return '<div class="rv"><span>'+esc(d[0])+'</span><span style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:1;min-width:0">'+ps.map(function(x){usado[nomes[x].id]=1;return fx+esc(x)+dl('data-dlarq="'+nomes[x].id+'"')+'</span>';}).join('')+'</span></div>';}).join('');
+ var ex=AQ.filter(function(a){return !usado[a.id];}).map(function(a){return '<div class="rv"><span>'+(a.cat==='extratos'?'Arquivo do extrato':'Arquivo')+'</span>'+fx+esc(a.arq||a.n)+dl('data-dlarq="'+a.id+'"')+'</span></div>';}).join('')+(ct?'':(p.docs||[]).map(function(d){return '<div class="rv"><span>Documento</span>'+fx+esc(d[0])+dl('data-toast="'+esc(d[0])+' baixado"')+'</span></div>';}).join(''));
+ var h='<section><div class="sec"><h2>Dados do pedido</h2></div><div class="card pad">'+kv('Solicitação',esc(F.t))+kv('Enviado em',esc(pedEnvH(p)))+(p.quem&&!(p.dados||[]).length?kv('Referente a',esc(p.quem)):'')+rows+ex+'</div></section>';
  if(ct)h+='<section><div class="sec"><h2>Histórico com data e hora</h2></div><div class="card pad">'+pedHist(p,ct).map(function(x){return '<div class="rv"><span>'+esc(x[0])+(x[2]?'<br><i>'+esc(x[2])+'</i>':'')+'</span><span>'+esc(x[1]||'—')+'</span></div>';}).join('')+'</div></section>';
  return h;}
 function renderPed(id){var p=ST.ped.filter(function(x){return x.id===id;})[0];if(!p)return '';var F=FLOWS[p.f];
@@ -346,12 +351,12 @@ function renderPed(id){var p=ST.ped.filter(function(x){return x.id===id;})[0];if
  h+=recalcBox(p);
  if(p.gEnv&&p.st!=='ok'){var na=arqDoPed(p.id).filter(function(a){return a.or==='ct'&&a.cat==='guias';})[0];h+='<div class="note">O contador enviou a nova guia. Abra a guia para concluir o pedido.</div>'+(na?'<button type="button" class="r solo" data-go="'+(typeof na.gi==='number'?'guia-'+na.gi:'arq-'+na.id)+'"><span class="ri">'+IC.tax+'</span><span class="rt"><span class="a">Abrir a nova guia</span><span class="b">'+esc(na.n)+'</span></span>'+IC.chev18+'</button>':'');}
  else if(p.gVis)h+='<div class="note">Concluído quando você abriu a nova guia, em '+esc(p.gVis)+'.</div>';
- arqDoPed(p.id).forEach(function(a){var c=catOf(a.cat);if(a.st==='dev'||(a.or==='cli'&&a.cat==='extratos'))h+=(a.st==='dev'?'<div class="note"><b>O contador devolveu este arquivo.</b><br>'+esc(a.mot||'Confira e envie de novo.')+'</div>':'')+arqBotoes(a,c,1);});
+ var xb='';arqDoPed(p.id).forEach(function(a){var c=catOf(a.cat);if(a.st==='dev')h+='<div class="note"><b>O contador devolveu este arquivo.</b><br>'+esc(a.mot||'Confira e envie de novo.')+'</div>';xb+=arqBts(a,c);if(a.or==='cli'&&a.cat==='extratos'&&a.comp&&encSt('extratos',a.comp)!=='aberto')h+='<p class="foot">O envio de extratos de '+cMes(a.comp)+' foi encerrado: este extrato não pode mais ser excluído.</p>';});
  if(p.cli)h+='<p class="foot">'+esc(p.cli)+'</p>';
  if(p.st==='voce'&&p.f==='ferias')h+='<div class="note">'+esc(p.pede||('O aviso de férias de '+(p.quem||'')+' está pronto. Confira e assine para o contador seguir.'))+'</div><div class="fbar"><button type="button" class="cta" data-sign="'+p.id+'">Assinar aviso de férias</button></div>';
  else if(p.st==='voce')h+='<div class="note">'+esc(p.pede||'O contador precisa de uma informação sua para seguir com este pedido.')+'</div><div class="fbar row"><button type="button" class="cta ghost" data-go="#chatct">'+IC.chat+' Responder no chat</button><button type="button" class="cta" data-voceok="'+p.id+'">Já resolvi</button></div>';
- else if(p.st==='ok')h+=(p.docs&&p.docs.length?'':'<div class="fbar"><button type="button" class="cta ghost" data-go="#chatct">'+IC.chat+' Falar com o contador</button></div>');
- else h+='<div class="fbar"><button type="button" class="cta ghost" data-go="#chatct">'+IC.chat+' Falar com o contador</button></div>';
+ else if(p.st==='ok'&&p.docs&&p.docs.length&&!xb)h+='';
+ else h+='<div class="fbar row" style="justify-content:center">'+xb.replace(/class="cta"/g,'class="cta" style="flex:0 1 260px"')+'<button type="button" class="cta" style="flex:0 1 260px" data-go="#chatct">'+IC.chat+' Falar com o contador</button></div>';
  return h;}
 var PF='all';
 function renderPedidos(a){if(a)PF=a;var ar=PF,base=ST.ped.filter(function(p){return p.f!=='despesas'&&FLOWS[p.f];}),ls=base.filter(function(p){return ar==='all'||FLOWS[p.f].a===ar;});
@@ -858,6 +863,12 @@ function chatFan(cx,cy){var ico=function(g,f){var e=document.querySelector('#s-i
  var I=[['inicio','Início',IC.home],['dp','DP',ico('dp',IC.people)],['contabil','Gestão contábil',ico('contabil',IC.receipt)],['guias','Guias',ico('guias',IC.tax)],['config','Configurações',CH_GEAR]],rx=Math.min(148,cx-42),ry=170;
  return '<div class="chfov"></div><div class="chfttl" style="top:'+Math.round(cy+72)+'px">Menu</div>'+I.map(function(x,i){var a=(160-i*35)*Math.PI/180;return '<button type="button" class="chfi" data-go="'+x[0]+'" style="left:'+Math.round(cx+Math.cos(a)*rx-36)+'px;top:'+Math.round(cy+Math.sin(a)*ry-36)+'px;--dx:'+Math.round(-Math.cos(a)*rx)+'px;--dy:'+Math.round(-Math.sin(a)*ry)+'px"><span>'+x[2]+'</span><span'+(x[1].length>10&&x[1].indexOf(' ')<0?' class="lg"':'')+'>'+x[1]+'</span></button>';}).join('')+
  '<button type="button" class="chfx" data-chfan aria-label="Fechar menu" style="left:'+Math.round(cx-22)+'px;top:'+Math.round(cy-22)+'px">'+IC.plus+'</button>';}
+/* chat aberto de dentro de um pedido, arquivo ou guia: guarda a tela de origem para mostrar o caminho de volta */
+(function(){document.addEventListener('click',function(e){var t=e.target&&e.target.closest?e.target.closest('[data-go],[data-back]'):null;if(!t)return;var g=t.getAttribute('data-go')||'';
+ if(/^(#chatct|chat-.+)$/.test(g)){var h='';try{h=decodeURIComponent((location.hash||'').slice(1));}catch(x){h=(location.hash||'').slice(1);}
+  var tt=[].filter.call(document.querySelectorAll('.dhd h1'),function(x){return x.offsetParent;})[0];window.__chVolta=/^(ped|arq|guia|doc)-/.test(h)?{go:h,t:tt?tt.textContent:''}:null;}
+ else if(!t.hasAttribute('data-chtab'))window.__chVolta=null;},true);})();
+function chVoltaBtn(){var v=window.__chVolta;return v?'<button type="button" class="wb" style="margin:8px 14px 0;align-self:flex-start;max-width:calc(100% - 28px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" data-go="'+esc(v.go)+'">'+IC.back+' Voltar ao pedido'+(v.t?' · '+esc(v.t):'')+'</button>':'';}
 function renderChat(){ST.unread=0;chatSisLimpa();save();extraLists();var C=CHT||'ct',L=chatL(C);if(C==='ct')chatRecibo(0,MULTI.cur);
  var tab=function(k,t){return '<button type="button" class="cht cht-'+k+(C===k?' on':'')+'" role="tab" aria-selected="'+(C===k)+'" data-chtab="'+k+'"><b>'+t+'</b></button>';};
  
@@ -866,7 +877,7 @@ function renderChat(){ST.unread=0;chatSisLimpa();save();extraLists();var C=CHT||
  var msgs='<div class="msgs" id="msgs"><div class="chinfo chi-'+C+'">'+info+'</div>'+L.map(function(m,i){return bubble(m,i,C);}).join('')+'</div>';
  var pend=PENDCHAT?'<div class="chroute"><p>'+esc(PENDCHAT.why)+'</p><div class="g2b"><button type="button" class="wb pri" data-chroute="'+PENDCHAT.to+'">'+esc(PENDCHAT.btn)+'</button><button type="button" class="wb" data-chkeep="1">'+esc(PENDCHAT.keep)+'</button></div></div>':'';
  var who='<div class="cwho cw-'+C+'">Falando com <b>'+(C==='ct'?'o contador':'o sistema')+'</b></div>';
- return head+tabs+msgs+pend+who+'<form class="cbar" id="cform"><div class="cin"><button type="button" class="ce" data-chemo aria-label="Emojis">'+CH_ICO_EMO+'</button><textarea id="cmsg" rows="1" placeholder="'+(C==='ct'?'Escreva para o contador':'Pergunte sobre o app')+'" autocomplete="off" enterkeyhint="enter"></textarea>'+(C==='ct'?'<button type="button" class="ca" data-go="f-enviar" aria-label="Anexar arquivo">'+IC.clip+'</button>':'')+'</div><button type="submit" class="cs" aria-label="Enviar">'+IC.send+'</button><div class="chemo" hidden></div></form>';}
+ return head+tabs+chVoltaBtn()+msgs+pend+who+'<form class="cbar" id="cform"><div class="cin"><button type="button" class="ce" data-chemo aria-label="Emojis">'+CH_ICO_EMO+'</button><textarea id="cmsg" rows="1" placeholder="'+(C==='ct'?'Escreva para o contador':'Pergunte sobre o app')+'" autocomplete="off" enterkeyhint="enter"></textarea>'+(C==='ct'?'<button type="button" class="ca" data-go="f-enviar" aria-label="Anexar arquivo">'+IC.clip+'</button>':'')+'</div><button type="submit" class="cs" aria-label="Enviar">'+IC.send+'</button><div class="chemo" hidden></div></form>';}
 function chatAdd(k,t){var L=chatL(k);if(k==='sis'){var ts=Date.now(),r=sisResponder(t);r.ts=ts;L.push({me:1,t:t,h:horaAgora(),ts:ts},r);}else L.push({me:1,t:t,h:horaAgora()});save();}
 function chatFim(){window.__refresh();setTimeout(function(){var m=document.getElementById('msgs');if(m)m.scrollTop=m.scrollHeight;},60);}
 function sendChat(t){t=(t||'').trim();if(!t)return;var C=CHT||'ct',to=chatRota(t);
@@ -1405,6 +1416,7 @@ function renderPasta(n){var c=catOf(n),k=c[0],L=arqVis(k),g={};L.forEach(functio
 var ARQ_FLOW={extratos:'f-extrato',notas:'f-notas',folha:'folhas'};
 function arqEnvHtml(a,ct){var h0=(a.h&&a.h[0])||[],q=a.or==='ct';
  return '<section><div class="sec"><h2>Dados do envio</h2></div><div class="card pad">'+kv('Título',esc(a.n))+kv(q?(ct?'Enviado por você em':'Enviado pelo contador em'):(ct?'Enviado pelo cliente em':'Enviado por você em'),esc(h0[1]||a.data||'—'))+kv('Competência',esc(a.comp||'—'))+(a.quem?kv('Referente a',esc(a.quem)):'')+'</div></section>';}
+function arqBts(a,c){return (a.st==='dev'?'<button type="button" class="cta" data-go="'+(ARQ_FLOW[a.cat]||'f-enviar')+'"'+(ARQ_FLOW[a.cat]?'':' data-pre=\''+JSON.stringify({tipo:c[1],comp:compSt(a.cat==='extratos'?'extratos':a.cat==='despesas'?'despesas':'docs',a.comp)==='aberto'?a.comp:undefined})+'\'')+'>'+IC.up16+' Enviar nova versão</button>':'')+(a.or==='cli'&&a.cat==='extratos'&&a.comp&&encSt('extratos',a.comp)==='aberto'?'<button type="button" class="cta" data-delextr="'+a.id+'">Excluir extrato</button>':'');}
 function arqBotoes(a,c,sem){return '<div class="fbar">'+(a.st==='dev'?'<button type="button" class="cta" data-go="'+(ARQ_FLOW[a.cat]||'f-enviar')+'"'+(ARQ_FLOW[a.cat]?'':' data-pre=\''+JSON.stringify({tipo:c[1],comp:compSt(a.cat==='extratos'?'extratos':a.cat==='despesas'?'despesas':'docs',a.comp)==='aberto'?a.comp:undefined})+'\'')+'>'+IC.up16+' Enviar nova versão</button>':'')+(sem?'':'<button type="button" class="cta ghost" data-dlarq="'+a.id+'">'+IC.down16+' Baixar</button>')+(a.or==='cli'&&a.cat==='extratos'&&a.comp&&encSt('extratos',a.comp)==='aberto'?'<button type="button" class="cta ghost danger" data-delextr="'+a.id+'">Excluir extrato</button>':'')+'</div>'+(a.or==='cli'&&a.cat==='extratos'&&a.comp&&encSt('extratos',a.comp)!=='aberto'?'<p class="foot">O envio de extratos de '+cMes(a.comp)+' foi encerrado: este extrato não pode mais ser excluído.</p>':'');}
 function renderArq(id){var a=arqGet(id);if(!a)return '';var c=catOf(a.cat),s=arqSt(a);
  if(arqAberto(a))save();

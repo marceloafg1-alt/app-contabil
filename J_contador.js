@@ -1134,6 +1134,7 @@ function vChat(id){var e=eById(id)||eById(UI.chatEmp)||eById(cChDef());if(!e)ret
  var many=MULTI.emps.length>1,tab=function(k,t){return '<button type="button" class="cht cht-'+k+(C===k?' on':'')+'" role="tab" aria-selected="'+(C===k)+'" data-cht="'+k+'"><b>'+t+'</b>'+(k==='ct'&&many&&C==='ct'?'<span class="chv">'+IC.chevd+'</span>':'')+'</button>';};
  var h='<div class="dhd chd chtop"><button type="button" class="bk" data-back aria-label="Voltar">'+IC.back+'</button><div class="chtabs" role="tablist">'+tab('ct',esc(nm))+'<button type="button" class="chplus" data-chfan aria-expanded="false" aria-label="Abrir menu">'+IC.plus+'</button>'+tab('sis',CH_SIS)+'</div><i class="chsp" aria-hidden="true"></i></div>';
  var info=C==='ct'?'Aqui você fala com '+esc(nm)+': pedidos, documentos, guias e o dia a dia.'+(many?' Toque no nome para trocar de cliente.':'')+' Dúvidas de como usar o app vão para o '+CH_SIS+'.':'Aqui você tira dúvidas de como usar o app do contador, com base na Ajuda. Estas mensagens somem em 48 horas. As conversas com os clientes ficam guardadas.';
+ h+=chVoltaBtn();
  h+='<div class="msgs" id="msgs"><div class="chinfo chi-'+C+'">'+info+'</div>'+L.map(function(m,i){return cBub(m,i,C,nm);}).join('')+'</div>';
  var ln=C==='ct'&&QL?LINKS.filter(function(x){return x[0]===QL;})[0]:null;
  if(ln)h+='<div class="chroute"><p>Atalho junto da mensagem: '+esc(ln[1])+'. O cliente toca e abre a tela.</p><div class="g2b"><button type="button" class="wb" data-chql="">Tirar atalho</button></div></div>';
