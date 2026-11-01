@@ -746,7 +746,7 @@ function vPed(a){var q=a.split('|'),e=eById(q[0]);if(!e)return null;B(e.id);var 
  if(gpg)h+='<div class="note">Guia marcada como paga pelo cliente: não dá para responder este pedido. Para responder, o cliente precisa desmarcar a guia como paga.</div>';
  var admCt=p.f==='admissao'&&p.quem&&FUNCD[p.quem]&&!ctEnviado(p.quem); /* admissão: conclui gerando o contrato */
  if(p.st!=='ok'&&!gpg&&admCt){
-  h+='<section><div class="form"><div class="fld"><label class="fl" for="pd-msg">Mensagem <i>(opcional)</i></label><textarea id="pd-msg" rows="3" placeholder="Vai para o pedido e para o chat do cliente"></textarea></div><button type="button" class="wb" data-pmsg>'+IC.chat+' Falar com '+esc(escDados().fant||escDados().razao||'o cliente')+'</button></div></section>';}
+  h+='<section><div class="form"><button type="button" class="wb" data-pmsg>'+IC.chat+' Falar com '+esc(escDados().fant||escDados().razao||'o cliente')+'</button></div></section>';}
  else if(p.st!=='ok'&&!gpg){
   h+='<section>'+sec('Responder ao cliente')+(pedGuia(p)?'<div class="card pad"><p class="lead0" style="margin:0 0 10px">'+(GUIA_NOVA.indexOf(p.f)>-1?'Envie o novo PDF da guia, com os dados atualizados, ou peça uma ação ao cliente.':'Responda ao cliente ou peça uma ação a ele.')+'</p><button type="button" class="cta" data-presp>'+IC.chat+' Responder ao cliente</button></div>':'<div class="chips" style="margin-bottom:8px">'+['Documento incompleto','Arquivo ilegível','Nota cancelada','Falta assinatura','Mês errado','Valor diferente'].map(function(m){return '<button type="button" class="chip" data-motivo="'+m+'">'+m+'</button>';}).join('')+'</div>'+(gOfPed(p)?'<label class="r tgl" style="padding:6px 0"><span class="rt"><span class="a">Liberar o mês por 7 dias para correção</span><span class="b">Ao pedir ação ao cliente, o envio de '+esc(cMes(gOfPed(p)[1]))+' reabre para ele corrigir</span></span><input type="checkbox" id="pd-lib" checked style="width:22px;height:22px"></label>':'')+'<div class="form"><div class="fld"><label class="fl" for="pd-msg">Mensagem '+(p.f==='ferias'?'<i>(opcional)</i>':'<i>(obrigatória ao pedir ação)</i>')+'</label><textarea id="pd-msg" rows="3" placeholder="Vai para o pedido e para o chat do cliente"></textarea></div>'+
   txt('pd-doc','Documento pronto','Ex.: Contrato de trabalho · '+(p.quem||'cliente'),'',1)+fileF('pd-arq')+'<p class="fh">Pasta: <b>'+esc(catOf(catPed(p))[1])+'</b>, definida pelo tipo do pedido.</p></div>')+'</section>';}
@@ -835,12 +835,9 @@ function ajustaFunc(p){var sal=function(v){return v.replace(/^R\$\s*/,'');};
  if(p.f==='jornada'){var j2=dvP(p,/nova jornada/i);if(j2)f.jor=j2;}
  if(p.f==='turno'){var t2=dvP(p,/novo turno/i),h2=dvP(p,/novo hor/i);if(t2)f.tur=t2+(h2?' · '+h2:'');}
  if(p.f==='demissao')f.dem=dvP(p,/[úu]ltimo dia/i)||hoje();}
-/* envia só a mensagem escrita (ao pedido e ao chat do cliente), sem mudar a situação do pedido */
-function pedMsg(){var c=CTX;if(!c)return;B(c.e);var p=ST.ped.filter(function(x){return x.id===c.p;})[0];if(!p){done();return;}
- var ta=$('pd-msg'),msg=((ta||{}).value||'').trim();if(!msg){done();toast('Escreva a mensagem para o cliente');if(ta)ta.focus();return;}
- p.resp=p.resp||[];p.resp.push([msg,agora()]);ST.chat.push({me:0,t:msg,h:agora(),go:'ped-'+p.id,gl:'Ver pedido'});ST.unread=(ST.unread||0)+1;p.rsn=(p.rsn||0)+1;
- avisar('Mensagem do contador',p.tipo+(p.quem?' · '+p.quem:''),'ped-'+p.id);ativ('Mensagem enviada · '+p.tipo+(p.quem?' · '+p.quem:''));
- ta.value='';commit('Mensagem enviada ao cliente');}
+/* abre o chat do cliente já vinculado a este pedido: as mensagens enviadas ali ficam ligadas ao pedido */
+function pedMsg(){var c=CTX;if(!c)return;var p=null;B(c.e);p=ST.ped.filter(function(x){return x.id===c.p;})[0];done();if(!p)return;
+ UI.chatPed={e:c.e,p:p.id,t:p.tipo+(p.quem?' · '+p.quem:'')};UI.chatEmp=c.e;UI.cht='ct';keep();hist.push(cur);show('chat-'+c.e);}
 function pedAct(st){var c=CTX;if(!c)return;B(c.e);var p=ST.ped.filter(function(x){return x.id===c.p;})[0];if(!p)return;
  var gp=pedGuia(p),msg=(($('pd-msg')||{}).value||'').trim()||(pedAct.msg||''),doc=gp?'':(($('pd-doc')||{}).value||'').trim(),cat=catPed(p),arq=gp?'':fileName('pd-arq'),lbl=p.tipo+(p.quem?' · '+p.quem:'');
  if(!doc&&arq)doc=arq.replace(/\.[^.]+$/,'');
@@ -1137,6 +1134,7 @@ function vChat(id){var e=eById(id)||eById(UI.chatEmp)||eById(cChDef());if(!e)ret
  h+='<div class="msgs" id="msgs"><div class="chinfo chi-'+C+'">'+info+'</div>'+L.map(function(m,i){return cBub(m,i,C,nm);}).join('')+'</div>';
  var ln=C==='ct'&&QL?LINKS.filter(function(x){return x[0]===QL;})[0]:null;
  if(ln)h+='<div class="chroute"><p>Atalho junto da mensagem: '+esc(ln[1])+'. O cliente toca e abre a tela.</p><div class="g2b"><button type="button" class="wb" data-chql="">Tirar atalho</button></div></div>';
+ var cpd=C==='ct'&&UI.chatPed&&UI.chatPed.e===e.id?UI.chatPed:null;if(cpd)h+='<div class="chroute"><p>Conversa vinculada ao pedido: '+esc(cpd.t)+'. As mensagens ficam ligadas a ele.</p><div class="g2b"><button type="button" class="wb" data-chped="">Desvincular</button></div></div>';
  if(cPend)h+='<div class="chroute"><p>'+esc(cPend.why)+'</p><div class="g2b"><button type="button" class="wb pri" data-chroute="1">Ver resposta no '+CH_SIS+'</button><button type="button" class="wb" data-chkeep="1">Enviar ao cliente mesmo assim</button></div></div>';
  h+='<div class="cwho cw-'+C+'">Falando com <b>'+(C==='ct'?esc(nm):'o sistema')+'</b></div>';
  h+='<form class="cbar" id="cform"><div class="cin"><button type="button" class="ce" data-chemo aria-label="Emojis">'+CH_ICO_EMO+'</button><textarea id="cmsg" rows="1" placeholder="'+(C==='ct'?'Escreva para '+esc(nm):'Pergunte sobre o app')+'" autocomplete="off" enterkeyhint="enter"></textarea>'+(C==='ct'?'<button type="button" class="ca" data-chql="open" aria-label="Anexar atalho para uma tela do cliente">'+IC.clip+'</button>':'')+'</div><button type="submit" class="cs" aria-label="Enviar">'+IC.send+'</button><div class="chemo" hidden></div></form>';
@@ -1149,6 +1147,7 @@ function cSisResp(t){var R=faqBusca(t),b=R[0];
 function cFim(){done();save();rerender();}
 function cAdd(C,t){if(C==='sis'){var ts=Date.now(),r=cSisResp(t);r.ts=ts;UI.chatSis=UI.chatSis||[];UI.chatSis.push({me:1,t:t,h:horaAgora(),ts:ts},r);keep();return;}
  B(UI.chatEmp);var m={me:0,t:t,h:agora()},ln=LINKS.filter(function(x){return x[0]===QL;})[0];if(QL&&ln){m.go=QL;m.gl=ln[1];}
+ var cp=UI.chatPed;if(cp&&cp.e===UI.chatEmp){var pp=(ST.ped||[]).filter(function(x){return x.id===cp.p;})[0];if(pp&&!m.go){m.go='ped-'+pp.id;m.gl='Ver pedido';pp.resp=pp.resp||[];pp.resp.push([t,agora()]);pp.rsn=(pp.rsn||0)+1;ativ('Mensagem enviada · '+cp.t);}}
  ST.chat=ST.chat||[];ST.chat.push(m);ST.unread=(ST.unread||0)+1;QL='';}
 function sendMsg(){var ta=$('cmsg');if(!ta)return;var t=(ta.value||'').trim();if(!t)return;var C=UI.cht==='sis'?'sis':'ct';
  if(C==='ct'&&chatRota(t)==='sis'){var r0=faqBusca(t)[0];cPend={text:t,why:'Essa parece uma dúvida sobre como usar o app'+(r0&&r0.r>=0.22?': “'+FAQ[r0.i][0]+'”':'')+'. Quer ver a resposta no '+CH_SIS+'?'};ta.value='';rerender();return;}
@@ -1635,7 +1634,7 @@ if(d.ctgen){var gv={};document.querySelectorAll('#ctform [data-ck]').forEach(fun
  if(d.dpx){UI.dpx=UI.dpx||{};UI.dpx[d.dpx]=!UI.dpx[d.dpx];keep();rerender();return;}
  if(t.id==='pd-arq-x'){var px=$('pd-arq');if(px){px.value='';px.dispatchEvent(new Event('change',{bubbles:true}));}return;}if(t.hasAttribute('data-presp')){rspOpen();return;}if(t.hasAttribute('data-rsend')){pedResp();return;}if(t.hasAttribute('data-rclose')){rspClose();return;}
  if(d.pstct){var pc=d.pstct.split('|'),pm0=$('pd-msg');CTPED={e:pc[0],p:CTX&&CTX.p,msg:((pm0||{}).value||'').trim()};var pce=eById(pc[0]);if(pce){B(pce.id);var pcd=FUNCD[pc[1]],pcv=pcd?ctPre(pce,pc[1],pcd):null;done();if(pcv&&pcv.NOME&&pcv.FUNC)CTG={k:d.pstct,v:pcv};}hist.push(cur);show('ctr-'+d.pstct);return;}
- if(t.hasAttribute('data-pmsg')){pedMsg();return;}
+ if(t.hasAttribute('data-pmsg')){pedMsg();return;}if(t.hasAttribute('data-chped')){UI.chatPed=null;keep();rerender();return;}
  if(d.pst){pedAct(d.pst);return;}
  if(t.hasAttribute('data-dconf')){var cc=CTX&&CTX.a&&(B(CTX.e),arqGet(CTX.a));done();if(cc&&cc.or==='cli'&&typeof cc.gi==='number'){askGen({e:eById(CTX.e),t:'Conferir e dar baixa?',d:'A guia sai de "A pagar" no app do cliente e vai para Guias pagas.',ok:'Dar baixa',cb:function(){docAct('conf');}});}else docAct('conf');return;}
  if(t.hasAttribute('data-dana')){docAct('ana');return;}
