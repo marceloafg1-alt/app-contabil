@@ -720,7 +720,7 @@ a.r.lk{text-decoration:none;color:inherit}
  .msg{max-width:62%}
  .psheet,.esheet{left:50%;right:auto;bottom:auto;top:50%;width:460px;max-height:80vh;border-radius:22px;transform:translate(-50%,-50%);animation:fd .18s ease;padding-bottom:18px}
  .modal{left:50%;right:auto;width:420px;transform:translateX(-50%);animation:fd .18s ease}
- .phone .cfm{left:50%;right:auto;width:400px;transform:translate(-50%,-50%);animation:fd .18s ease}
+ .phone .cfm,.phone #cfm{left:50%!important;right:auto!important;width:400px;max-width:calc(100% - 48px);transform:translate(-50%,-50%);animation:fd .18s ease} /* #cfm prende left/right em 30px com !important (celular): no computador, centraliza */
  .toast{bottom:32px}
  .soft{top:20px}
  .phone.ct .ech{margin-left:0;margin-right:0;padding:0}
