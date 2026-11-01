@@ -80,7 +80,7 @@ function rerender(){var y=SCR.scrollTop,vals={},ae=document.activeElement,aid=ae
  for(var k in vals){var x=$(k);if(x&&x.type!=='file'&&!x.dataset.fresh)x.value=vals[k];}
  SCR.scrollTop=y;if(aid&&$(aid))try{$(aid).focus();}catch(e){}
  if(isChat())SCR.scrollTop=SCR.scrollHeight;}
-function route(r){escGarante();var h=head(r),a=r.slice(h.length+1);var R={recnovo:vRecNovo,rec:vRec,chk:vChk,lote:vLote,fecha:vFecha,dp:vDP,dpcol:vDpCol,desp:vDesp,inicio:vInicio,pedidos:vPedidos,ped:vPed,receb:vReceb,arquivo:vArquivo,pasta:vPasta,doc:vDoc,folha:vFolha,msg:vMsg,chat:vChat,ajuda:vAjuda,novodoc:vNovoDoc,novoguia:vNovoGuia,guias:vGuias,colab:vColab,ctr:vContrato,socio:vSocio,cguia:vGuiaC,novoped:vNovoPed,ajustes:vAjustes,perfil:vPerfilC,ajnotif:vAjNotif,ajprazos:vAjPrazos,ajacomp:vAjAcomp,ajadm:vAjAdm,ajequipe:vAjEquipe,ajclientes:vAjClientes,clientes:vClientes,cli:vCli,gestao:vGestao,gcnotas:vGcNotas,notif:vNotif}[h];return R?R(a):null;}
+function route(r){escGarante();var h=head(r),a=r.slice(h.length+1);var R={recnovo:vRecNovo,rec:vRec,chk:vChk,lote:vLote,fecha:vFecha,dp:vDP,dpcol:vDpCol,dpsoc:vDpSoc,desp:vDesp,inicio:vInicio,pedidos:vPedidos,ped:vPed,receb:vReceb,arquivo:vArquivo,pasta:vPasta,doc:vDoc,folha:vFolha,msg:vMsg,chat:vChat,ajuda:vAjuda,novodoc:vNovoDoc,novoguia:vNovoGuia,guias:vGuias,colab:vColab,ctr:vContrato,socio:vSocio,cguia:vGuiaC,novoped:vNovoPed,ajustes:vAjustes,perfil:vPerfilC,ajnotif:vAjNotif,ajprazos:vAjPrazos,ajacomp:vAjAcomp,ajadm:vAjAdm,ajequipe:vAjEquipe,ajclientes:vAjClientes,clientes:vClientes,cli:vCli,gestao:vGestao,gcnotas:vGcNotas,notif:vNotif}[h];return R?R(a):null;}
 /* ===== início ===== */
 function vInicio(){var s=stats('all'),tot=s.nv+s.doc+s.fo+s.msg,partes=[];
  if(s.nv)partes.push(s.nv+(s.nv===1?' pedido novo':' pedidos novos'));if(s.doc)partes.push(s.doc+(s.doc===1?' documento para conferir':' documentos para conferir'));if(s.fo)partes.push(s.fo+(s.fo===1?' folha para fechar':' folhas para fechar'));if(s.msg)partes.push(s.msg+(s.msg===1?' mensagem':' mensagens'));
@@ -300,9 +300,10 @@ function ctDoc(e,nm,d,v){var x={},k;for(k in v)x[k]=(v[k]||'').trim();
  return out+'</div></div>';}
 function ctSig(x,menor){var L=function(n){return '<div class="ctsg"><span class="ctb"></span><br>'+n+'</div>';};
  return '<div style="margin-top:22px">'+L(x.RZ?esc(x.RZ)+'<br>EMPREGADORA':'EMPREGADORA')+L(x.NOME?esc(x.NOME)+'<br>EMPREGADO(A)':'EMPREGADO(A)')+(menor?L((x.RESP?esc(x.RESP):'Responsável legal')+'<br>Responsável legal (quando menor)'):'')+L('1ª TESTEMUNHA')+L('2ª TESTEMUNHA')+'</div>';}
+var CTBAR_CSS='<style>.fbar.ctbar{flex-direction:row;flex-wrap:wrap;justify-content:center;align-items:center;gap:12px}.fbar.ctbar .cta{flex:0 1 260px;width:260px;max-width:100%;height:50px;margin:0;font-size:15px}</style>';
 function vContrato(a){var q=String(a||'').split('|'),e=eById(q[0]);if(!e)return null;B(e.id);var nm=q.slice(1).join('|'),d=FUNCD[nm];if(!d){done();return null;}
  var h;
- if(CTG&&CTG.k===a){h=hdr('Contrato de trabalho',nm)+ctDoc(e,nm,d,CTG.v)+'<div class="fbar"><button type="button" class="cta" data-ctsend>'+(IC.send||IC.doc)+' Enviar e sair</button><button type="button" class="cta ghost" data-ctedit>Voltar e corrigir os dados</button></div>';}
+ if(CTG&&CTG.k===a){h=hdr('Contrato de trabalho',nm)+ctDoc(e,nm,d,CTG.v)+CTBAR_CSS+'<div class="fbar ctbar"><button type="button" class="cta" data-ctsend>'+(IC.send||IC.doc)+' Enviar e sair</button><button type="button" class="cta ghost" data-ctedit>Voltar e corrigir os dados</button></div>';}
  else h=ctForm(e,nm,d);
  done();return h;}
 /* ===== guias de impostos: controle das guias enviadas aos clientes ===== */
@@ -659,13 +660,18 @@ function vDP(){var A=[],C=[],F=[],P=[],X=[],S=[],SV=[],LF=[],FO=0,EA=0,tot=0;
  h+='<button type="button" class="r solo" data-go="receb"><span class="ri">'+(IC.folha||IC.down)+'</span><span class="rt"><span class="a">Folhas para fechar</span><span class="b">Folhas e variáveis enviadas pelos clientes</span></span>'+(FO?pill('warn',String(FO)):'<span class="cv">'+IC.chev18+'</span>')+'</button>';
  return h;}
 /* lista do DP que expande e recolhe (colaboradores e sócios); recolhida, mostra um resumo. A escolha fica guardada */
+/* sócios de todos os clientes, em tela própria (abre do cartão do DP) */
+function vDpSoc(){var SC=[];emps().forEach(function(e){B(e.id);Object.keys(SOCD||{}).forEach(function(nm){SC.push({e:e,nm:nm,d:SOCD[nm]||{}});});});done();
+ var h=hdr('Sócios dos clientes','Dados e histórico de pedidos')+empChips('femp',UI.fEmp,1);
+ h+='<section>'+sec('Sócios','<span class="s">'+SC.length+'</span>')+'<div class="card">'+(SC.map(socioRow).join('')||'<p class="empty">Nenhum sócio cadastrado.</p>')+'</div><p class="foot">Toque num sócio para ver os dados e o histórico de pedidos.</p></section>';
+ return h;}
 /* colaboradores de todos os clientes, em tela própria (abre do cartão do DP) */
 function vDpCol(){var CL=[];emps().forEach(function(e){B(e.id);Object.keys(FUNCD||{}).forEach(function(nm){CL.push({e:e,nm:nm,d:FUNCD[nm]});});});done();
  var ord=function(x){return x.d.dem?2:x.d.adm==='Em admissão'?0:1;};CL.sort(function(a,b){return ord(a)-ord(b)||a.nm.localeCompare(b.nm);});
  var h=hdr('Colaboradores dos clientes','Ficha completa e histórico de solicitações')+empChips('femp',UI.fEmp,1);
  h+='<section>'+sec('Colaboradores','<span class="s">'+CL.length+'</span>')+'<div class="card">'+(CL.map(colabRow).join('')||'<p class="empty">Nenhum colaborador cadastrado.</p>')+'</div><p class="foot">Toque num colaborador para ver a ficha completa e o histórico de solicitações.</p></section>';
  return h;}
-function dpBloco(k,t,L,row,vazio,foot,res){if(k==='col'){var nc=L.length;return '<button type="button" class="r solo" data-go="dpcol"><span class="ri">'+IC.people+'</span><span class="rt"><span class="a">'+esc(t)+'</span><span class="b">'+esc(nc+(nc===1?' colaborador':' colaboradores')+(nc?' · '+res:''))+'</span></span><span class="cv">'+IC.chev18+'</span></button>';}var ab=!!(UI.dpx||{})[k],n=L.length,ic=k==='col'?IC.people:(IC.pie||IC.pro||IC.people),
+function dpBloco(k,t,L,row,vazio,foot,res){if(k==='col'||k==='soc'){var nc=L.length,sc=k==='soc';return '<button type="button" class="r solo" data-go="'+(sc?'dpsoc':'dpcol')+'"><span class="ri">'+(sc?(IC.pie||IC.pro||IC.people):IC.people)+'</span><span class="rt"><span class="a">'+esc(t)+'</span><span class="b">'+esc(nc+(sc?(nc===1?' sócio':' sócios'):(nc===1?' colaborador':' colaboradores'))+(nc?' · '+res:''))+'</span></span><span class="cv">'+IC.chev18+'</span></button>';}var ab=!!(UI.dpx||{})[k],n=L.length,ic=k==='col'?IC.people:(IC.pie||IC.pro||IC.people),
  css=k==='col'?'<style>.dpxc{width:100%;text-align:left}.dpxc .cv svg{transition:transform .2s}.dpxc[aria-expanded="true"] .cv svg{transform:rotate(90deg)}.dpxl{margin-top:8px}</style>':'';
  return css+'<button type="button" class="r solo dpxc" data-dpx="'+k+'" aria-expanded="'+ab+'" aria-controls="dpx-'+k+'"><span class="ri">'+ic+'</span><span class="rt"><span class="a">'+esc(t)+'</span><span class="b">'+esc(n+(k==='col'?(n===1?' colaborador':' colaboradores'):(n===1?' sócio':' sócios'))+(n?' · '+res:''))+'</span></span><span class="cv">'+IC.chev18+'</span></button>'+
   (ab?'<div class="dpxl" id="dpx-'+k+'"><div class="card">'+(L.map(row).join('')||'<p class="empty">'+vazio+'</p>')+'</div><p class="foot">'+foot+'</p></div>':'');}
@@ -1599,8 +1605,8 @@ if(d.ctgen){var gv={};document.querySelectorAll('#ctform [data-ck]').forEach(fun
   var cnome='contrato-trabalho-'+(slugCt(cn)||'colaborador')+'.pdf';ST.arq=arqList().filter(function(a){return !(a.quem===cn&&/^Contrato de trabalho/.test(a.n||''));});
   var ca0=arqAdd({n:'Contrato de trabalho · '+cn,arq:cnome,cat:'dp',or:'ct',quem:cn});ca0.ctv=CTG.v;ctPdfArq(ce,cn,cd,CTG.v,cnome);
   avisar('Contrato de '+cn+' disponível','Está em Documentos, na pasta do colaborador','func-'+cn);ativ('Contrato de '+cn+' enviado ao cliente');done();save();CTG=null;
-  UI.dpx=UI.dpx||{};UI.dpx.col=true;keep();fwd=[];hist=hist.filter(function(r){return !/^(ctr|colab)-/.test(r);});var di=hist.lastIndexOf('dp');if(di>-1)hist=hist.slice(0,di);show('dp',true);
-  setTimeout(function(){var lc=$('dpx-col');if(lc&&lc.previousElementSibling&&lc.previousElementSibling.scrollIntoView)lc.previousElementSibling.scrollIntoView({block:'start'});},60);toast('Contrato enviado ao cliente');return;}
+  fwd=[];hist=hist.filter(function(r){return !/^(ctr|colab)-/.test(r);});var di=hist.lastIndexOf('dpcol');if(di>-1)hist=hist.slice(0,di);else if(hist.indexOf('dp')<0)hist.push('dp');show('dpcol',true);
+  toast('Contrato enviado ao cliente');return;}
  if(t.hasAttribute('data-ctedit')){CTG=null;show(cur,false,true);return;}
  if(d.recsave){var sq=d.recsave.split('|'),soc=sq[1]==='soc',v0=($('rc-v')||{}).value||'',q0=V('rc-q'),t0=V('rc-t'),n0=(($('rc-n')||{}).value||'').trim(),i0=V('rc-i')||compOf();
   if(!errOn('rc-err',!q0?(soc?'Escolha o sócio':'Escolha o colaborador'):!t0?'Escolha o lançamento':!money(v0)?'Digite o valor':n0&&!(/^\d{1,3}$/.test(n0)&&+n0>=1&&+n0<=240)?'Parcelas: um número de 1 a 240':''))return;
