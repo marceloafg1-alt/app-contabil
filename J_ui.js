@@ -168,6 +168,7 @@ if(t.hasAttribute('data-cyr')){CAL.y=+t.dataset.cyr;CAL.view=CAL.per?null:'m';re
   if(/^pasta-/.test(g)&&!/^pasta-/.test(cur))PCOMP=docComp(); /* a pasta abre na competência escolhida em Documentos */
   if(t.dataset.askatr){var aq=t.dataset.askatr.split('|');if(!compOk(aq[0]==='notas'?'cofre':aq[0],aq[1])){openAtr(aq[0],aq[1]);return;}}
   if((g==='f-despesas'||g==='f-extrato')&&head(cur)==='envio'){var eg4=cur.split('-')[1],ec4=ECOMP[eg4];if(ec4&&compOk(eg4,ec4))PRE={comp:ec4};}
+  if(/^despedit-/.test(g)){var dpe=ST.ped.filter(function(x){return x.id===g.slice(9)&&x.f==='despesas';})[0];if(dpe&&encSt('despesas',despComp(dpe))==='aberto'){PRE=despPre(dpe);go('f-despedit');return;}}
   if(g==='#dman'||g==='#dpl'){fabClose();var dc=ECOMP.despesas;if(!dc||!compOk('despesas',dc))dc=despCompOk('');if(g==='#dman'){PRE=dc?{comp:dc,__manual:1}:{__manual:1};go('f-despesas');}else go('desppl'+(dc?'-'+dc:''));return;}
   if(g==='#nfv'||g==='#nfc'){fabClose();var nc=CCOMP&&compOk('cofre',CCOMP)?CCOMP:(abertas('notas')[0]||'');PRE={tipo:g==='#nfv'?'Emitidas (vendas)':'Recebidas (compras)'};if(nc)PRE.comp=nc;go('f-notas');return;}
   if(g==='#chatct'||g==='#chatsis'){fabClose();CHT=g==='#chatct'?'ct':'sis';PENDCHAT=null;if(cur!=='chat')window.__chtAbre=CHT;if(cur==='chat')show('chat',false,true);else go('chat');return;}
