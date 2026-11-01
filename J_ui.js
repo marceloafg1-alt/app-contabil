@@ -16,7 +16,7 @@ function chain(id){var c=[],a=areaOf(id),g=0;while(a&&a!=='inicio'&&g++<5){c.uns
 var COMP_FAM={cofre:'cofre',nota:'cofre',envio:'envio',escdesp:'envio',desppl:'envio',despedit:'envio',folhas:'folha',folha:'folha',envfolhas:'folha',docs:'docs',pasta:'docs',arq:'docs',varr:'varr',lote:'varr'},COMP_FLOW={notas:'cofre',despesas:'envio',despedit:'envio',extrato:'envio',folha:'folha',variaveis:'varr'};
 function compFam(id){var h=head(id);return h==='f'?COMP_FLOW[id.slice(2)]||'':COMP_FAM[h]||'';}
 function compSai(novo){var a=compFam(cur),b=compFam(novo);if(!a||a===b)return;
- if(a==='cofre')CCOMP=null;else if(a==='envio'){ECOMP={};DPL.c='';DPL.cSet=0;}else if(a==='folha')FCOMP=null;else if(a==='docs'){DCOMP='';PCOMP='';}else if(a==='varr')VCOMP=null;}
+ if(a==='cofre')CCOMP=null;else if(a==='envio'){ECOMP={};DPL.c='';DPL.cSet=0;}else if(a==='folha')FCOMP=null;else if(a==='docs'){var dv=DCOMP||PCOMP;DCOMP='';PCOMP='';if(dv)renderLists();}else if(a==='varr')VCOMP=null;}
 function show(id,back,keep){if(id==='inicio')IMPSEQ=null;if(id==='inicio'||id==='rotinas')ROTV=null;if(head(id)==='chat'&&head(cur)!=='chat'&&!back&&!keep){CHT=window.__chtAbre||'ct';PENDCHAT=null;}window.__chtAbre=null;if(id==='f-admissao'||id==='f-vinculo')id='f-colaborador';if(id==='f-despesas'&&!back&&!keep&&cur!=='f-despesas'){if(PRE&&PRE.__manual){delete PRE.__manual;}else{var pc0=PRE&&PRE.comp;PRE=null;id='escdesp'+(pc0?'-'+pc0:'');}}if(/^despedit-/.test(id)){var dq=ST.ped.filter(function(x){return x.id===id.slice(9)&&x.f==='despesas';})[0];if(dq&&encSt('despesas',despComp(dq))==='aberto'){PRE=despPre(dq);id='f-despedit';keep=false;}} /* liberado: abre a tela nova de editar, não a antiga */
  compSai(id); /* ao sair de uma página, a competência que se mexeu nela volta ao mês atual */
  var el,h=head(id);if(window.closeSheets)closeSheets();
@@ -100,7 +100,7 @@ document.addEventListener('click',function(e){var t=e.target.closest('[data-impx
  if(t.hasAttribute('data-solnova')){solNovaPick();return;}
  if(t.hasAttribute('data-periodo')){openPer(t.dataset.periodo||undefined);return;}
  if(t.hasAttribute('data-cperiodo')){openPer('#cofre');return;}
- if(t.hasAttribute('data-delnota')){var nix=+t.dataset.delnota,nq=cofreOf(CCOMP).notas[nix];if(!podeExcluir('nota',CCOMP||compPad('docs'))){say('O cofre foi encerrado e as notas já foram enviadas: não dá mais para excluir');return;}askGen({ic:IC.x,t:'Tirar esta nota do cofre?',d:(nq?nfTitulo(nq):'A nota')+' sai do cofre de '+cMes(CCOMP||compPad('docs'))+', com os arquivos dela.',ok:'Tirar do cofre',cb:function(){var cfz=cofreOf(CCOMP),rm=cfz.notas.splice(nix,1)[0];save();renderLists();if(head(cur)==='nota')back();else show('cofre',false,true);say((rm?nfTitulo(rm):'Nota')+' saiu do cofre');}});return;}
+ if(t.hasAttribute('data-delnota')){var nix=+t.dataset.delnota,nq=cofreOf(CCOMP).notas[nix];if(!podeExcluir('nota',CCOMP||compDef('docs'))){say('O cofre foi encerrado e as notas já foram enviadas: não dá mais para excluir');return;}askGen({ic:IC.x,t:'Tirar esta nota do cofre?',d:(nq?nfTitulo(nq):'A nota')+' sai do cofre de '+cMes(CCOMP||compDef('docs'))+', com os arquivos dela.',ok:'Tirar do cofre',cb:function(){var cfz=cofreOf(CCOMP),rm=cfz.notas.splice(nix,1)[0];save();renderLists();if(head(cur)==='nota')back();else show('cofre',false,true);say((rm?nfTitulo(rm):'Nota')+' saiu do cofre');}});return;}
  if(t.hasAttribute('data-depadd')){FS.v.deps=FS.v.deps||[];FS.v.deps.push({});delete FS.err.deps;refreshFlow();return;}
  if(t.hasAttribute('data-depdel')){var dxi=+t.dataset.depdel,dx=FS.v.deps[dxi];askGen({ic:IC.x,t:'Remover este dependente?',d:((dx&&dx.nome)||'Dependente '+(dxi+1))+' sai do cadastro.',ok:'Remover',cb:function(){FS.v.deps.splice(dxi,1);refreshFlow();}});return;}
  if(t.hasAttribute('data-deppick')){var di=+t.dataset.deppick,dd0=FS.v.deps[di];openPick('Parentesco',DEP_PAR,dd0.par||'',function(v){dd0.par=v;if(v!=='Outros')delete dd0.parO;delete FS.err.deps;refreshFlow();});return;}
@@ -182,7 +182,7 @@ if(t.hasAttribute('data-cyr')){CAL.y=+t.dataset.cyr;CAL.view=CAL.per?null:'m';re
   if(g==='#encenv'){fabClose();if(head(cur)!=='envio')return;var eg3=cur.split('-')[1],ec3=ECOMP[eg3];if(!ec3||!podeEnc(ec3)||encSt(eg3,ec3)!=='aberto'){var ce3=compEnc(eg3);if(ce3)ec3=ECOMP[eg3]=ce3;}if(!ec3||!podeEnc(ec3)){var nw3=NOW(),cc3=cName(nw3.getFullYear(),nw3.getMonth());say('O envio de '+cMes(cc3)+' só pode ser encerrado a partir de '+fmtP(encIni(cc3)));return;}if(encSt(eg3,ec3)!=='aberto'){say('Nada para encerrar agora');return;}var tb=document.createElement('button');tb.dataset.encg=eg3;tb.style.display='none';p.appendChild(tb);tb.click();tb.remove();return;}
   if(g==='#semvar'){fabClose();askSemVar(cur==='folhas'?FCOMP:null);return;}
   if(g==='#tema'){fabClose();abrir();return;}
-  if(!t.hasAttribute('data-setcomp')&&!t.hasAttribute('data-pre')&&!t.hasAttribute('data-reset')){if(g==='folhas')FCOMP=compPad('folha')||FCOMP;if(g==='cofre')CCOMP=null;}
+  if(!t.hasAttribute('data-setcomp')&&!t.hasAttribute('data-pre')&&!t.hasAttribute('data-reset')){if(g==='folhas')FCOMP=compDef('folha')||FCOMP;if(g==='cofre')CCOMP=null;}
   if(t.hasAttribute('data-setcomp')){var scv=t.dataset.setcomp;if(g==='folhas'||g==='envfolhas')FCOMP=scv;if(g==='cofre')CCOMP=scv;if(g.indexOf('envio-')===0)ECOMP[g.slice(6)]=scv;if(g.indexOf('f-')===0&&!t.hasAttribute('data-pre'))PRE={comp:scv};}
   if(t.hasAttribute('data-pre')){try{PRE=JSON.parse(t.dataset.pre);}catch(err){}}
   if(t.hasAttribute('data-sair-yes')){ST.logged=0;save();hist=[];show('login',false);return;}
@@ -394,7 +394,7 @@ document.getElementById('cf-ok').addEventListener('click',function(){var cb=CFCB
 var simD=document.getElementById('sim-data'),cfD=document.getElementById('cfg-du'),cfC=document.getElementById('cfg-dia');
 function realIso(){var d=new Date();return iso(d.getFullYear(),d.getMonth(),d.getDate());}
 function syncSim(){simD.value=MULTI.sim||realIso();cfD.value=String(MULTI.cfg.folhaDU);cfC.value=String(MULTI.cfg.docsDia);}
-function applySim(){FCOMP=compPad('folha');CCOMP=null;save();renderLists();if(MAIN.indexOf(cur)<0){if(head(cur)==='f')refreshFlow();else show(cur,false,true);}}
+function applySim(){FCOMP=compDef('folha');CCOMP=null;save();renderLists();if(MAIN.indexOf(cur)<0){if(head(cur)==='f')refreshFlow();else show(cur,false,true);}}
 simD.addEventListener('change',function(){var v=simD.value;MULTI.sim=(!v||v===realIso())?null:v;applySim();say('Hoje no app: '+fmtP(NOW()));});
 document.getElementById('sim-hoje').addEventListener('click',function(){MULTI.sim=null;syncSim();applySim();say('Voltou para a data de hoje');});
 cfD.addEventListener('change',function(){MULTI.cfg.folhaDU=+cfD.value;applySim();say('Folha encerra no '+cfD.value+'º dia útil');});
@@ -421,7 +421,7 @@ function nfXmlDemo(n){var o=n.nf||{},e=function(s){return String(s==null?'':s).r
 function nfSalvar(nome,data){var go=function(dl){if(dl){dl.save({filename:nome,data:data}).then(function(){say(nome+' salvo');}).catch(function(e){if(e&&e.code==='declined')return;say('Não foi possível baixar '+nome);});return;}
   var u=URL.createObjectURL(data instanceof Blob?data:new Blob([data])),l=document.createElement('a');l.href=u;l.download=nome;document.body.appendChild(l);l.click();l.remove();setTimeout(function(){URL.revokeObjectURL(u);},4000);say('Baixando '+nome);};
  if(window.claude&&claude.use)claude.use('downloads').then(go).catch(function(){go(null);});else go(null);}
-function nfBaixar(i,k){var n=cofreOf(CCOMP||compPad('docs')).notas[i];if(!n)return;var nome=k==='pdf'?(n.pdf||(nfExt(n.arq)==='pdf'?n.arq:'')):(n.xml||(nfExt(n.arq)==='xml'?n.arq:''));if(!nome){say('Esta nota não tem '+k.toUpperCase()+' no cofre');return;}
+function nfBaixar(i,k){var n=cofreOf(CCOMP||compDef('docs')).notas[i];if(!n)return;var nome=k==='pdf'?(n.pdf||(nfExt(n.arq)==='pdf'?n.arq:'')):(n.xml||(nfExt(n.arq)==='xml'?n.arq:''));if(!nome){say('Esta nota não tem '+k.toUpperCase()+' no cofre');return;}
  var f=(n.files||[]).filter(function(x){return x.n===nome;})[0]||{},fid=f.fid||(nome===n.arq?n.fileId:''),u=fid?blobUrl(fid):(window.FILES&&FILES[nome]&&FILES[nome].url)||'';
  var nomeX=/\.xml$/i.test(nome)?nome:nome+'.xml',nomeP=/\.pdf$/i.test(nome)?nome:nome+'.pdf';var entrega=function(u8){if(k==='xml')nfSalvar(nomeX.replace(/\.xml$/i,'')+'.zip',zipUm(nomeX,u8));else nfSalvar(nomeP,new Blob([u8],{type:'application/pdf'}));};
  if(!u){if(k==='xml'&&n.nf&&n.nf.demo){entrega(new TextEncoder().encode(nfXmlDemo(n)));return;}say('Nota de exemplo: o arquivo '+k.toUpperCase()+' não foi guardado');return;}
