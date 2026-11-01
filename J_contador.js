@@ -142,6 +142,8 @@ function vNotif(){var L=ctNotifs(),nu=L.filter(function(x){return x.u;}).length,
 /* ===== colaboradores: ficha completa e histórico de solicitações ===== */
 var CACC={};
 document.addEventListener('toggle',function(e){var t=e.target;if(t&&t.dataset&&t.dataset.cacc)CACC[t.dataset.cacc]=t.open;},true);
+/* o contrato já foi enviado ao cliente (a empresa aberta é a do colaborador) */
+function ctEnviado(nm){return arqList().some(function(a){return a.or==='ct'&&a.quem===nm&&/^Contrato de trabalho/.test(a.n||'');});}
 function colabKind(e,nm,d){var P=ST.ped.filter(function(p){return p.quem===nm&&(p.f==='admissao'||p.f==='colaborador');}),a=P[P.length-1];if(d.ant)return 'Readmissão';if(a&&a.f==='admissao')return a.tipo||'Admissão';return 'Cadastro';}
 function colabSt(d){return d.dem?['neutral','Desligado']:d.adm==='Em admissão'?['warn','Em admissão']:['ok','Ativo'];}
 function colabRow(x){var d=x.d,s=colabSt(d),ini=x.nm.split(' ').map(function(w){return w[0];}).slice(0,2).join('');
@@ -152,7 +154,7 @@ function vColab(a){var q=String(a).split('|'),e=eById(q[0]);if(!e)return null;B(
  var h=hdr(nm,(d.c||'—')+' · '+(e.fant||e.nome))+'<div class="hero"><div class="hk"><span>'+esc(kind)+'</span><span class="pill-w">'+esc(s[1])+'</span></div><p class="ht">'+(d.dem?'Desligado em '+esc(d.dem)+'.':d.adm==='Em admissão'?'Admissão em andamento'+(d.ini?', início em '+esc(fmtD(d.ini)||d.ini):'')+'.':'Admitido em '+esc(d.adm||'—')+'.')+(d.cad?' Cadastro registrado em '+esc(d.cad)+'.':'')+'</p></div>';
  var acc=function(id,ic,t,sub,body){return '<details class="facc" data-cacc="'+id+'"'+(CACC[id]?' open':'')+'><summary><span class="ri">'+(ic||'')+'</span><span class="rt"><span class="a">'+t+'</span><span class="b">'+esc(sub||'')+'</span></span><span class="fchev">'+(IC.chevd||'▾')+'</span></summary><div class="fbody">'+body+'</div></details>';},
   em=d.emerg&&(d.emerg.n||d.emerg.tel)?esc([d.emerg.n,d.emerg.rel].filter(Boolean).join(' · '))+(d.emerg.tel?'<br>'+esc(d.emerg.tel):''):'—',en=d.end||{},ds=d.deps||[];
- if(!d.dem)h+='<div class="fbar" style="margin-top:0"><button type="button" class="cta" data-go="ctr-'+e.id+'|'+esc(nm)+'">'+IC.doc+' Gerar contrato</button></div>';
+ if(!d.dem)h+='<div class="fbar" style="margin-top:0">'+(ctEnviado(nm)?'<button type="button" class="cta" disabled aria-disabled="true" style="opacity:.6;box-shadow:none;cursor:default">'+(IC.check16||'')+' Contrato enviado</button>':'<button type="button" class="cta" data-go="ctr-'+e.id+'|'+esc(nm)+'">'+IC.doc+' Gerar contrato</button>')+'</div>';
  h+='<div class="faccw"><p class="foot" style="margin:0 0 2px">Toque numa seção para abrir os dados.</p>'
  +acc('pessoal',IC.people,'Pessoal','CPF '+(d.cpf||'—')+(d.nasc?' · nasc. '+(fmtD(d.nasc)||d.nasc):''),kv('CPF',v(d.cpf))+kv('Nascimento',v(fmtD(d.nasc)||d.nasc))+kv('Gênero',v(d.gen))+kv('Nome da mãe',v(d.mae))+kv('Nome do pai',v(d.pai))+kv('Nacionalidade',v(d.nac))+kv('Estado civil',v(d.ecivil))+kv('Escolaridade',v(d.esc))+kv('Raça',v(d.raca))+kv('PcD',esc(pcd)))
  +acc('prof',IC.folha||IC.doc,'Profissional',[d.c,d.sal&&d.sal!=='—'?'R$ '+d.sal:''].filter(Boolean).join(' · '),kv('Cargo',v(d.c))+kv('Relação de emprego',v(d.tipo))+kv('Admissão',v(d.adm))+(d.ini?kv('Início',v(fmtD(d.ini)||d.ini)):'')+kv('Salário',d.sal&&d.sal!=='—'?'R$ '+esc(d.sal):'—')+kv('CTPS',d.ctpsN?esc(d.ctpsN)+' · série '+esc(d.ctpsS||'—'):'—')+(d.exame?kv('Exame admissional',v(fmtD(d.exame))):'')+(d.exp?kv('Experiência',v(d.exp)):'')+(d.fim?kv('Término do contrato',v(fmtD(d.fim))):'')+(d.interv?kv('Intervalo',v(d.interv)):'')+(d.tur?kv('Turno',v(d.tur)):'')+(fe?kv('Período aquisitivo',fmtA(fe.ini)+' a '+fmtA(fe.fim))+kv('Férias até',fmtA(fe.lim)):'')+(d.dem?kv('Desligamento',v(d.dem)):'')+(d.ant?kv('Vínculo anterior',esc(d.ant.adm)+' a '+esc(d.ant.dem)+(d.ant.mot?' · '+esc(d.ant.mot):'')):''))
@@ -303,7 +305,8 @@ function ctSig(x,menor){var L=function(n){return '<div class="ctsg"><span class=
 var CTBAR_CSS='<style>.fbar.ctbar{flex-direction:row;flex-wrap:wrap;justify-content:center;align-items:center;gap:12px}.fbar.ctbar .cta{flex:0 1 260px;width:260px;max-width:100%;height:50px;margin:0;font-size:15px}</style>';
 function vContrato(a){var q=String(a||'').split('|'),e=eById(q[0]);if(!e)return null;B(e.id);var nm=q.slice(1).join('|'),d=FUNCD[nm];if(!d){done();return null;}
  var h;
- if(CTG&&CTG.k===a){h=hdr('Contrato de trabalho',nm)+ctDoc(e,nm,d,CTG.v)+CTBAR_CSS+'<div class="fbar ctbar"><button type="button" class="cta" data-ctsend>'+(IC.send||IC.doc)+' Enviar e sair</button><button type="button" class="cta ghost" data-ctedit>Voltar e corrigir os dados</button></div>';}
+ if(ctEnviado(nm)&&!(CTG&&CTG.k===a)){done();toast('O contrato de '+nm+' já foi enviado');return vColab(a);}
+ if(CTG&&CTG.k===a){h=hdr('Contrato de trabalho',nm)+ctDoc(e,nm,d,CTG.v)+CTBAR_CSS+'<div class="fbar ctbar"><button type="button" class="cta" data-ctsend>'+(IC.send||IC.doc)+' Enviar e sair</button><button type="button" class="cta" data-ctedit>Voltar e corrigir os dados</button></div>';}
  else h=ctForm(e,nm,d);
  done();return h;}
 /* ===== guias de impostos: controle das guias enviadas aos clientes ===== */
