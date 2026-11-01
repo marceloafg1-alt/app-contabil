@@ -229,7 +229,7 @@ function renderLists(){
 /* seletor de competência padrão: o botão abre ano e mês em janela; as setas ao lado trocam o mês direto (perStep, em ui.js) */
 /* meses que dá para consultar (telas de ver, como Documentos e Cofre): até 10 anos para trás e 12 meses para frente; as setas não travam no mês atual */
 function compVer(c){var q=cParse(c),n=NOW();if(!q||q.m<0||!q.y)return false;var k=q.y*12+q.m,h=n.getFullYear()*12+n.getMonth();return k<=h+12&&k>h-120;}
-function perBtn(k,c){return '<div class="perrow"><button type="button" class="pern" data-permv="-1" data-pk="'+k+'" aria-label="Mês anterior">'+IC.tri+'</button><button type="button" class="perbtn" data-periodo="'+k+'" aria-haspopup="dialog"><span class="pl">Competência</span><b>'+esc(c)+'</b>'+IC.cal+'</button><button type="button" class="pern nx" data-permv="1" data-pk="'+k+'" aria-label="Próximo mês">'+IC.tri+'</button></div>';}
+function perBtn(k,c,lb){return '<div class="perrow"><button type="button" class="pern" data-permv="-1" data-pk="'+k+'" aria-label="Mês anterior">'+IC.tri+'</button><button type="button" class="perbtn" data-periodo="'+k+'" aria-haspopup="dialog"><span class="pl">'+(lb||'Competência')+'</span><b>'+esc(c)+'</b>'+IC.cal+'</button><button type="button" class="pern nx" data-permv="1" data-pk="'+k+'" aria-label="Próximo mês">'+IC.tri+'</button></div>';}
 
 /* Solicitações de cada área (DP, Gestão contábil, Guias de impostos e Documentos): até 5, com Ver todos quando passar */
 var SOL_AREAS=[['dp','sol-dp'],['contabil','sol-contabil'],['guias','sol-guias'],['docs','sol-docs']];
@@ -405,7 +405,7 @@ function folhaCard(f){var n=varsTxt(f.vars).length;return '<button type="button"
 var FCOMP=null;
 function inPer(f){return FCOMP==='all'||f.comp===FCOMP;}
 function pendEnvio(){return folhasOf().filter(function(f){return inPer(f)&&(f.st==='rascunho'||f.st==='finalizada')&&compSt('folha',f.comp)==='aberto';});}
-function renderFolhas(){if(!FCOMP)FCOMP=compPad('folha');var all=FCOMP==='all',cst=all?'aberto':compSt('folha',FCOMP),ls=folhasOf().filter(inPer),sem=(all||!semFolhaOn()||(!LIBERA_FOLHA&&cst!=='aberto'))?[]:FUNC.filter(function(n){return !ls.some(function(f){return f.func===n&&f.tipo==='Mensal';});});
+function renderFolhas(){if(!FCOMP)FCOMP=compDef('folha');var all=FCOMP==='all',cst=all?'aberto':compSt('folha',FCOMP),ls=folhasOf().filter(inPer),sem=(all||!semFolhaOn()||(!LIBERA_FOLHA&&cst!=='aberto'))?[]:FUNC.filter(function(n){return !ls.some(function(f){return f.func===n&&f.tipo==='Mensal';});});
  var fin=ls.filter(function(f){return fst(f)==='finalizada';}).length,ras=ls.filter(function(f){return fst(f)==='rascunho';}).length,aut=ls.filter(function(f){return fst(f)==='auto';}).length;
  var msg=!FUNC.length?'Cadastre um colaborador para criar folhas.':fin?fin+(fin>1?' folhas finalizadas aguardam envio. Toque no + e em Finalizar folhas.':' folha finalizada aguarda envio. Toque no + e em Finalizar folhas.'):sem.length?'Falta criar a folha mensal de '+sem.length+(sem.length===1?' colaborador':' colaboradores')+'.':ras?ras+(ras>1?' rascunhos em aberto.':' rascunho em aberto.'):'Tudo certo neste período.';
  if(cst==='encerrado')msg='O envio de '+cMes(FCOMP)+' encerrou em '+fmtP(prazo('folha',FCOMP))+'.';
@@ -414,7 +414,7 @@ function renderFolhas(){if(!FCOMP)FCOMP=compPad('folha');var all=FCOMP==='all',c
  var grupos={};ls.forEach(function(f){(grupos[f.comp]=grupos[f.comp]||[]).push(f);});
  var mk=function(c){var p=c.split('/');return (+p[1])*12+MESES_ANO.map(function(x){return x.split('/')[0];}).indexOf(p[0]);};var ordem=Object.keys(grupos).sort(function(a,b){return mk(b)-mk(a);});
  return hdr('Folhas de pagamento','Departamento Pessoal')+
- '<button type="button" class="perbtn" data-periodo><span class="pl">Período</span><b>'+(all?'Todos os períodos':FCOMP)+'</b>'+IC.cal+'</button>'+
+ perBtn('',all?'Todos os períodos':FCOMP,'Período')+
  '<div class="hero"><div class="hk"><span>'+(all?'Todos os períodos':'Competência '+FCOMP)+'</span><span class="pill-w">'+(cst==='encerrado'?'Encerrada':ls.length+(ls.length===1?' folha':' folhas'))+'</span></div><p class="ht">'+msg+'</p>'+(pz?'<div class="hb"><span class="due">Envio encerra em '+fmtP(pz)+' · '+falta(pz)+'</span></div>':'')+'</div>'+
  (!all&&folhaEnc(FCOMP)?closedBanner('folha',FCOMP,'Você informou em '+folhaEnc(FCOMP).em+' que nenhum colaborador teve variáveis. A folha mensal de '+folhaEnc(FCOMP).n+(folhaEnc(FCOMP).n===1?' colaborador foi enviada':' colaboradores foi enviada')+' ao contador.','Folha de '+cMes(FCOMP)+' encerrada sem variáveis'):'')+
  (!all&&!folhaEnc(FCOMP)&&cst==='aberto'&&podeEnc(FCOMP)&&FUNC.length?'<button type="button" class="r solo" data-semvarmes="'+FCOMP+'"><span class="ri">'+(IC.check16||'')+'</span><span class="rt"><span class="a">Sem variáveis em '+cMes(FCOMP)+'</span><span class="b">Nenhum colaborador teve variáveis: encerra a folha e envia ao contador</span></span>'+(IC.chev18||'')+'</button>':'')+
@@ -424,7 +424,7 @@ function renderFolhas(){if(!FCOMP)FCOMP=compPad('folha');var all=FCOMP==='all',c
  '<section><div class="sec"><h2>Folhas criadas</h2></div><div class="card">'+(ls.map(folhaCard).join('')||'<p class="empty">Nenhuma folha em '+FCOMP.replace('/2026','')+'. Toque no + para criar a primeira.</p>')+'</div></section>');}
 var ENVOK=0;
 function prontaEnvio(f){return f.st==='finalizada'||(f.st==='rascunho'&&(f.sem||varsTxt(f.vars).length));}
-function renderEnvFolhas(){if(!FCOMP)FCOMP=compPad('folha');if(ENVOK){var n=ENVOK;ENVOK=0;return hdr('Finalizar folhas','Folhas de pagamento')+'<div class="okv"><span class="okc">'+IC.check32+'</span><h2>'+n+(n>1?' folhas enviadas':' folha enviada')+' ao contador</h2><p>O contador vai conferir as variáveis, fechar as folhas e liberar os holerites.</p></div><div class="fbar"><button type="button" class="cta" data-back>Voltar para Folhas de pagamento</button></div>';}
+function renderEnvFolhas(){if(!FCOMP)FCOMP=compDef('folha');if(ENVOK){var n=ENVOK;ENVOK=0;return hdr('Finalizar folhas','Folhas de pagamento')+'<div class="okv"><span class="okc">'+IC.check32+'</span><h2>'+n+(n>1?' folhas enviadas':' folha enviada')+' ao contador</h2><p>O contador vai conferir as variáveis, fechar as folhas e liberar os holerites.</p></div><div class="fbar"><button type="button" class="cta" data-back>Voltar para Folhas de pagamento</button></div>';}
  var pend=pendEnvio(),ok=pend.filter(prontaEnvio),inc=pend.filter(function(f){return !prontaEnvio(f);});
  return hdr('Finalizar folhas',FCOMP==='all'?'Todos os períodos':FCOMP)+
  (FCOMP!=='all'&&compSt('folha',FCOMP)==='encerrado'?closedBanner('folha',FCOMP,'As folhas finalizadas foram enviadas automaticamente. As que não foram finalizadas ficaram só no histórico e não foram ao contador.'):'<div class="note">Todas as folhas abaixo ainda não foram enviadas ao contador. Ao confirmar, elas seguem juntas.</div>')+
@@ -487,6 +487,8 @@ function prazo0(g,c){var p=cParse(c),y=p.y,m=p.m+1;if(m>11){m=0;y++;}return g===
 function compSt(g,c){var n=dOnly(NOW()),p=cParse(c);if(p.m<0)return 'futuro';if(p.y*12+p.m>n.getFullYear()*12+n.getMonth())return 'futuro';if(n>prazo(g,c)){var la=libAte(g,c);return la&&n<=la?'aberto':'encerrado';}return 'aberto';}
 function abertas(g){var n=NOW();return [cName(n.getFullYear(),n.getMonth()-1),cName(n.getFullYear(),n.getMonth())].filter(function(c){return compSt(g,c)==='aberto';});}
 function compPad(g){return abertas(g)[0];}
+/* competência que as telas abrem: sempre o mês do app (o mais antigo aberto continua valendo para pendências e avisos) */
+function compDef(g){var n=NOW(),c=cName(n.getFullYear(),n.getMonth());return compSt(g,c)==='aberto'?c:(compPad(g)||c);}
 function fmtP(d){return ('0'+d.getDate()).slice(-2)+' '+MESC[d.getMonth()];}
 function diasAte(d){return Math.round((dOnly(d)-dOnly(NOW()))/864e5);}
 function falta(d){var n=diasAte(d);return n<0?'encerrado':n===0?'encerra hoje':n===1?'encerra amanhã':'faltam '+n+' dias';}
@@ -514,7 +516,7 @@ function folhaAuto(){if(!ST||!FUNC.length)return;var n=dOnly(NOW()),mud=0,ab=fun
   ST.act.unshift(['Folha de '+cMes(c)+' encerrada automaticamente sem variáveis','Agora',1,NOW().getTime()]);mud=1;});
  if(mud)save();}
 FST.auto=['Enviada automaticamente','info'];
-FCOMP=compPad('folha');
+FCOMP=compDef('folha');
 var CCOMP=null;
 function pendencias(){var d=compPad('docs'),fo=compPad('folha'),r=[],pa=pedAberto();if(pa)r.push({k:'ped',t:'responder ao pedido do contador: '+pedNome(pa),go:'f-solicitado',pz:pedLim(pa)});
  if(d){var nn=cofreOf(d).notas.length;
@@ -540,7 +542,7 @@ function contHero(){var d=compPad('docs'),cf=cofreSt(d),nn=cofreOf(d).notas.leng
  return '<div class="hk"><span>Pendências de '+cMes(d)+'</span><span class="pill-w">'+ok+' de '+it.length+' feitas</span></div><div class="prog" aria-hidden="true"><i style="width:'+Math.max(6,ok/it.length*100)+'%"></i></div><div class="chk">'+it.map(function(x){return '<button type="button" class="ci'+(x[1]?' ok':'')+(x[2]?' feito':'')+'" data-go="'+x[3]+'" data-setcomp="'+d+'"><span class="cb">'+IC.ok12+'</span><span class="cl">'+x[0]+'</span><span class="cd">'+x[4]+'</span></button>';}).join('')+'</div><div class="hb"><span class="due">Envio de '+cMes(d)+' encerra em '+fmtP(pz)+' · '+falta(pz)+'</span></div>';}
 function closedBanner(g,c,msg,tt){var lg=g==='cofre'?'notas':g,pend=LIBN[lg]&&pedLibAberto(lg,c);
  return '<div class="lock"><span class="lk">'+IC.lock+'</span><div><b>'+(tt||'Envio de '+cMes(c)+' encerrado')+'</b><p>'+msg+'</p>'+(pend?'<p><b>Pedido de liberação enviado.</b> Aguarde o contador.</p>':LIBN[lg]?'<p>Precisa enviar algo de '+cMes(c)+'? Ao lançar, escolha o mês com cadeado e peça ao contador para liberar.</p>':'')+'</div></div>';}
-function renderCofre(){var c=CCOMP||compPad('docs');CCOMP=c;var st=cofreSt(c),cf=cofreOf(c),ns=cf.notas,pz=prazo('notas',c),n=ns.length;
+function renderCofre(){var c=CCOMP||compDef('docs');CCOMP=c;var st=cofreSt(c),cf=cofreOf(c),ns=cf.notas,pz=prazo('notas',c),n=ns.length;
  var h=hdr('Cofre de notas','Gestão contábil')+perBtn('#cofre',c);
  if(st==='aberto')h+='<div class="hero"><div class="hk"><span>Cofre de '+cMes(c)+' · aberto</span><span class="pill-w">'+n+(n===1?' nota':' notas')+'</span></div><p class="ht">'+(podeEnc(c)?'O mês de '+cMes(c)+' terminou. Encerre o cofre para enviar as notas ao contador. Se você não encerrar, ele fecha sozinho em '+fmtP(pz)+' e envia tudo automaticamente.':'Carregue as notas durante o mês. O encerramento abre em '+fmtP(encIni(c))+', quando '+cMes(c)+' terminar. Se você não encerrar, o cofre fecha sozinho em '+fmtP(pz)+' e envia tudo automaticamente.')+'</p><div class="hb"><span class="due">Encerra em '+fmtP(pz)+' · '+falta(pz)+'</span></div></div>';
  else if(st==='futuro')h+='<div class="note">O cofre de '+cMes(c)+' ainda não abriu. Hoje você carrega notas de '+cMes(compPad('docs'))+'.</div>';
@@ -616,7 +618,7 @@ function despPre(p){var g=function(rx){return despDv(p,rx);},sit=g(/^situa/i),lc
  var r={__pid:p.id,comp:despComp(p),cat:g(/^categoria/i),desc:p.quem||g(/^descri/i),val:g(/^valor/i).replace(/^R\$\s*/,''),emis:brIso(g(/^emiss/i)),venc:brIso(g(/^vencimento/i)),tipo:mo(g(/^tipo/i)),pago:/^paga$/i.test(sit),recor:/recorr/i.test(lc)&&!/^n[aã]o/i.test(lc),recate:brIso(g(/^recorrente at/i)),obs:mo(g(/^obs/i))};
  return r;}
 function startFlow(id){FS={id:id,step:0,v:{},err:{}};if(id==='solicitado'){var paF=pedAberto();FLOWS.solicitado.steps[0].f[0].l=paF?'O contador pediu: '+pedNome(paF)+', até '+fmtP(pedLim(paF))+'.':'Não há pedido de documento em aberto. Se quiser, envie mesmo assim.';}var F=FLOWS[id];if(PRE){if(PRE.fid&&id==='folha'){var g=getFolha(PRE.fid);if(g){FS.fid=g.id;FS.v={comp:g.comp,func:g.func,tipo:g.tipo,vars:JSON.parse(JSON.stringify(g.vars||{})),sem:g.sem,obs:g.obs};FS.step=1;}}else for(var q in PRE)FS.v[q]=PRE[q];PRE=null;if(id==='notas'&&FS.v.comp&&FS.v.tipo&&compOk('cofre',FS.v.comp))FS.step=1;}
- F.steps.forEach(function(s){s.f.forEach(function(x){if(x.type==='mes'&&x.g&&!FS.fid&&!FS.v.atraso&&!compOk(x.g,FS.v[x.k])){FS.v[x.k]=abertas(x.g==='folha'?'folha':'docs').filter(function(c){return compOk(x.g,c);})[0]||'';}});});
+ F.steps.forEach(function(s){s.f.forEach(function(x){if(x.type==='mes'&&x.g&&!FS.fid&&!FS.v.atraso&&!compOk(x.g,FS.v[x.k])){FS.v[x.k]=[compDef(x.g==='folha'?'folha':'docs')].concat(abertas(x.g==='folha'?'folha':'docs')).filter(function(c){return compOk(x.g,c);})[0]||'';}});});
  if(F.steps.some(function(s){return s.f.some(function(f){return f.type==='vargrid';});}))FS.v.grid={};}
 function fieldHTML(fid,f){if(f.auto&&FS.achou&&FS.v[f.k]&&!FS.err[f.k]){var h0=fieldHTML0(fid,f);return h0.replace('<div class="fld">','<div class="fld autof">').replace('</label>',' <span class="viacpf">'+IC.check16+' via CPF</span></label>');}return fieldHTML0(fid,f);}
 function fieldHTML0(fid,f){if(whenOff(f))return '';var v=FS.v[f.k],id='c-'+fid+'-'+f.k,err=FS.err[f.k]?'<span class="fe">'+FS.err[f.k]+'</span>':'';
@@ -1492,12 +1494,12 @@ function loteVars(l){var g=l.grid||{},o=[];Object.keys(g).forEach(function(n){va
 function lotePed(l){return ST.ped.filter(function(p){return p.id===l.ped;})[0];}
 function loteCard(l){var v=loteVars(l),nv=v.reduce(function(a,x){return a+x[1].length;},0);
  return '<button type="button" class="r" data-go="lote-'+l.id+'"><span class="ri">'+IC['var']+'</span><span class="rt"><span class="a">Lançamento de '+esc(l.data||'')+'</span><span class="b">'+(l.grid?v.length+(v.length===1?' colaborador':' colaboradores')+' · '+nv+(nv===1?' variável':' variáveis'):esc(l.txt||'Variáveis enviadas'))+'</span></span></button>';}
-function renderVarr(){if(!VCOMP)VCOMP=compPad('folha')||'all';var all=VCOMP==='all',L=lotesOf().filter(function(l){return all||l.comp===VCOMP;}),g={};L.forEach(function(l){(g[l.comp]=g[l.comp]||[]).push(l);});
+function renderVarr(){if(!VCOMP)VCOMP=compDef('folha')||'all';var all=VCOMP==='all',L=lotesOf().filter(function(l){return all||l.comp===VCOMP;}),g={};L.forEach(function(l){(g[l.comp]=g[l.comp]||[]).push(l);});
  var cs=Object.keys(g).sort(function(a,b){return compOrd(b)-compOrd(a);}),cols={},ab=0;L.forEach(function(l){loteVars(l).forEach(function(x){cols[x[0]]=1;});var p=lotePed(l);if(p&&p.st!=='ok')ab++;});var nc=Object.keys(cols).length;
  var cst=all?'aberto':compSt('folha',VCOMP),pz=(!all&&cst==='aberto')?prazo('folha',VCOMP):null;
  var msg=!L.length?(all?'Nenhum lançamento ainda. Toque no + para lançar as variáveis de todos de uma vez.':'Nenhum lançamento em '+cMes(VCOMP)+'. Toque no + para lançar.'):L.length+(L.length===1?' lançamento':' lançamentos')+' com variações de '+nc+(nc===1?' colaborador':' colaboradores')+(ab?' · '+ab+(ab===1?' aguardando o contador.':' aguardando o contador.'):' · tudo concluído pelo contador.');
  return hdr('Variáveis rápidas','Departamento Pessoal')+
- '<button type="button" class="perbtn" data-periodo="#var"><span class="pl">Período</span><b>'+(all?'Todos os períodos':esc(VCOMP))+'</b>'+IC.cal+'</button>'+
+ perBtn('#var',all?'Todos os períodos':VCOMP,'Período')+
  '<div class="hero"><div class="hk"><span>'+(all?'Todos os períodos':'Competência '+esc(VCOMP))+'</span><span class="pill-w">'+L.length+(L.length===1?' lançamento':' lançamentos')+'</span></div><p class="ht">'+msg+'</p>'+(pz?'<div class="hb"><span class="due">Envio encerra em '+fmtP(pz)+' · '+falta(pz)+'</span></div>':'')+'</div>'+
  (cs.length?cs.map(function(c){return '<section><div class="sec"><h2>'+esc(c)+'</h2><span class="cnt">'+g[c].length+'</span></div><div class="card">'+g[c].map(loteCard).join('')+'</div></section>';}).join(''):'')+
  '';}
@@ -1549,7 +1551,7 @@ function diaG(g){var c=MULTI.cfg||{};if(g!=='docs'&&c.junto===false&&c['dia_'+g]
 function encSt(g,c){var la=libAte(g,c);if(la&&dOnly(NOW())<=la)return 'aberto';if(((ST&&ST['enc_'+g])||{})[c])return 'encerrado';var s=compSt(g,c);return s==='encerrado'?'auto':s;}
 function despComp(p){var x=(p.dados||[]).filter(function(d){return /^compet/i.test(d[0]);})[0];return x?x[1]:'';}
 function despOf(c){return ST.ped.filter(function(p){return p.f==='despesas'&&despComp(p)===c;});}
-function compAberta(g){var n=NOW();return [cName(n.getFullYear(),n.getMonth()-1),cName(n.getFullYear(),n.getMonth())].filter(function(c){return encSt(g,c)==='aberto';})[0]||cName(n.getFullYear(),n.getMonth());}
+function compAberta(g){var n=NOW();return [cName(n.getFullYear(),n.getMonth()),cName(n.getFullYear(),n.getMonth()-1)].filter(function(c){return encSt(g,c)==='aberto';})[0]||cName(n.getFullYear(),n.getMonth());}
 var ECOMP={},ENVG='extratos';
 var ENV_T={extratos:['Extratos bancários','extrato','extratos','f-extrato','Enviar extrato',IC.ext],despesas:['Despesas','despesa','despesas','f-despesas','Cadastrar despesa',IC.desp]};
 function renderEnvio(g){if(!ENV_T[g])return '';ENVG=g;var T=ENV_T[g],c=ECOMP[g]||compAberta(g);ECOMP[g]=c;var st=encSt(g,c),pz=prazo(g,c),L=g==='extratos'?arqList().filter(function(a){return a.cat==='extratos'&&a.comp===c;}):despOf(c),n=L.length,e=(ST['enc_'+g]||{})[c];
@@ -1695,7 +1697,7 @@ function podeEnc(c){var p=cParse(c);if(p.m<0)return false;return dOnly(NOW())>=e
 function compEnc(g){var n=NOW(),c=cName(n.getFullYear(),n.getMonth()-1);if(g==='notas')return cofreSt(c)==='aberto'?c:null;return encSt(g,c)==='aberto'?c:null;}
 
 /* escolha ao enviar folha: variáveis rápidas ou criar folha (vem de rotinas e do + da tela inicial) */
-function renderEscFolha(a){var c=a&&cParse(a).m>-1?a:(compPad('folha')||cName(NOW().getFullYear(),NOW().getMonth()-1)),pz=prazo('folha',c),pa=function(o){return ' data-pre=\''+JSON.stringify(o)+'\'';};
+function renderEscFolha(a){var c=a&&cParse(a).m>-1?a:(compDef('folha')||cName(NOW().getFullYear(),NOW().getMonth()-1)),pz=prazo('folha',c),pa=function(o){return ' data-pre=\''+JSON.stringify(o)+'\'';};
  return hdr('Enviar folha','Folha de '+cMes(c)+' · prazo '+fmtP(pz))+'<p class="foot" style="margin-top:0">Como você quer enviar? As duas formas têm o mesmo efeito e o mesmo prazo.</p>'+
  '<div class="card"><button type="button" class="r" data-go="f-variaveis"'+pa({mes:c})+'><span class="ri">'+(IC['var']||'')+'</span><span class="rt"><span class="a">Variáveis rápidas</span><span class="b">Uma tela só para todos os colaboradores: horas extras, faltas, comissão, bônus. Deixe em branco quem não teve variação.</span></span>'+(IC.chev18||'')+'</button>'+
  '<button type="button" class="r" data-go="f-folha"'+pa({comp:c})+'><span class="ri">'+(IC.folha||IC['var']||'')+'</span><span class="rt"><span class="a">Criar folha</span><span class="b">Uma folha por colaborador, com tipo (mensal, adiantamento, 13º, férias), variáveis e anexos.</span></span>'+(IC.chev18||'')+'</button>'+
@@ -1866,7 +1868,7 @@ function nfCard(x,st){var n=x.n,nf=n.nf,p=nfParte(n),fP=n.pdf||(nfExt(n.arq)==='
  var h='<div class="nfc"><button type="button" class="nh" data-go="nota-'+x.i+'"><span class="ri">'+IC.nf+'</span><span class="rt"><span class="a">'+esc(nf?(nf.mod||'Nota')+(nf.num?' nº '+nf.num:''):n.arq)+'</span><span class="b">'+esc(sub||'—')+'</span></span>'+(nf&&nf.val!=null?'<span class="nv">'+nfMoeda(nf.val)+'</span>':'')+'</button>';
  h+='<div class="nb">'+(fP?'<button type="button" data-nfdl="'+x.i+':pdf">'+(IC.down16||'')+' PDF</button>':'')+(fX?'<button type="button" data-nfdl="'+x.i+':xml">'+(IC.down16||'')+' XML</button>':'')+(st==='aberto'?'<button type="button" class="nx" data-delnota="'+x.i+'" aria-label="Tirar do cofre">'+IC.x+'</button>':'')+'</div>';
  return h+'</div>';}
-function renderNota(a){var i=+a,c=CCOMP||compPad('docs'),cf=cofreOf(c),n=cf.notas[i];if(!n)return hdr('Nota fiscal','Cofre de notas')+'<p class="empty">Nota não encontrada.</p>';var nf=n.nf||{},st=cofreSt(c),hasP=!!(n.pdf||nfExt(n.arq)==='pdf'),hasX=!!(n.xml||nfExt(n.arq)==='xml');
+function renderNota(a){var i=+a,c=CCOMP||compDef('docs'),cf=cofreOf(c),n=cf.notas[i];if(!n)return hdr('Nota fiscal','Cofre de notas')+'<p class="empty">Nota não encontrada.</p>';var nf=n.nf||{},st=cofreSt(c),hasP=!!(n.pdf||nfExt(n.arq)==='pdf'),hasX=!!(n.xml||nfExt(n.arq)==='xml');
  var kvs=function(t,L){L=L.filter(function(r){return r[1]!=null&&r[1]!=='';});return L.length?'<section><div class="sec"><h2>'+t+'</h2></div><div class="card pad">'+L.map(function(r){return kv(r[0],esc(String(r[1])));}).join('')+'</div></section>':'';};
  var h=hdr(nfTitulo(n),'Cofre de '+cMes(c))+'<div class="card pad"><div class="pt"><span class="ri">'+IC.nf+'</span><span class="rt"><span class="a">'+esc(n.tipo)+'</span><span class="b">Carregada em '+esc(n.data)+(n.nf?' · lida do '+(nf.fonte==='xml'?'XML':'PDF'):'')+'</span></span></div></div>';
  if(!n.nf)h+='<div class="note">'+(n.pend&&n.pend.length?'Ainda lendo os dados desta nota.':'Não foi possível ler os dados deste arquivo. Os dados aparecem quando a nota tem XML, ou PDF com texto (não escaneado).')+'</div>';
