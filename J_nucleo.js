@@ -1392,8 +1392,9 @@ function cofreStOf(st,c){var cf=(st.cofre||{})[c];if(cf&&cf.st==='encerrado')ret
 function arqCofreAll(){var mudou=false;MULTI.emps.forEach(function(e){var d=MULTI.data[e.id];if(!d)return;var n=(d.arq||[]).length;arqCofre(d);if((d.arq||[]).length!==n)mudou=true;});return mudou;}
 /* ===== app do cliente: Documentos lê do arquivo ===== */
 function arqVis(cat){return arqList().filter(function(a){return a.cat!=='interno'&&(!cat||a.cat===cat);});}
+function arqDH(a){return (a.h&&a.h[0]&&a.h[0][1])||a.data;}
 function arqRow(a,sub){var s=arqSt(a),de=a.or==='ct'?'Do contador':'Enviado por você';
- return '<div class="r arqr" data-f="'+(a.or==='ct'?'ct':'eu')+'" data-n="'+esc((a.n+' '+(a.arq||'')).toLowerCase())+'"><button type="button" class="arqo" data-go="arq-'+a.id+'"><span class="ri">'+(IC[catOf(a.cat)[2]]||IC.doc)+'</span><span class="rt"><span class="a">'+esc(a.n)+'</span><span class="b">'+esc(sub||(de+' · '+a.data))+'</span></span>'+(a.st==='disp'?'<span class="pill '+s[1]+'">Novo</span>':'')+'</button><button type="button" class="dl sm" data-dlarq="'+a.id+'" aria-label="Baixar '+esc(a.n)+'" title="Baixar">'+IC.down16+'</button></div>';}
+ return '<div class="r arqr" data-f="'+(a.or==='ct'?'ct':'eu')+'" data-n="'+esc((a.n+' '+(a.arq||'')).toLowerCase())+'"><button type="button" class="arqo" data-go="arq-'+a.id+'"><span class="ri">'+(IC[catOf(a.cat)[2]]||IC.doc)+'</span><span class="rt"><span class="a">'+esc(a.n)+'</span><span class="b">'+esc(sub||(de+' · '+arqDH(a)))+'</span></span>'+(a.st==='disp'?'<span class="pill '+s[1]+'">Novo</span>':'')+'</button><button type="button" class="dl sm" data-dlarq="'+a.id+'" aria-label="Baixar '+esc(a.n)+'" title="Baixar">'+IC.down16+'</button></div>';}
 function renderPasta(n){var c=catOf(n),k=c[0],L=arqVis(k),g={};L.forEach(function(a){(g[a.comp]=g[a.comp]||[]).push(a);});
  var cs=Object.keys(g).sort(function(a,b){return compOrd(b)-compOrd(a);});
  return hdr(c[1],'Documentos')+'<p class="lead">'+L.length+(L.length===1?' arquivo':' arquivos')+' · organizados por mês</p>'+
