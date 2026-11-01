@@ -695,6 +695,7 @@ function validate(){var F=FLOWS[FS.id],s=F.steps[FS.step];FS.err={};
   if(f.k==='ini'&&FS.id==='colaborador'&&FS.v.acao&&FS.v.acao!=='Cadastro'&&v&&v<admIso(admMin()))FS.err[f.k]='A admissão precisa ser a partir de '+fmtA(admMin())+'. O contador pede '+admDias()+((MULTI.cfg||{}).admTipo==='u'?' dias úteis':' dias')+' após o lançamento.';
   if(f.k==='fim'&&v&&FS.v.ini&&v<FS.v.ini)FS.err[f.k]='O término não pode ser antes da admissão';
   if(f.type==='cnpj'&&v){if(!cnpjOk(v))FS.err[f.k]='CNPJ inválido. Confira os 14 números';else if(MULTI.emps.some(function(e){return e.cnpj.replace(/\D/g,'')===v.replace(/\D/g,'');}))FS.err[f.k]='Este CNPJ já está no app';}});
+ if((FS.id==='despesas'||FS.id==='despedit')&&FS.v.venc&&FS.v.comp&&s.f.some(function(x){return x.k==='venc';})&&compOf(FS.v.venc)!==FS.v.comp)FS.err.venc='O vencimento tem que ser em '+cMes(FS.v.comp)+', o mês da competência';
  return !Object.keys(FS.err).length;}
 function submit(){var F=FLOWS[FS.id];
  if(FS.id==='despedit'){var pe=ST.ped.filter(function(x){return x.id===FS.v.__pid;})[0];if(!pe||encSt('despesas',despComp(pe))!=='aberto'){FS.res='';FS.ped=null;return;}
@@ -1718,7 +1719,7 @@ function semVarMes(c){var I=semVarInfo(c),ls=folhasOf();I.alvo.forEach(function(
  ST.act.unshift(['Folha de '+cMes(c)+' encerrada sem variáveis e enviada ao contador','Agora',1,NOW().getTime()]);libFecha('folha',c);return I;}
 
 /* ===== despesas: lançar manual ou por planilha ===== */
-function despMeses(){var n=NOW();return [cName(n.getFullYear(),n.getMonth()-1),cName(n.getFullYear(),n.getMonth())].filter(function(c){return compOk('despesas',c);});}
+function despMeses(){var n=NOW();return [cName(n.getFullYear(),n.getMonth()),cName(n.getFullYear(),n.getMonth()-1)].filter(function(c){return compOk('despesas',c);});}
 function despCompOk(a){var L=despMeses();return a&&L.indexOf(a)>-1?a:L[0]||'';}
 function renderEscDesp(a){var c=despCompOk(a),pa=function(o){return ' data-pre=\''+JSON.stringify(o)+'\'';};
  return hdr('Lançar despesas',c?'Competência '+cMes(c):'Gestão contábil')+'<p class="foot" style="margin-top:0">Como você quer lançar?</p>'+
@@ -1753,8 +1754,8 @@ function dplChecar(){var c=DPL.c,p=c?cParse(c):null;DPL.rows.forEach(function(x)
   var de=x.emis&&x.emis!=='—'?x.emis:'',dv=x.venc&&x.venc!=='—'?x.venc:'';
   if(de&&!dok(de))e.push('emissão em formato errado ('+de+')');if(dv&&!dok(dv))e.push('vencimento em formato errado ('+dv+')');
   if(!de&&!dv)e.push('sem data');
-  var ref=de&&dok(de)?dok(de):(!de&&dv&&dok(dv)?dok(dv):null);
-  if(ref&&p&&p.m>-1&&(ref.getFullYear()!==p.y||ref.getMonth()!==p.m))e.push((de?'emissão':'vencimento')+' fora de '+cMes(c)+' ('+(de||dv)+')');
+  var ref=dv&&dok(dv)?dok(dv):(de&&dok(de)?dok(de):null),refV=dv&&dok(dv);
+  if(ref&&p&&p.m>-1&&(ref.getFullYear()!==p.y||ref.getMonth()!==p.m))e.push((refV?'vencimento':'emissão')+' fora de '+cMes(c)+' ('+(refV?dv:de)+')');
   x.errs=e;x.ok=!e.length;});}
 function dplEnviar(){var c=DPL.c,ok=DPL.rows.filter(function(x){return x.ok;});if(!ok.length||!compOk('despesas',c))return 0;
  ok.forEach(function(x){ST.n++;ST.ped.unshift({id:'p'+ST.n,f:'despesas',tipo:'Cadastrar despesa',quem:x.desc,data:'Pedido em '+horaAgora(),st:'enviado',prot:'2026-'+ST.n,em:hoje(),
