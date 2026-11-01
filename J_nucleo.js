@@ -1560,9 +1560,15 @@ function renderEnvio(g){if(!ENV_T[g])return '';ENVG=g;var T=ENV_T[g],c=ECOMP[g]|
  h+='<section><div class="sec"><h2>'+cap(T[2])+' de '+cMes(c)+'</h2><span class="cnt">'+n+'</span></div><div class="card">'+(n?(g==='extratos'?L.map(function(a){return arqRow(a);}).join(''):L.map(despRow).join('')):'<p class="empty">Nenhum'+(g==='extratos'?' extrato':'a despesa')+' lançad'+(g==='extratos'?'o':'a')+' em '+cMes(c)+'.'+(st==='aberto'?' Toque no + para lançar.':'')+'</p>')+'</div></section>';
  if(st==='aberto')h+=podeEnc(c)?'<p class="foot">Para encerrar o envio de '+cMes(c)+', toque no + e escolha Encerrar envio.</p>':'<p class="foot">'+cap(cMes(c))+' ainda não terminou. O botão de encerrar aparece em '+fmtP(encIni(c))+' e fica até '+fmtP(pz)+'. Depois disso, o envio fecha sozinho.</p>';
  return h;}
+function libFecha(g,c){if(ST&&ST.lib)delete ST.lib[libKey(g,c)];} /* encerrar o mês faz o cadeado voltar: a liberação do contador acaba */
+function encCofreDo(c){var cf=cofreOf(c),n=cf.notas.length;cf.st='encerrado';cf.em=hoje();ST.n++;var id='p'+ST.n;
+ ST.ped.unshift({id:id,f:'notas',tipo:'Cofre de notas · '+cMes(c),quem:n+(n===1?' nota':' notas'),data:'Pedido em '+horaAgora(),st:'enviado',prot:'2026-'+ST.n});
+ arqCofre(ST,id);ST.act.unshift(['Cofre de notas de '+cMes(c)+' encerrado · '+n+(n===1?' nota enviada':' notas enviadas'),'Agora',1,NOW().getTime()]);libFecha('notas',c);return n;}
+function libCtx(){if(typeof FS==='undefined'||!FS)return null;var g,c;if(FS.id==='notas'){g='notas';c=FS.v.comp;}else if(FS.id==='extrato'){g='extratos';c=FS.v.comp;}else if(FS.id==='despesas'){g='despesas';c=FS.v.comp;}else if(FS.id==='folha'){g='folha';c=FS.v.comp;}else if(FS.id==='variaveis'){g='folha';c=compOf(FS.v.mes);}else return null;return c&&libAtiva(g,c)?[g,c]:null;}
+function libEncerra(g,c){if(g==='notas')encCofreDo(c);else if(g==='folha')semVarMes(c);else encerraEnvio(g,c);libFecha(g,c);}
 function encerraEnvio(g,c){var T=ENV_T[g],n=(g==='extratos'?extrOf(c):despOf(c)).length;ST['enc_'+g]=ST['enc_'+g]||{};ST['enc_'+g][c]={em:hoje(),n:n};ST.n++;var id='p'+ST.n;
  ST.ped.unshift({id:id,f:g==='extratos'?'extrato':'despesas',tipo:'Envio de '+T[2]+' · '+cMes(c),quem:n?n+' '+(n===1?T[1]:T[2]):'Sem '+T[2]+' no mês',data:'Pedido em '+horaAgora(),st:'enviado',prot:'2026-'+ST.n,dados:[['Competência',c],['Encerrado pelo cliente em',hoje()],['Itens lançados',String(n)]],em:hoje()});
- ST.act.unshift(['Envio de '+T[2]+' de '+cMes(c)+' encerrado · '+(n?n+' '+(n===1?T[1]:T[2]):'nenhum lançamento'),'Agora',1,NOW().getTime()]);}
+ ST.act.unshift(['Envio de '+T[2]+' de '+cMes(c)+' encerrado · '+(n?n+' '+(n===1?T[1]:T[2]):'nenhum lançamento'),'Agora',1,NOW().getTime()]);libFecha(g,c);}
 /* ===== Verificar rotinas: só o que está no prazo deste mês, ou o que venceu sem nada enviado ===== */
 function rotLanc(g,c){if(g==='notas'){var cf=(ST.cofre||{})[c];return !!(cf&&((cf.notas||[]).length||cf.st==='encerrado'));}if(g==='extratos')return extrOf(c).length>0||encSt(g,c)==='encerrado';if(g==='despesas')return despOf(c).length>0||!!(ST.desp||{})[c]||encSt(g,c)==='encerrado';
  if(g==='folha')return folhasOf().some(function(f){return f.comp===c&&fst(f)!=='rascunho';});return false;}
@@ -1705,7 +1711,7 @@ function semVarMes(c){var I=semVarInfo(c),ls=folhasOf();I.alvo.forEach(function(
   if(f){f.sem=true;f.vars={};f.st='enviada';f.data=hoje();}else ls.push({id:'sv'+Date.now().toString(36)+i,comp:c,func:n,tipo:'Mensal',st:'enviada',vars:{},sem:true,obs:'',criada:hoje(),data:hoje()});});
  var tot=I.alvo.length+I.env.length;ST.enc_folha=ST.enc_folha||{};ST.enc_folha[c]={em:hoje(),n:tot};
  ST.n++;ST.ped.unshift({id:'p'+ST.n,f:'folha',tipo:'Folha de '+cMes(c)+' · sem variáveis',quem:tot+(tot===1?' colaborador':' colaboradores'),data:'Pedido em '+horaAgora(),st:'enviado',prot:'2026-'+ST.n,dados:[['Competência',c],['Variáveis','Nenhum colaborador teve variáveis'],['Encerrado pelo cliente em',hoje()]],em:hoje()});
- ST.act.unshift(['Folha de '+cMes(c)+' encerrada sem variáveis e enviada ao contador','Agora',1,NOW().getTime()]);return I;}
+ ST.act.unshift(['Folha de '+cMes(c)+' encerrada sem variáveis e enviada ao contador','Agora',1,NOW().getTime()]);libFecha('folha',c);return I;}
 
 /* ===== despesas: lançar manual ou por planilha ===== */
 function despMeses(){var n=NOW();return [cName(n.getFullYear(),n.getMonth()-1),cName(n.getFullYear(),n.getMonth())].filter(function(c){return compOk('despesas',c);});}
