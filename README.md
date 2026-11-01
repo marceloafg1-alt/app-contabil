@@ -119,3 +119,5 @@ Rodapé do contrato e Sócios em tela própria (app do contador): na tela do con
 
 Contrato enviado (app do contador): depois de **Enviar e sair**, a ficha do colaborador mostra o botão **Contrato enviado** (desativado) no lugar de Gerar contrato, e abrir a tela do contrato de novo leva de volta à ficha. Na tela do contrato, **Voltar e corrigir os dados** tem o mesmo estilo de **Enviar e sair**.
 Data e hora nos extratos (cliente e contador, `index.html` e `teste-comunicacao-v2/app.html`): as listas de arquivos, entre elas os extratos bancários do envio do cliente, a Gestão contábil e os Recebidos do contador, mostram a data e a hora do envio, e não só o dia. A tela de cada extrato tem **Dados do envio** e o **Histórico com data e hora** (enviado, conferência, conferido ou devolvido).
+
+Baixar o contrato no app do cliente: o botão de download do arquivo (na lista e na tela do arquivo, agora **Baixar**) faz o download de verdade, com o nome do arquivo, em vez de abrir outra aba (que o app instalado pode bloquear). No app do contador, **Enviar e sair** só grava o contrato depois de guardar o PDF, então o cliente já recebe o arquivo pronto para baixar.
