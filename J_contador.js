@@ -80,7 +80,7 @@ function rerender(){var y=SCR.scrollTop,vals={},ae=document.activeElement,aid=ae
  for(var k in vals){var x=$(k);if(x&&x.type!=='file'&&!x.dataset.fresh)x.value=vals[k];}
  SCR.scrollTop=y;if(aid&&$(aid))try{$(aid).focus();}catch(e){}
  if(isChat())SCR.scrollTop=SCR.scrollHeight;}
-function route(r){escGarante();var h=head(r),a=r.slice(h.length+1);var R={recnovo:vRecNovo,rec:vRec,chk:vChk,lote:vLote,fecha:vFecha,dp:vDP,desp:vDesp,inicio:vInicio,pedidos:vPedidos,ped:vPed,receb:vReceb,arquivo:vArquivo,pasta:vPasta,doc:vDoc,folha:vFolha,msg:vMsg,chat:vChat,ajuda:vAjuda,novodoc:vNovoDoc,novoguia:vNovoGuia,guias:vGuias,colab:vColab,colabs:vColabs,ctr:vContrato,socio:vSocio,cguia:vGuiaC,novoped:vNovoPed,ajustes:vAjustes,perfil:vPerfilC,ajnotif:vAjNotif,ajprazos:vAjPrazos,ajacomp:vAjAcomp,ajadm:vAjAdm,ajequipe:vAjEquipe,ajclientes:vAjClientes,clientes:vClientes,cli:vCli,gestao:vGestao,gcnotas:vGcNotas,notif:vNotif}[h];return R?R(a):null;}
+function route(r){escGarante();var h=head(r),a=r.slice(h.length+1);var R={recnovo:vRecNovo,rec:vRec,chk:vChk,lote:vLote,fecha:vFecha,dp:vDP,dpcol:vDpCol,dpsoc:vDpSoc,desp:vDesp,inicio:vInicio,pedidos:vPedidos,ped:vPed,receb:vReceb,arquivo:vArquivo,pasta:vPasta,doc:vDoc,folha:vFolha,msg:vMsg,chat:vChat,ajuda:vAjuda,novodoc:vNovoDoc,novoguia:vNovoGuia,guias:vGuias,colab:vColab,ctr:vContrato,socio:vSocio,cguia:vGuiaC,novoped:vNovoPed,ajustes:vAjustes,perfil:vPerfilC,ajnotif:vAjNotif,ajprazos:vAjPrazos,ajacomp:vAjAcomp,ajadm:vAjAdm,ajequipe:vAjEquipe,ajclientes:vAjClientes,clientes:vClientes,cli:vCli,gestao:vGestao,gcnotas:vGcNotas,notif:vNotif}[h];return R?R(a):null;}
 /* ===== início ===== */
 function vInicio(){var s=stats('all'),tot=s.nv+s.doc+s.fo+s.msg,partes=[];
  if(s.nv)partes.push(s.nv+(s.nv===1?' pedido novo':' pedidos novos'));if(s.doc)partes.push(s.doc+(s.doc===1?' documento para conferir':' documentos para conferir'));if(s.fo)partes.push(s.fo+(s.fo===1?' folha para fechar':' folhas para fechar'));if(s.msg)partes.push(s.msg+(s.msg===1?' mensagem':' mensagens'));
@@ -641,7 +641,8 @@ function vDP(){var A=[],C=[],F=[],P=[],X=[],S=[],SV=[],LF=[],FO=0,EA=0,tot=0;
  var h=hdr('Departamento Pessoal','Colaboradores e solicitações dos clientes')+empChips('femp',UI.fEmp,1);
  h+='<div class="hero"><div class="hk"><span>DP</span><span class="pill-w">'+tot+(tot===1?' colaborador':' colaboradores')+'</span></div><p class="ht">'+[A.length?A.length+(A.length===1?' admissão para gerar contrato':' admissões para gerar contrato'):'',F.filter(function(x){return x.dd<=30;}).length?F.filter(function(x){return x.dd<=30;}).length+' férias vencendo em até 30 dias':'',FO?FO+(FO===1?' folha para fechar':' folhas para fechar'):'',C.length?C.length+(C.length===1?' atualização cadastral':' atualizações cadastrais'):'',S.length?S.length+(S.length===1?' pedido de sócio':' pedidos de sócios'):'',SV.length?SV.length+(SV.length===1?' folha encerrada sem variáveis':' folhas encerradas sem variáveis'):'',LF.length?LF.length+(LF.length===1?' pedido de liberação da folha':' pedidos de liberação da folha'):''].filter(Boolean).join(', ').replace(/^$/,'Nada pendente no DP')+'.</p></div>';
  var nEmp=function(L){var o={};L.forEach(function(x){o[x.e.id]=1;});return Object.keys(o).length;},cnt=function(L,f){return L.filter(f).length;};
- h+=colabCard(CL);
+ h+=dpBloco('col','Colaboradores dos clientes',CL,colabRow,'Nenhum colaborador cadastrado.','Toque num colaborador para ver a ficha completa e o histórico de solicitações.',
+  [cnt(CL,function(x){return !x.d.dem&&x.d.adm!=='Em admissão';})+' ativos',cnt(CL,function(x){return x.d.adm==='Em admissão'&&!x.d.dem;})?cnt(CL,function(x){return x.d.adm==='Em admissão'&&!x.d.dem;})+' em admissão':'',cnt(CL,function(x){return x.d.dem;})?cnt(CL,function(x){return x.d.dem;})+(cnt(CL,function(x){return x.d.dem;})===1?' desligado':' desligados'):''].filter(Boolean).join(' · ')+' · '+nEmp(CL)+(nEmp(CL)===1?' cliente':' clientes'));
  h+=dpBloco('soc','Sócios dos clientes',SC,socioRow,'Nenhum sócio cadastrado.','Toque num sócio para ver os dados e o histórico de pedidos.',
   cnt(SC,function(x){return x.d.pl&&x.d.pl!=='—';})+' com pró-labore · '+nEmp(SC)+(nEmp(SC)===1?' cliente':' clientes'));
  var RC=0,RS=0;emps().forEach(function(e){B(e.id);(ST.rec||[]).forEach(function(r){if(!recAtivo(r))return;if(recAl(r)==='s')RS++;else RC++;});SOCIOS.forEach(function(sn){if((SOCD[sn]||{}).pl&&SOCD[sn].pl!=='—')RS++;});FUNC.forEach(function(fn){if(!(FUNCD[fn]||{}).dem&&recVT(fn))RC++;});});done();
@@ -659,16 +660,18 @@ function vDP(){var A=[],C=[],F=[],P=[],X=[],S=[],SV=[],LF=[],FO=0,EA=0,tot=0;
  h+='<button type="button" class="r solo" data-go="receb"><span class="ri">'+(IC.folha||IC.down)+'</span><span class="rt"><span class="a">Folhas para fechar</span><span class="b">Folhas e variáveis enviadas pelos clientes</span></span>'+(FO?pill('warn',String(FO)):'<span class="cv">'+IC.chev18+'</span>')+'</button>';
  return h;}
 /* lista do DP que expande e recolhe (colaboradores e sócios); recolhida, mostra um resumo. A escolha fica guardada */
-/* resumo de ativos, em admissão e desligados + clientes */
-function colabRes(CL){var c=function(f){return CL.filter(f).length;},at=c(function(x){return !x.d.dem&&x.d.adm!=='Em admissão';}),ad=c(function(x){return x.d.adm==='Em admissão'&&!x.d.dem;}),dm=c(function(x){return x.d.dem;}),o={};CL.forEach(function(x){o[x.e.id]=1;});var ne=Object.keys(o).length;
- return [at+(at===1?' ativo':' ativos'),ad?ad+' em admissão':'',dm?dm+(dm===1?' desligado':' desligados'):'',ne+(ne===1?' cliente':' clientes')].filter(Boolean).join(' · ');}
-function colabAll(){var CL=[];emps().forEach(function(e){B(e.id);Object.keys(FUNCD||{}).forEach(function(nm){CL.push({e:e,nm:nm,d:FUNCD[nm]});});});done();var ord=function(x){return x.d.dem?2:x.d.adm==='Em admissão'?0:1;};CL.sort(function(a,b){return ord(a)-ord(b)||a.nm.localeCompare(b.nm);});return CL;}
-/* botão do DP: abre a tela Colaboradores dos clientes (não expande no lugar) */
-function colabCard(CL){var n=CL.length;return '<button type="button" class="r solo" data-go="colabs"><span class="ri">'+IC.people+'</span><span class="rt"><span class="a">Colaboradores dos clientes</span><span class="b">'+esc(n+(n===1?' colaborador':' colaboradores')+(n?' · '+colabRes(CL):''))+'</span></span><span class="cv">'+IC.chev18+'</span></button>';}
-function vColabs(){var CL=colabAll(),h=hdr('Colaboradores dos clientes','Departamento Pessoal')+empChips('femp',UI.fEmp,1);
- h+='<div class="card">'+(CL.map(colabRow).join('')||'<p class="empty">Nenhum colaborador cadastrado.</p>')+'</div><p class="foot">Toque num colaborador para ver a ficha completa e o histórico de solicitações.</p>';
+/* sócios de todos os clientes, em tela própria (abre do cartão do DP) */
+function vDpSoc(){var SC=[];emps().forEach(function(e){B(e.id);Object.keys(SOCD||{}).forEach(function(nm){SC.push({e:e,nm:nm,d:SOCD[nm]||{}});});});done();
+ var h=hdr('Sócios dos clientes','Dados e histórico de pedidos')+empChips('femp',UI.fEmp,1);
+ h+='<section>'+sec('Sócios','<span class="s">'+SC.length+'</span>')+'<div class="card">'+(SC.map(socioRow).join('')||'<p class="empty">Nenhum sócio cadastrado.</p>')+'</div><p class="foot">Toque num sócio para ver os dados e o histórico de pedidos.</p></section>';
  return h;}
-function dpBloco(k,t,L,row,vazio,foot,res){var ab=!!(UI.dpx||{})[k],n=L.length,ic=k==='col'?IC.people:(IC.pie||IC.pro||IC.people),
+/* colaboradores de todos os clientes, em tela própria (abre do cartão do DP) */
+function vDpCol(){var CL=[];emps().forEach(function(e){B(e.id);Object.keys(FUNCD||{}).forEach(function(nm){CL.push({e:e,nm:nm,d:FUNCD[nm]});});});done();
+ var ord=function(x){return x.d.dem?2:x.d.adm==='Em admissão'?0:1;};CL.sort(function(a,b){return ord(a)-ord(b)||a.nm.localeCompare(b.nm);});
+ var h=hdr('Colaboradores dos clientes','Ficha completa e histórico de solicitações')+empChips('femp',UI.fEmp,1);
+ h+='<section>'+sec('Colaboradores','<span class="s">'+CL.length+'</span>')+'<div class="card">'+(CL.map(colabRow).join('')||'<p class="empty">Nenhum colaborador cadastrado.</p>')+'</div><p class="foot">Toque num colaborador para ver a ficha completa e o histórico de solicitações.</p></section>';
+ return h;}
+function dpBloco(k,t,L,row,vazio,foot,res){if(k==='col'||k==='soc'){var nc=L.length,sc=k==='soc';return '<button type="button" class="r solo" data-go="'+(sc?'dpsoc':'dpcol')+'"><span class="ri">'+(sc?(IC.pie||IC.pro||IC.people):IC.people)+'</span><span class="rt"><span class="a">'+esc(t)+'</span><span class="b">'+esc(nc+(sc?(nc===1?' sócio':' sócios'):(nc===1?' colaborador':' colaboradores'))+(nc?' · '+res:''))+'</span></span><span class="cv">'+IC.chev18+'</span></button>';}var ab=!!(UI.dpx||{})[k],n=L.length,ic=k==='col'?IC.people:(IC.pie||IC.pro||IC.people),
  css=k==='col'?'<style>.dpxc{width:100%;text-align:left}.dpxc .cv svg{transition:transform .2s}.dpxc[aria-expanded="true"] .cv svg{transform:rotate(90deg)}.dpxl{margin-top:8px}</style>':'';
  return css+'<button type="button" class="r solo dpxc" data-dpx="'+k+'" aria-expanded="'+ab+'" aria-controls="dpx-'+k+'"><span class="ri">'+ic+'</span><span class="rt"><span class="a">'+esc(t)+'</span><span class="b">'+esc(n+(k==='col'?(n===1?' colaborador':' colaboradores'):(n===1?' sócio':' sócios'))+(n?' · '+res:''))+'</span></span><span class="cv">'+IC.chev18+'</span></button>'+
   (ab?'<div class="dpxl" id="dpx-'+k+'"><div class="card">'+(L.map(row).join('')||'<p class="empty">'+vazio+'</p>')+'</div><p class="foot">'+foot+'</p></div>':'');}
@@ -1417,7 +1420,7 @@ function edSave(){var v={nome:$('ed-n').value.trim(),fant:$('ed-f').value.trim()
 /* ===== botão + em arco, lista de seleção, calendário, troca de cliente, confirmação e roda de temas
    (mesmos componentes e classes do app do cliente) ===== */
 var fab=null,fm=$('fabmenu'),fov=$('fabov'),ftt=$('fabttl');
-var FABT={inicio:'Início',pedidos:'Pedidos',ped:'Pedido',receb:'Recebidos',arquivo:'Documentos',pasta:'Pasta do cliente',doc:'Documento',folha:'Folha',dp:'Departamento Pessoal',colabs:'Colaboradores',colab:'Colaborador',socio:'Sócio',guias:'Guias de impostos',cguia:'Guia',gestao:'Gestão contábil',gcnotas:'Notas do cofre',fecha:'Fechamento do mês',rec:'Recorrência',recnovo:'Recorrência',lote:'Enviar em lote',desp:'Despesas',chk:'Checklist',novodoc:'Enviar documento',novoguia:'Lançar guia',novoped:'Pedir documento',ajustes:'Ajustes',cli:'Cliente',ajuda:'Ajuda'};
+var FABT={inicio:'Início',pedidos:'Pedidos',ped:'Pedido',receb:'Recebidos',arquivo:'Documentos',pasta:'Pasta do cliente',doc:'Documento',folha:'Folha',dp:'Departamento Pessoal',colab:'Colaborador',socio:'Sócio',guias:'Guias de impostos',cguia:'Guia',gestao:'Gestão contábil',gcnotas:'Notas do cofre',fecha:'Fechamento do mês',rec:'Recorrência',recnovo:'Recorrência',lote:'Enviar em lote',desp:'Despesas',chk:'Checklist',novodoc:'Enviar documento',novoguia:'Lançar guia',novoped:'Pedir documento',ajustes:'Ajustes',cli:'Cliente',ajuda:'Ajuda'};
 /* ações do + conforme a tela aberta (até 6, como no app do cliente) */
 function fabItems(){var h=head(cur),a=cur.slice(h.length+1),eid=eById(a.split('|')[0])?a.split('|')[0]:'',
  U=['novodoc','Enviar documento','up'],R=['novoped','Pedir documento','req'],G=['novoguia','Lançar guia','tax'],CH=['msg','Chat','chat'],AJ=['ajuda','Ajuda','duv'],GS=['guias','Guias','tax'],LT=['lote','Enviar em lote','up'],NC=['cli-novo','Novo cliente','plus'],
@@ -1429,7 +1432,7 @@ function fabItems(){var h=head(cur),a=cur.slice(h.length+1),eid=eById(a.split('|
   case 'arquivo':return [U,R,G,NC,AJ];
   case 'pasta':return [['novodoc-'+a,'Enviar para a pasta','up'],['novoguia-'+eid,'Lançar guia','tax'],['novoped-'+eid,'Pedir documento','req'],ce,AJ];
   case 'doc':case 'folha':return eid?[['novodoc-'+eid,'Enviar documento','up'],['novoped-'+eid,'Pedir documento','req'],ce,AJ]:[U,R,CH,AJ];
-  case 'colabs':case 'dp':return [['rec-all|col','Recorrência','pro'],LT,R,CH,AJ];
+  case 'dp':return [['rec-all|col','Recorrência','pro'],LT,R,CH,AJ];
   case 'colab':case 'socio':return [ce,['novoped-'+eid,'Pedir documento','req'],['novodoc-'+eid,'Enviar documento','up'],AJ];
   case 'guias':return [G,LT,CH,AJ];
   case 'cguia':return eid?[['novoguia-'+eid,'Lançar guia','tax'],ce,GS,AJ]:[G,GS,CH,AJ];
@@ -1602,7 +1605,7 @@ if(d.ctgen){var gv={};document.querySelectorAll('#ctform [data-ck]').forEach(fun
   var cnome='contrato-trabalho-'+(slugCt(cn)||'colaborador')+'.pdf';ST.arq=arqList().filter(function(a){return !(a.quem===cn&&/^Contrato de trabalho/.test(a.n||''));});
   var ca0=arqAdd({n:'Contrato de trabalho · '+cn,arq:cnome,cat:'dp',or:'ct',quem:cn});ca0.ctv=CTG.v;ctPdfArq(ce,cn,cd,CTG.v,cnome);
   avisar('Contrato de '+cn+' disponível','Está em Documentos, na pasta do colaborador','func-'+cn);ativ('Contrato de '+cn+' enviado ao cliente');done();save();CTG=null;
-  fwd=[];hist=hist.filter(function(r){return !/^(ctr|colab)-/.test(r);});var di=hist.lastIndexOf('colabs');if(di>-1)hist=hist.slice(0,di);else hist.push('dp');show('colabs',true);
+  fwd=[];hist=hist.filter(function(r){return !/^(ctr|colab)-/.test(r);});var di=hist.lastIndexOf('dpcol');if(di>-1)hist=hist.slice(0,di);else if(hist.indexOf('dp')<0)hist.push('dp');show('dpcol',true);
   toast('Contrato enviado ao cliente');return;}
  if(t.hasAttribute('data-ctedit')){CTG=null;show(cur,false,true);return;}
  if(d.recsave){var sq=d.recsave.split('|'),soc=sq[1]==='soc',v0=($('rc-v')||{}).value||'',q0=V('rc-q'),t0=V('rc-t'),n0=(($('rc-n')||{}).value||'').trim(),i0=V('rc-i')||compOf();
