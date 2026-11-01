@@ -731,17 +731,17 @@ function vPed(a){var q=a.split('|'),e=eById(q[0]);if(!e)return null;B(e.id);var 
  if(p.f==='comprovante'&&p.st!=='ok'){guiaPagaConclui(p);setTimeout(function(){save();},0);}
  var F=FLOWS[p.f]||{t:p.tipo,i:'sol',a:'docs'};
  var TL=pedTl(p,'ct'),fases=TL.f,at=TL.at;
- var h=hdr(F.t,e.fant||e.nome)+'<div class="card pad"><div class="pt">'+esw(e)+'<span class="rt"><span class="a">'+esc(p.tipo)+(p.quem?' · '+esc(p.quem):'')+'</span><span class="b">Protocolo #'+esc(p.prot||'—')+'</span></span></div></div>';
+ var h=hdr(F.t,e.fant||e.nome)+'<div class="card pad"><div class="pt">'+esw(e)+'<span class="rt"><span class="a">'+esc(p.tipo)+(p.quem?' · '+esc(p.quem):'')+'</span>'+(pedDireto(p)&&p.st!=='voce'?'':'<span class="b">Protocolo #'+esc(p.prot||'—')+'</span>')+'</span></div></div>';
  if(p.cli)h+='<div class="note"><b>Cliente:</b> '+esc(p.cli)+'</div>';
  if(p.gEnv&&p.st!=='ok')h+='<div class="note">Nova guia enviada em '+esc(p.gEnv)+'. O pedido é concluído quando o cliente abrir a guia.</div>';else if(p.gVis)h+='<div class="note">Concluído quando o cliente abriu a nova guia, em '+esc(p.gVis)+'.</div>';
- h+=pedDetHtml(p,true);
- var AQ=arqDoPed(p.id);if(AQ.length)h+='<section>'+sec('Documentos do pedido')+'<div class="card">'+AQ.map(function(x){return docRow(e,x);}).join('')+'</div></section>';
+ var dr0=pedDireto(p)&&p.st!=='voce';h+=pedDetHtml(p,!dr0);
+ var AQ=dr0?[]:arqDoPed(p.id);if(AQ.length)h+='<section>'+sec('Documentos do pedido')+'<div class="card">'+AQ.map(function(x){return docRow(e,x);}).join('')+'</div></section>';
  if((p.resp||[]).length&&p.rsn)h+='<section><div class="card pad">'+(p.rsn?'<p class="foot rcbk">'+((p.rcb||0)>=p.rsn?IC.check16+' Recebido pelo cliente'+(p.rcbH?' em '+esc(p.rcbH):''):'Enviado. Aguardando o app do cliente receber.')+'</p>':'')+'</div></section>';
  if(p.rc)h+='<div class="note">'+(p.cobr?'Recálculo cobrado: '+esc(p.cobr):'Recálculo concluído sem cobrança')+'</div>';
  if(p.f==='libmes'&&p.lk){var lq=p.lk.split('|'),la=libAte(lq[0],lq[1]);
   if(p.st!=='ok'){h+='<section>'+sec('Liberar o envio')+'<div class="card pad"><p class="lead0" style="margin:0 0 10px">O cliente pede para enviar '+esc(LIBN[lq[0]]||lq[0])+' de '+esc(cMes(lq[1]))+', que já foi encerrado. Ao liberar, o mês reabre só para este cliente até a data escolhida.</p><div class="g2b">'+[3,7,15].map(function(d){return '<button type="button" class="wb'+(d===7?' pri':'')+'" data-libdias="'+d+'">Liberar por '+d+' dias</button>';}).join('')+'</div></div></section><div class="fbar"><button type="button" class="cta ghost" data-pst="ok">Recusar e concluir</button></div>';done();CTX={e:e.id,p:p.id};return h;}
   h+='<div class="note">'+(la?'Liberado até '+fmtA(la)+'.':'Pedido concluído sem liberação.')+'</div>';done();CTX={e:e.id,p:p.id};return h;}
- if(pedDireto(p)){h+='<div class="note">'+(p.f==='despesas'?'Despesa lançada pelo cliente. Vai direto para a contabilidade, sem status de acompanhamento. O cliente pode editar até o envio do mês encerrar.':'Recebimento direto: o cliente não vê status de acompanhamento. Dê andamento e, se algo estiver errado, chame o cliente.')+'</div><div class="fbar"><button type="button" class="cta ghost" data-go="chat-'+e.id+'">'+IC.chat+' Chamar o cliente</button></div>';done();CTX={e:e.id,p:p.id};return h;}
+ if(pedDireto(p)){var um0=pedUmArq(p);h+='<div class="fbar row" style="justify-content:center;flex-wrap:wrap">'+(um0?'<button type="button" class="cta" style="flex:0 1 160px" data-dl>'+IC.down16+' Baixar</button><button type="button" class="cta" style="flex:0 1 160px" data-ver>'+VWR_EYE+' Ver</button>':'')+'<button type="button" class="cta" style="flex:0 1 220px" data-go="chat-'+e.id+'">'+IC.chat+' Chamar o cliente</button></div>';done();CTX={e:e.id,p:p.id,a:um0?um0.id:undefined};return h;}
  var gpg=pedGuia(p)&&!!ST.pagas[guiaIdxPed(p)];
  if(gpg)h+='<div class="note">Guia marcada como paga pelo cliente: não dá para responder este pedido. Para responder, o cliente precisa desmarcar a guia como paga.</div>';
  var admCt=p.f==='admissao'&&p.quem&&FUNCD[p.quem]&&!ctEnviado(p.quem); /* admissão: conclui gerando o contrato */
@@ -920,6 +920,15 @@ function vDoc(x){var q=x.split('|'),e=eById(q[0]);if(!e)return null;B(e.id);var 
  var fases,at,stop;
  if(a.or==='cli'){fases=[['Enviado pelo cliente',a.data],['Em conferência',''],[a.st==='dev'?'Devolvido para correção':'Conferido','']];at={enviado:1,analise:1,ok:3,dev:2}[a.st];if(a.st==='analise')at=1;}
  else{fases=[['Enviado por você',a.data],[a.cat==='interno'?'Guardado no arquivo interno':'Disponível para o cliente',''],[a.st==='paga'?'Guia paga':a.cat==='guias'?'Aberta pelo cliente · concluída':'Visto pelo cliente','']];at=a.cat==='interno'?2:a.st==='disp'?1:3;}
+ var pcl=a.or==='cli'&&a.ped&&ST.ped.filter(function(x){return x.id===a.ped&&FLOWS[x.f];})[0];
+ if(pcl){var dirP=arqDireto(a),confP=!dirP&&(a.st==='enviado'||a.st==='analise'),guiP=typeof a.gi==='number',FP=FLOWS[pcl.f];
+  var hp=GC_CSS+hdr(FP.t,e.fant||e.nome)+'<div class="card pad"><div class="pt">'+esw(e)+'<span class="rt"><span class="a">'+esc(pcl.tipo)+(pcl.quem?' · '+esc(pcl.quem):'')+'</span></span></div></div>'+pedDetHtml(pcl,false);
+  if(a.st==='dev')hp+='<div class="note"><b>Motivo da devolução:</b> '+esc(a.mot||'')+'</div>';
+  if(confP)hp+='<div class="fld" id="dv-box" hidden><label class="fl" for="dv-mot">O que precisa ser corrigido?</label><textarea id="dv-mot" rows="3" placeholder="Ex.: O extrato está sem a última semana do mês"></textarea></div>';
+  hp+='<div class="fbar row" style="justify-content:center;flex-wrap:wrap"><button type="button" class="cta" style="flex:0 1 160px" data-dl>'+IC.down16+' Baixar</button><button type="button" class="cta" style="flex:0 1 160px" data-ver>'+VWR_EYE+' Ver</button>';
+  if(confP)hp+='<button type="button" class="cta" style="flex:0 1 220px" data-dconf>'+IC.check16+' '+(guiP?'Conferir e dar baixa':'Marcar como conferido')+'</button>'+(a.st==='enviado'?'<button type="button" class="cta" style="flex:0 1 200px" data-dana>Iniciar conferência</button>':'')+'<button type="button" class="cta" style="flex:0 1 200px" data-ddev>Devolver ao cliente</button>';
+  else if(dirP)hp+='<button type="button" class="cta" style="flex:0 1 200px" data-go="chat-'+e.id+'">'+IC.chat+' Chamar o cliente</button>';
+  hp+='</div>';done();CTX={e:e.id,a:a.id};return hp;}
  var h=GC_CSS+hdr(a.n,e.fant||e.nome)+'<div class="card pad"><div class="pt"><span class="ri">'+(IC[c[2]]||IC.doc)+'</span><span class="rt"><span class="a">'+esc(a.arq||a.n)+'</span><span class="b">'+esc(c[1])+' · '+esc(a.comp)+'</span></span></div></div>'+(window.arqPreview&&!(viaGest()&&a.cat==='extratos')?arqPreview(a):'');
  h+='<section>'+sec('Onde está guardado')+'<div class="rs"><div class="rv"><span>Cliente</span><span>'+esc(e.nome)+'</span></div><div class="rv"><span>Caminho</span><span>'+esc(e.cnpj)+' / '+esc(a.comp)+' / '+esc(c[1])+'</span></div><div class="rv"><span>Enviado por</span><span>'+(a.or==='ct'?'Escritório':'Cliente')+'</span></div><div class="rv"><span>Quem vê</span><span>'+(a.cat==='interno'?'Só o escritório':'Cliente e escritório')+'</span></div></div></section>';
  if(a.st==='dev')h+='<div class="note"><b>Motivo da devolução:</b> '+esc(a.mot||'')+'</div>';
