@@ -67,6 +67,8 @@
  /* endereço do arquivo de um registro */
  window.arqUrl=function(a){if(!a)return '';if(a.fileId){var bu=blobUrl(a.fileId);if(bu||!FILES[a.arq])return bu;}var f=FILES[a.arq];if(f){if(f.id&&!a.fileId){a.fileId=f.id;a.ftype=f.type;}return f.url;}return '';};
  window.arqTipo=function(a){if(!a)return '';return a.ftype||(FILES[a.arq]||{}).type||TYPES[ext(a.arq)]||'';};
+ /* baixa de verdade (atributo download), com o nome do arquivo; funciona também no app instalado, onde abrir em outra aba pode ser bloqueado */
+ window.baixarArquivo=function(a){var u=arqUrl(a);if(!u)return false;var l=document.createElement('a');l.href=u;l.download=a.arq||a.n||'arquivo';l.rel='noopener';l.style.display='none';document.body.appendChild(l);l.click();setTimeout(function(){l.remove();},1000);return true;};
  window.abrirArquivo=function(a){var u=arqUrl(a);if(!u)return false;var l=document.createElement('a');l.href=u;l.target='_blank';l.rel='noopener';document.body.appendChild(l);l.click();l.remove();return true;};
  /* bloco de visualização para a tela do arquivo */
  window.arqPreview=function(a){var u=arqUrl(a),t=arqTipo(a);

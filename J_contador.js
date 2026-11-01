@@ -985,7 +985,7 @@ function ctTextoPdf(html){var D=new DOMParser().parseFromString(String(html),'te
 /* contrato em PDF de verdade (o mesmo texto da tela), guardado como arquivo: cliente e contador visualizam e baixam */
 function ctPdfArq(e,nm,d,v,nome){var L=ctTextoPdf(ctDoc(e,nm,d,v)),pag=[],y=0;L.forEach(function(l){if(!pag.length||y<50){pag.push('');y=800;}
   if(l[0])pag[pag.length-1]+='BT /'+(l[2]||'F1')+' '+l[1]+' Tf 40 '+y+' Td '+holeStr(l[0])+' Tj ET\n';y-=l[1]+5;});
- var f=new File([holePdfN(pag)],nome,{type:'application/pdf'});if(window.upFiles)upFiles([f]);return nome;}
+ var f=new File([holePdfN(pag)],nome,{type:'application/pdf'});if(window.upFiles)upFiles([f]);return Promise.resolve(window.FILES&&FILES[nome]&&FILES[nome].pend);}
 function slugCt(t){return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
 function arqPdf(nome,L){var u=txtPdf(L),file=new File([u],nome,{type:'application/pdf'});if(window.upFiles)upFiles([file]);return nome;}
 function seedAnaArquivos(){var d=MULTI.data&&MULTI.data.alvorada;if(!d||d.seedAnaArq3)return;
@@ -1604,12 +1604,14 @@ document.addEventListener('click',function(ev){var t=ev.target.closest('[data-ve
  if(t.hasAttribute('data-ltsend')){loteEnviar();return;}
 if(d.ctgen){var gv={};document.querySelectorAll('#ctform [data-ck]').forEach(function(i){gv[i.dataset.ck]=i.value;});if(!gv.NOME||!gv.FUNC){toast('Preencha o nome e a função do colaborador');return;}
   CTG={k:d.ctgen,v:gv};show(cur,false,true);return;}
- if(t.hasAttribute('data-ctsend')){if(!CTG)return;var cq=CTG.k.split('|'),ce=eById(cq[0]),cn=cq.slice(1).join('|');if(!ce)return;B(ce.id);var cd=FUNCD[cn];if(!cd){done();return;}
-  var cnome='contrato-trabalho-'+(slugCt(cn)||'colaborador')+'.pdf';ST.arq=arqList().filter(function(a){return !(a.quem===cn&&/^Contrato de trabalho/.test(a.n||''));});
-  var ca0=arqAdd({n:'Contrato de trabalho · '+cn,arq:cnome,cat:'dp',or:'ct',quem:cn});ca0.ctv=CTG.v;ctPdfArq(ce,cn,cd,CTG.v,cnome);
-  avisar('Contrato de '+cn+' disponível','Está em Documentos, na pasta do colaborador','func-'+cn);ativ('Contrato de '+cn+' enviado ao cliente');done();save();CTG=null;
-  fwd=[];hist=hist.filter(function(r){return !/^(ctr|colab)-/.test(r);});var di=hist.lastIndexOf('dpcol');if(di>-1)hist=hist.slice(0,di);else if(hist.indexOf('dp')<0)hist.push('dp');show('dpcol',true);
-  toast('Contrato enviado ao cliente');return;}
+ if(t.hasAttribute('data-ctsend')){if(!CTG||CTG.env)return;var cq=CTG.k.split('|'),ce=eById(cq[0]),cn=cq.slice(1).join('|');if(!ce)return;B(ce.id);var cd=FUNCD[cn];done();if(!cd)return;
+  /* o registro só entra depois que o arquivo está guardado: assim o cliente já recebe o contrato com o arquivo para baixar */
+  CTG.env=1;t.disabled=true;var cnome='contrato-trabalho-'+(slugCt(cn)||'colaborador')+'.pdf',cv=CTG.v;
+  ctPdfArq(ce,cn,cd,cv,cnome).catch(function(){}).then(function(){B(ce.id);ST.arq=arqList().filter(function(a){return !(a.quem===cn&&/^Contrato de trabalho/.test(a.n||''));});
+   var ca0=arqAdd({n:'Contrato de trabalho · '+cn,arq:cnome,cat:'dp',or:'ct',quem:cn});ca0.ctv=cv;
+   avisar('Contrato de '+cn+' disponível','Está em Documentos, na pasta do colaborador','func-'+cn);ativ('Contrato de '+cn+' enviado ao cliente');done();save();CTG=null;
+   fwd=[];hist=hist.filter(function(r){return !/^(ctr|colab)-/.test(r);});var di=hist.lastIndexOf('dpcol');if(di>-1)hist=hist.slice(0,di);else if(hist.indexOf('dp')<0)hist.push('dp');show('dpcol',true);
+   toast('Contrato enviado ao cliente');});return;}
  if(t.hasAttribute('data-ctedit')){CTG=null;show(cur,false,true);return;}
  if(d.recsave){var sq=d.recsave.split('|'),soc=sq[1]==='soc',v0=($('rc-v')||{}).value||'',q0=V('rc-q'),t0=V('rc-t'),n0=(($('rc-n')||{}).value||'').trim(),i0=V('rc-i')||compOf();
   if(!errOn('rc-err',!q0?(soc?'Escolha o sócio':'Escolha o colaborador'):!t0?'Escolha o lançamento':!money(v0)?'Digite o valor':n0&&!(/^\d{1,3}$/.test(n0)&&+n0>=1&&+n0<=240)?'Parcelas: um número de 1 a 240':''))return;
