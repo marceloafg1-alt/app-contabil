@@ -746,7 +746,7 @@ function vPed(a){var q=a.split('|'),e=eById(q[0]);if(!e)return null;B(e.id);var 
  if(gpg)h+='<div class="note">Guia marcada como paga pelo cliente: não dá para responder este pedido. Para responder, o cliente precisa desmarcar a guia como paga.</div>';
  var admCt=p.f==='admissao'&&p.quem&&FUNCD[p.quem]&&!ctEnviado(p.quem); /* admissão: conclui gerando o contrato */
  if(p.st!=='ok'&&!gpg&&admCt){
-  h+='<section><div class="form"><div class="fld"><label class="fl" for="pd-msg">Mensagem <i>(opcional)</i></label><textarea id="pd-msg" rows="3" placeholder="Vai para o pedido e para o chat do cliente"></textarea></div><button type="button" class="wb" data-go="chat-'+e.id+'">'+IC.chat+' Falar com '+esc(escDados().fant||escDados().razao||'o cliente')+'</button></div></section>';}
+  h+='<section><div class="form"><div class="fld"><label class="fl" for="pd-msg">Mensagem <i>(opcional)</i></label><textarea id="pd-msg" rows="3" placeholder="Vai para o pedido e para o chat do cliente"></textarea></div><button type="button" class="wb" data-pmsg>'+IC.chat+' Falar com '+esc(escDados().fant||escDados().razao||'o cliente')+'</button></div></section>';}
  else if(p.st!=='ok'&&!gpg){
   h+='<section>'+sec('Responder ao cliente')+(pedGuia(p)?'<div class="card pad"><p class="lead0" style="margin:0 0 10px">'+(GUIA_NOVA.indexOf(p.f)>-1?'Envie o novo PDF da guia, com os dados atualizados, ou peça uma ação ao cliente.':'Responda ao cliente ou peça uma ação a ele.')+'</p><button type="button" class="cta" data-presp>'+IC.chat+' Responder ao cliente</button></div>':'<div class="chips" style="margin-bottom:8px">'+['Documento incompleto','Arquivo ilegível','Nota cancelada','Falta assinatura','Mês errado','Valor diferente'].map(function(m){return '<button type="button" class="chip" data-motivo="'+m+'">'+m+'</button>';}).join('')+'</div>'+(gOfPed(p)?'<label class="r tgl" style="padding:6px 0"><span class="rt"><span class="a">Liberar o mês por 7 dias para correção</span><span class="b">Ao pedir ação ao cliente, o envio de '+esc(cMes(gOfPed(p)[1]))+' reabre para ele corrigir</span></span><input type="checkbox" id="pd-lib" checked style="width:22px;height:22px"></label>':'')+'<div class="form"><div class="fld"><label class="fl" for="pd-msg">Mensagem '+(p.f==='ferias'?'<i>(opcional)</i>':'<i>(obrigatória ao pedir ação)</i>')+'</label><textarea id="pd-msg" rows="3" placeholder="Vai para o pedido e para o chat do cliente"></textarea></div>'+
   txt('pd-doc','Documento pronto','Ex.: Contrato de trabalho · '+(p.quem||'cliente'),'',1)+fileF('pd-arq')+'<p class="fh">Pasta: <b>'+esc(catOf(catPed(p))[1])+'</b>, definida pelo tipo do pedido.</p></div>')+'</section>';}
@@ -835,6 +835,12 @@ function ajustaFunc(p){var sal=function(v){return v.replace(/^R\$\s*/,'');};
  if(p.f==='jornada'){var j2=dvP(p,/nova jornada/i);if(j2)f.jor=j2;}
  if(p.f==='turno'){var t2=dvP(p,/novo turno/i),h2=dvP(p,/novo hor/i);if(t2)f.tur=t2+(h2?' · '+h2:'');}
  if(p.f==='demissao')f.dem=dvP(p,/[úu]ltimo dia/i)||hoje();}
+/* envia só a mensagem escrita (ao pedido e ao chat do cliente), sem mudar a situação do pedido */
+function pedMsg(){var c=CTX;if(!c)return;B(c.e);var p=ST.ped.filter(function(x){return x.id===c.p;})[0];if(!p){done();return;}
+ var ta=$('pd-msg'),msg=((ta||{}).value||'').trim();if(!msg){done();toast('Escreva a mensagem para o cliente');if(ta)ta.focus();return;}
+ p.resp=p.resp||[];p.resp.push([msg,agora()]);ST.chat.push({me:0,t:msg,h:agora(),go:'ped-'+p.id,gl:'Ver pedido'});ST.unread=(ST.unread||0)+1;p.rsn=(p.rsn||0)+1;
+ avisar('Mensagem do contador',p.tipo+(p.quem?' · '+p.quem:''),'ped-'+p.id);ativ('Mensagem enviada · '+p.tipo+(p.quem?' · '+p.quem:''));
+ ta.value='';commit('Mensagem enviada ao cliente');}
 function pedAct(st){var c=CTX;if(!c)return;B(c.e);var p=ST.ped.filter(function(x){return x.id===c.p;})[0];if(!p)return;
  var gp=pedGuia(p),msg=(($('pd-msg')||{}).value||'').trim()||(pedAct.msg||''),doc=gp?'':(($('pd-doc')||{}).value||'').trim(),cat=catPed(p),arq=gp?'':fileName('pd-arq'),lbl=p.tipo+(p.quem?' · '+p.quem:'');
  if(!doc&&arq)doc=arq.replace(/\.[^.]+$/,'');
@@ -1629,6 +1635,7 @@ if(d.ctgen){var gv={};document.querySelectorAll('#ctform [data-ck]').forEach(fun
  if(d.dpx){UI.dpx=UI.dpx||{};UI.dpx[d.dpx]=!UI.dpx[d.dpx];keep();rerender();return;}
  if(t.id==='pd-arq-x'){var px=$('pd-arq');if(px){px.value='';px.dispatchEvent(new Event('change',{bubbles:true}));}return;}if(t.hasAttribute('data-presp')){rspOpen();return;}if(t.hasAttribute('data-rsend')){pedResp();return;}if(t.hasAttribute('data-rclose')){rspClose();return;}
  if(d.pstct){var pc=d.pstct.split('|'),pm0=$('pd-msg');CTPED={e:pc[0],p:CTX&&CTX.p,msg:((pm0||{}).value||'').trim()};var pce=eById(pc[0]);if(pce){B(pce.id);var pcd=FUNCD[pc[1]],pcv=pcd?ctPre(pce,pc[1],pcd):null;done();if(pcv&&pcv.NOME&&pcv.FUNC)CTG={k:d.pstct,v:pcv};}hist.push(cur);show('ctr-'+d.pstct);return;}
+ if(t.hasAttribute('data-pmsg')){pedMsg();return;}
  if(d.pst){pedAct(d.pst);return;}
  if(t.hasAttribute('data-dconf')){var cc=CTX&&CTX.a&&(B(CTX.e),arqGet(CTX.a));done();if(cc&&cc.or==='cli'&&typeof cc.gi==='number'){askGen({e:eById(CTX.e),t:'Conferir e dar baixa?',d:'A guia sai de "A pagar" no app do cliente e vai para Guias pagas.',ok:'Dar baixa',cb:function(){docAct('conf');}});}else docAct('conf');return;}
  if(t.hasAttribute('data-dana')){docAct('ana');return;}
