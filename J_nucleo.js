@@ -609,6 +609,11 @@ function consultaCPF(c,tipo){var d=(c||'').replace(/\D/g,'').split('').map(Numbe
  return {nome:nome,nasc:ano+'-'+('0'+mes).slice(-2)+'-'+('0'+dia).slice(-2)};}
 function cnpjOk(c){c=(c||'').replace(/\D/g,'');if(c.length!==14||/^(\d)\1+$/.test(c))return false;var t=function(n){var w=n===12?[5,4,3,2,9,8,7,6,5,4,3,2]:[6,5,4,3,2,9,8,7,6,5,4,3,2],s=0;for(var i=0;i<n;i++)s+=+c[i]*w[i];var r=s%11;return r<2?0:11-r;};return t(12)===+c[12]&&t(13)===+c[13];}
 var PRE=null;
+/* editar despesa: o mesmo formulário do cadastro, já preenchido; ao salvar, atualiza o pedido que já existe */
+FLOWS.despedit=Object.assign({},FLOWS.despesas,{t:'Editar despesa',btn:'Salvar alterações',ok:'Despesa atualizada',okS:'As alterações foram enviadas ao contador.',who:'desc'});
+function despPre(p){var g=function(rx){return despDv(p,rx);},sit=g(/^situa/i),lc=g(/^lan[cç]/i),mo=function(x){return x&&x!=='—'?x:'';};
+ var r={__pid:p.id,comp:despComp(p),cat:g(/^categoria/i),desc:p.quem||g(/^descri/i),val:g(/^valor/i).replace(/^R\$\s*/,''),emis:brIso(g(/^emiss/i)),venc:brIso(g(/^vencimento/i)),tipo:mo(g(/^tipo/i)),sit:/^paga$/i.test(sit)?'Paga':'Não paga',lanc:/recorr/i.test(lc)&&!/^n[aã]o/i.test(lc)?'Recorrente':'Não recorrente',recate:brIso(g(/^recorrente at/i)),obs:mo(g(/^obs/i))};
+ return r;}
 function startFlow(id){FS={id:id,step:0,v:{},err:{}};if(id==='solicitado'){var paF=pedAberto();FLOWS.solicitado.steps[0].f[0].l=paF?'O contador pediu: '+pedNome(paF)+', até '+fmtP(pedLim(paF))+'.':'Não há pedido de documento em aberto. Se quiser, envie mesmo assim.';}var F=FLOWS[id];if(PRE){if(PRE.fid&&id==='folha'){var g=getFolha(PRE.fid);if(g){FS.fid=g.id;FS.v={comp:g.comp,func:g.func,tipo:g.tipo,vars:JSON.parse(JSON.stringify(g.vars||{})),sem:g.sem,obs:g.obs};FS.step=1;}}else for(var q in PRE)FS.v[q]=PRE[q];PRE=null;if(id==='notas'&&FS.v.comp&&FS.v.tipo&&compOk('cofre',FS.v.comp))FS.step=1;}
  F.steps.forEach(function(s){s.f.forEach(function(x){if(x.type==='mes'&&x.g&&!FS.fid&&!FS.v.atraso&&!compOk(x.g,FS.v[x.k])){FS.v[x.k]=abertas(x.g==='folha'?'folha':'docs').filter(function(c){return compOk(x.g,c);})[0]||'';}});});
  if(F.steps.some(function(s){return s.f.some(function(f){return f.type==='vargrid';});}))FS.v.grid={};}
@@ -663,6 +668,7 @@ function renderFlow(){var F=FLOWS[FS.id],n=F.steps.length,last=FS.step===n,done=
  if(!F.um)h+='<div class="stp"><div class="sl"><span>Etapa '+(FS.step+1)+' de '+(n+1)+'</span><b>'+(last?(F.rev||'Revisar e enviar'):esc(F.steps[FS.step].t))+'</b></div><div class="sb">'+Array.apply(null,Array(n+1)).map(function(_,i){return '<i class="'+(i<=FS.step?'on':'')+'"></i>';}).join('')+'</div></div>';
  if(last){h+='<div class="rev">'+F.steps.map(function(s,i){if(s.when&&!s.when(FS.v))return '';return '<div class="rs"><div class="rsh"><b>'+esc(s.t)+'</b><button type="button" class="lnk" data-edit="'+i+'">Editar</button></div>'+s.f.filter(function(f){return f.type!=='note'&&f.type!=='calc'&&f.type!=='sec'&&f.type!=='ro'&&!(whenOff(f));}).map(function(f){return '<div class="rv"><span>'+esc(f.l)+'</span><span>'+showVal(f)+'</span></div>';}).join('')+'</div>';}).join('')+'</div>';}
  else h+=(FS.achou&&F.steps[FS.step].f.some(function(f){return f.auto;})?'<div class="note okn">'+IC.check16+' CPF '+esc(FS.v.cpf)+' encontrado. Confira os dados abaixo; se algo estiver errado, é só corrigir.</div>':'')+'<div class="form">'+F.steps[FS.step].f.map(function(f){return fieldHTML(FS.id,f);}).join('')+'</div>';
+ if(FS.id==='despedit'&&!last){h+='<div class="fbar row" style="justify-content:center"><button type="button" class="cta" style="flex:0 1 260px" data-next>Salvar alterações</button><button type="button" class="cta ghost" style="flex:0 1 260px" data-dedel="'+FS.v.__pid+'">Excluir despesa</button></div>';return h;}
  h+=(last&&FS.id==='folha')?'<div class="fbar row"><button type="button" class="cta ghost" data-finfolha>Finalizar folha</button><button type="button" class="cta" data-next>Enviar ao contador</button></div>':'<div class="fbar"><button type="button" class="cta" data-next'+(FS.busy?' disabled':'')+'>'+(FS.busy?'<span class="spin"></span> Consultando CPF…':(last||F.um)?(F.btn||'Enviar para o contador'):'Continuar')+'</button></div>';
  return h;}
 function validate(){var F=FLOWS[FS.id],s=F.steps[FS.step];FS.err={};
@@ -686,6 +692,10 @@ function validate(){var F=FLOWS[FS.id],s=F.steps[FS.step];FS.err={};
   if(f.type==='cnpj'&&v){if(!cnpjOk(v))FS.err[f.k]='CNPJ inválido. Confira os 14 números';else if(MULTI.emps.some(function(e){return e.cnpj.replace(/\D/g,'')===v.replace(/\D/g,'');}))FS.err[f.k]='Este CNPJ já está no app';}});
  return !Object.keys(FS.err).length;}
 function submit(){var F=FLOWS[FS.id];
+ if(FS.id==='despedit'){var pe=ST.ped.filter(function(x){return x.id===FS.v.__pid;})[0];if(!pe||encSt('despesas',despComp(pe))!=='aberto'){FS.res='';FS.ped=null;return;}
+  var cmp0=despDv(pe,/^comprov/i),nd=pedDados();if(!(FS.v.arq||[]).length&&cmp0)nd.forEach(function(d){if(/^comprov/i.test(d[0]))d[1]=cmp0;});
+  pe.dados=nd;pe.quem=FS.v.desc;pe.ed=hoje();if((FS.v.arq||[]).length)arqFromFlow('despesas',FS.v,pe.id,FS.v.desc,null);
+  FS.res=pe.prot;FS.ped=pe.id;ST.act.unshift(['Despesa editada · '+FS.v.desc,'Agora',1,NOW().getTime()]);save();renderLists();return;}
  if(FS.id==='empresa'){var nid=addEmp(FS.v);FS.res=FS.v.cnpj;FS.ped=null;save();if(window.switchEmp)switchEmp(nid,true);return;}
  if(FS.id==='senha'){ST.pwdAt='agora';FS.res='';FS.ped=null;save();return;}
  if(FS.id==='convite'){USR().push({n:FS.v.nome,e:FS.v.email,r:FS.v.perfil,pend:1});FS.res='';FS.ped=null;ST.act.unshift(['Convite enviado · '+FS.v.nome,'Agora',1,NOW().getTime()]);save();renderLists();return;}
